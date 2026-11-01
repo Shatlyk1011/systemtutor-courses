@@ -1,0 +1,419 @@
+---
+title: "Organizing CSS"
+---
+
+{/* Topics to cover: Organizing CSS; Naming and BEM; Nesting and Layers. */}
+
+## Organizing CSS
+
+**CSS architecture** means how you organize your styles: where rules live, what they style, and how you share values. Good organization helps you change one part without accidentally affecting another.
+
+### Give rules clear responsibilities
+
+Start with a small number of recognizable groups:
+
+| Group | Responsibility |
+| --- | --- |
+| Shared values | Colors, spacing, and other repeated design decisions. |
+| Base styles | Defaults for the document and common HTML elements. |
+| Layout | Arrangement of page regions and collections. |
+| Components | Appearance of reusable interface pieces. |
+| Utilities | A narrow, reusable adjustment. |
+
+These groups can begin as commented sections in one stylesheet. Split them into files when that makes navigation easier; a small page does not need a large folder system. Keep naming and formatting consistent.
+
+### Separate layout from a component
+
+```html
+<div class="team-grid">
+  <article class="profile-card">
+    <h2 class="profile-card__title">Alex Morgan</h2>
+    <p>Design lead.</p>
+  </article>
+  <article class="profile-card">
+    <h2 class="profile-card__title">Sam Rivera</h2>
+    <p>Frontend developer.</p>
+  </article>
+</div>
+```
+
+```css
+/* Shared values */
+:root {
+  --color-ink: #17352a;
+  --color-panel: #e7f3ec;
+  --space-panel: 1.25rem;
+}
+
+/* Base */
+body {
+  margin: 0;
+  font: 1rem / 1.5 system-ui, sans-serif;
+  color: var(--color-ink);
+}
+
+/* Layout */
+.team-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+  gap: 1rem;
+}
+
+/* Component */
+.profile-card {
+  padding: var(--space-panel);
+  background: var(--color-panel);
+  border: 1px solid var(--color-ink);
+  border-radius: 0.75rem;
+}
+
+.profile-card__title {
+  margin-block: 0 0.5rem;
+}
+```
+
+The grid arranges the cards and sets their gaps. Each card controls its own padding, border, and background. You can reuse a card in another layout without taking the grid rules with it.
+
+Changing `--color-panel` updates every declaration that uses it. Share a value when those styles should change together, not just because their current values happen to match.
+
+### Keep dependencies visible
+
+Prefer a component class over a long selector tied to the page's exact nesting. A rule such as `.dashboard main section article h2` can stop matching after a harmless markup change, or style an unintended heading.
+
+When splitting files, decide which file is the entry point and how the project loads the others. Moving rules into separate files does not create isolation: selectors still participate in the cascade when their stylesheets are loaded. Preserve deliberate order and document unusual overrides.
+
+### Refactor one responsibility at a time
+
+Find a repeated pattern, turn it into one shared component, and check every place that uses it. Test narrow and wide layouts plus states such as focus and errors. Once it works, remove the old rules.
+
+### Separate layout from component ownership
+
+A list has `.team-grid { gap: 1rem; }` and `.profile-card { padding: 1.25rem; }`. Which rule controls the space between cards, and which controls space inside each card?
+
+<details>
+<summary>Check your reasoning</summary>
+
+The grid owns the gap between items; the card owns its internal padding. Moving a card to another container does not carry the grid’s gap with it.
+
+</details>
+
+Now take the next decision yourself: A second layout needs a larger gap but the same cards. Where should the new gap go, and why should the card padding stay?
+
+<details>
+<summary>Check your reasoning</summary>
+
+Put the new gap on the second layout container. The same card padding still describes each card’s interior.
+
+</details>
+
+### Key Takeaways
+
+- **Responsibilities:** Separate shared values, defaults, layouts, and components.
+- **Ownership:** Let containers arrange items and components style their interiors.
+- **Files:** Splitting a stylesheet improves navigation but does not isolate selectors.
+- **Refactoring:** Extract one pattern and verify its uses before removing old rules.
+
+### Try it yourself
+
+A page has `.news-list` arranging three `.story-card` elements. Each card needs padding; the list needs a gap. Write one rule for each responsibility, using `1rem` for both. Explain what changes if the cards move to a different container.
+
+Check your work against these criteria:
+
+- Address each part of the scenario using the mechanism taught in this lesson.
+- Explain the decision and its effect, rather than only naming a tool or selector.
+- Compare your answer with the reasoning below; equivalent correct solutions are welcome.
+
+<details>
+<summary>Hint 1</summary>
+
+Look for the element whose children need spacing.
+
+</details>
+
+<details>
+<summary>Hint 2</summary>
+
+Use `gap` on the layout and `padding` on the card.
+
+</details>
+
+<details>
+<summary>Check your reasoning</summary>
+
+For example, `.news-list { display: grid; gap: 1rem; }` and `.story-card { padding: 1rem; }`. A new container controls the spacing between cards; each card retains its padding.
+
+</details>
+
+## Naming and BEM
+
+**BEM** stands for **Block, Element, Modifier**. It is a way to name classes for a component, its parts, and its variations.
+
+### Identify the three roles
+
+| Role | Meaning | Example |
+| --- | --- | --- |
+| Block | A component that has a meaningful identity on its own. | `profile-card` |
+| Element | A part that belongs to the block. | `profile-card__title` |
+| Modifier | A variation of a block or element. | `profile-card--featured` |
+
+This lesson uses the two-dashes naming style: `block__element--modifier`. BEM has other naming styles; choose one convention and use it consistently. See the [BEM naming conventions](https://bem.info/en/methodology/naming-convention/).
+
+### Keep the base class with its modifier
+
+```html
+<!-- [!code word:profile-card--featured] -->
+<article class="profile-card profile-card--featured">
+  <h2 class="profile-card__title">Alex Morgan</h2>
+  <p class="profile-card__description">Design lead based in London.</p>
+  <a class="profile-card__link" href="/people/alex">View details</a>
+</article>
+```
+
+```css
+.profile-card {
+  padding: 1.25rem;
+  color: #17352a;
+  background: #ffffff;
+  border: 1px solid #64748b;
+  border-radius: 0.75rem;
+}
+
+.profile-card__title {
+  margin-block: 0 0.5rem;
+  font-size: 1.25rem;
+}
+
+.profile-card__description {
+  margin-block: 0 1rem;
+}
+
+.profile-card__link {
+  color: inherit;
+  text-underline-offset: 0.2em;
+}
+
+/* [!code word:profile-card--featured] */
+.profile-card--featured {
+  background: #e7f3ec;
+  border-color: #17352a;
+}
+```
+
+Keep both classes on the featured card. `profile-card` supplies the base styles, including padding and rounded corners. `profile-card--featured` only changes the surface and border colors. Replace the example link with your page URL.
+
+BEM names describe component roles rather than a particular tag or current color. `profile-card__title` remains useful if the heading level changes. `green-heading` becomes confusing when the design changes to another color. See the [BEM quick start](https://bem.info/en/methodology/quick-start/).
+
+### Keep names independent of HTML nesting
+
+If a title sits inside a card header, it can still be `profile-card__title`. It does not need a name such as `profile-card__header__title`. An element belongs to its block, even when other markup sits between them.
+
+If an internal piece becomes independently reusable, consider making it another block. A reusable button inside a card can keep its own `button` class instead of having its whole identity tied to that card.
+
+### Remember that BEM is a naming convention
+
+Double underscores and double dashes have no special scoping behavior in CSS. `.profile-card__title` is an ordinary class selector. Another stylesheet can still target it, and normal cascade rules still resolve conflicts.
+
+Clear names reduce accidental collisions; they do not replace stylesheet organization or sensible selector specificity. Keep selectors simple instead of repeatedly adding ancestors to overpower earlier rules.
+
+### Keep the base and modifier distinct
+
+A featured card has `class="profile-card profile-card--featured"`. What does the base class provide that the modifier does not?
+
+<details>
+<summary>Check your reasoning</summary>
+
+The base rule supplies the shared card styles, including padding. The modifier changes only the featured colors.
+
+</details>
+
+Now take the next decision yourself: A card title is inside a header. Should its class be `profile-card__header__title` or `profile-card__title` in this convention? Why?
+
+<details>
+<summary>Check your reasoning</summary>
+
+Use `profile-card__title`: the element belongs to the block, regardless of intermediate markup.
+
+</details>
+
+### Key Takeaways
+
+- **Block:** Name a reusable component by its role.
+- **Element:** Name a component part without mirroring every HTML ancestor.
+- **Modifier:** Add a variation alongside the base class.
+- **Convention:** BEM improves clarity but does not create technical isolation.
+
+### Try it yourself
+
+Name a `notice` block, its message element, and an urgent block modifier using the convention in this lesson. Write HTML for an urgent notice with both required block classes and a paragraph for the message. Explain why the modifier alone is insufficient when it contains only variation styles.
+
+Check your work against these criteria:
+
+- Address each part of the scenario using the mechanism taught in this lesson.
+- Explain the decision and its effect, rather than only naming a tool or selector.
+- Compare your answer with the reasoning below; equivalent correct solutions are welcome.
+
+<details>
+<summary>Hint 1</summary>
+
+An element uses two underscores; a modifier uses two dashes.
+
+</details>
+
+<details>
+<summary>Hint 2</summary>
+
+The urgent notice needs both the base and modifier class values on the same element.
+
+</details>
+
+<details>
+<summary>Check your reasoning</summary>
+
+For example: `<section class="notice notice--urgent"><p class="notice__message">Act now</p></section>`. The base class supplies shared styles; the modifier only changes the variation.
+
+</details>
+
+## Nesting and Layers
+
+**Nesting** keeps related selectors together. **Cascade layers** set the priority of groups of rules. You can use either or both to organize CSS.
+
+### Group related rules with nesting
+
+```html
+<article class="article-card">
+  <h2 class="article-card__title">CSS layout guide</h2>
+  <a class="article-card__link" href="/articles/css-layout">Details</a>
+</article>
+```
+
+```css
+/* [!code word:&] */
+.article-card {
+  padding: 1.25rem;
+  color: #17352a;
+  background: #e7f3ec;
+  border: 1px solid;
+  border-radius: 0.75rem;
+
+  & .article-card__title {
+    margin-block: 0 0.5rem;
+  }
+
+  & .article-card__link {
+    color: inherit;
+
+    &:focus-visible {
+      outline: 3px solid #1d4ed8;
+      outline-offset: 3px;
+    }
+  }
+}
+```
+
+`&` represents the parent selector. Here, `& .article-card__title` matches a title inside a card, while `&:focus-visible` attaches the pseudo-class to the link itself. Omitting the space changes the relationship.
+
+Browsers with native nesting support can read this CSS directly, without Sass. Check support in your target browsers, and keep nesting shallow so the selectors stay easy to follow.
+
+Nesting does not make names private. It also adds selector relationships: in this example, the title rule is more specific than a standalone `.article-card__title` rule. Avoid nesting merely to reproduce every HTML level.
+
+### Declare layer order explicitly
+
+This separate example uses flat selectors so the priority decision is easy to see:
+
+```html
+<article class="article-card compact">CSS layout guide</article>
+```
+
+```css
+/* [!code word:@layer] */
+@layer base, components, utilities;
+
+@layer base {
+  article {
+    line-height: 1.5;
+  }
+}
+
+@layer components {
+  .article-card {
+    padding: 1.25rem;
+    border: 1px solid #17352a;
+  }
+}
+
+@layer utilities {
+  .compact {
+    padding: 0.5rem;
+  }
+}
+```
+
+For these normal declarations, the later `utilities` layer wins, giving the card `0.5rem` padding. The browser compares layers before specificity. Within the same layer, specificity and source order still matter.
+
+Declaring the order at the top makes the intended priority visible even when layer blocks are spread across files.
+
+### Watch the boundaries
+
+Normal unlayered author rules outrank normal layered author rules. Leaving an old unlayered `.article-card` rule elsewhere can therefore defeat the expected layered padding.
+
+For `!important` declarations, layer order reverses: earlier layers take priority, and layered important declarations outrank unlayered important declarations. Do not use `!important` to patch a layer system without understanding that reversal.
+
+Layers do not create component scope, and nesting does not establish layer priority. Choose each feature for the problem it actually solves.
+
+### Trace selector and layer priority
+
+In the nesting example, does `&:focus-visible` select the link or a descendant of the link?
+
+<details>
+<summary>Check your reasoning</summary>
+
+It selects the link itself in its focus-visible state. There is no descendant space before the pseudo-class.
+
+</details>
+
+Now take the next decision yourself: With normal declarations in `@layer base, components`, which wins: `#notice` in base or `.notice` in components? Why?
+
+<details>
+<summary>Check your reasoning</summary>
+
+The later components layer wins for normal declarations before specificity is compared.
+
+</details>
+
+### Key Takeaways
+
+- **Nesting:** Keep related selectors together and use `&` to express relationships.
+- **Layers:** Declare override priority before comparing specificity within a layer.
+- **Unlayered rules:** Normal unlayered author styles outrank normal layered ones.
+- **Importance:** Important declarations reverse the normal layer ordering.
+
+### Try it yourself
+
+Given `@layer base, components;`, a base rule `#banner { color: red; }`, and a components rule `.banner { color: blue; }`, determine the color of `<p id="banner" class="banner">`. Then add an unlayered normal `.banner { color: green; }` and determine the new color. Explain both decisions.
+
+Check your work against these criteria:
+
+- Address each part of the scenario using the mechanism taught in this lesson.
+- Explain the decision and its effect, rather than only naming a tool or selector.
+- Compare your answer with the reasoning below; equivalent correct solutions are welcome.
+
+<details>
+<summary>Hint 1</summary>
+
+Compare layer priority before selector specificity.
+
+</details>
+
+<details>
+<summary>Hint 2</summary>
+
+For normal author declarations, an unlayered rule outranks layered rules.
+
+</details>
+
+<details>
+<summary>Check your reasoning</summary>
+
+The text is blue first: components is the later layer. It becomes green after the unlayered rule is added, even though the base selector has an ID. These conclusions assume the declarations have the same origin and importance.
+
+</details>

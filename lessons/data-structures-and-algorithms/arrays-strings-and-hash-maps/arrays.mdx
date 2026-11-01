@@ -1,0 +1,284 @@
+---
+title: "Arrays"
+description: "Learn how array indexing works and how to traverse, insert, and delete elements in JavaScript and Python."
+---
+
+An **array** keeps values in an ordered sequence. Each value is an **element**, and its numbered position is an **index**. Arrays are useful when you need to keep a collection in order and read an element by its position.
+
+```text
+Values:   ["red", "green", "blue"]
+Indexes:     0       1        2
+```
+
+Indexes start at `0`, so the first element is at index `0` and the last element of a collection with `n` elements is at index `n - 1`.
+
+## How Arrays Store and Access Values
+
+![Indexed access](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/63971361-6f04-4a9f-a7d2-538fc84c4adc/gallery/c31d9d60-214d-440c-9378-eabd971490a7)
+
+A traditional fixed-size array reserves adjacent memory slots for elements of one type. Knowing the starting address and an index lets a program locate an element directly.
+
+JavaScript arrays and Python lists are the growable collections used in this lesson. They support the same indexed operations, but they can also grow, shrink, and contain values of different types. Their implementations manage storage for you; do not assume the values themselves occupy one continuous block of memory.
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```js
+    const colors = ["red", "green", "blue"];
+    console.log(colors[1]); // "green"
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    colors = ["red", "green", "blue"]
+    print(colors[1])  # "green"
+    ```
+  </Tab>
+</Tabs>
+
+### Big O: Checking by Index
+
+Reading `colors[1]` is **`O(1)` time**: the collection can go directly to that index, so the work does not grow with the number of elements. If you know only a value and need to find its index, an unsorted collection may require checking all `n` elements. That search is **`O(n)` time** in the worst case.
+
+## Traversing an Array
+
+**Traversal** means visiting elements one at a time. Use an index-based loop when you need each position, or a value-based loop when you only need the elements.
+
+### When the Index Matters
+
+This loop prints each position alongside its value:
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```js
+    const colors = ["red", "green", "blue"];
+
+    for (let index = 0; index < colors.length; index++) {
+      console.log(index, colors[index]);
+    }
+    // 0 red
+    // 1 green
+    // 2 blue
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    colors = ["red", "green", "blue"]
+
+    for index in range(len(colors)):
+        print(index, colors[index])
+    # 0 red
+    # 1 green
+    # 2 blue
+    ```
+  </Tab>
+</Tabs>
+
+### When Only the Values Matter
+
+If the positions are irrelevant, iterate over the elements directly:
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```js
+    const colors = ["red", "green", "blue"];
+
+    for (const color of colors) {
+      console.log(color);
+    }
+    // red
+    // green
+    // blue
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    colors = ["red", "green", "blue"]
+
+    for color in colors:
+        print(color)
+    # red
+    # green
+    # blue
+    ```
+  </Tab>
+</Tabs>
+
+### Big O: Traversal
+
+Both loops visit each of the `n` elements once, so a complete traversal takes **`O(n)` time**. In the indexed loop, each `colors[index]` read is `O(1)`, but doing that read `n` times still totals `O(n)`. These examples keep only a loop variable, so they use **`O(1)` extra space**.
+
+---
+
+## Inserting Elements
+
+![Insertion shifts](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/63971361-6f04-4a9f-a7d2-538fc84c4adc/gallery/efdb7e95-33ef-4f0b-a3da-cb523b57fd2e)
+
+Insertion adds an element at a chosen index. Adding at the end usually avoids moving existing elements. Adding at the beginning or middle shifts later elements one position to the right to make room.
+
+| Insert at | Before | After | Elements shifted |
+| --- | --- | --- | --- |
+| Beginning | `["B", "C"]` | `["A", "B", "C"]` | Every existing element |
+| End | `["A", "B"]` | `["A", "B", "C"]` | None |
+| Index `2` | `["A", "B", "D"]` | `["A", "B", "C", "D"]` | `"D"` |
+
+The examples below start from a fresh collection in each case.
+
+### Insert at the Beginning
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```js
+    const letters = ["B", "C"];
+    letters.unshift("A");
+    console.log(letters); // ["A", "B", "C"]
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    letters = ["B", "C"]
+    letters.insert(0, "A")
+    print(letters)  # ["A", "B", "C"]
+    ```
+  </Tab>
+</Tabs>
+
+Moving all existing elements makes beginning insertion `O(n)`.
+
+### Insert at the End
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```js
+    const letters = ["A", "B"];
+    letters.push("C");
+    console.log(letters); // ["A", "B", "C"]
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    letters = ["A", "B"]
+    letters.append("C")
+    print(letters)  # ["A", "B", "C"]
+    ```
+  </Tab>
+</Tabs>
+
+Appending is **amortized `O(1)`**: most appends take constant time, though a collection occasionally needs to grow its storage and copy elements.
+
+### Insert at a Specific Index
+
+To put `"C"` at index `2`, the existing `"D"` moves one position to the right:
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```js
+    const letters = ["A", "B", "D"];
+    letters.splice(2, 0, "C");
+    console.log(letters); // ["A", "B", "C", "D"]
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    letters = ["A", "B", "D"]
+    letters.insert(2, "C")
+    print(letters)  # ["A", "B", "C", "D"]
+    ```
+  </Tab>
+</Tabs>
+
+Middle insertion can shift many elements, so it takes `O(n)` time.
+
+---
+
+## Deleting Elements
+
+![Deletion and order](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/63971361-6f04-4a9f-a7d2-538fc84c4adc/gallery/065409b7-7fc6-4719-9fcc-b0f0f966e207)
+
+Deletion removes an element at a known index. Choose the technique based on whether the remaining elements must keep their order.
+
+### Preserve the Order
+
+Removing `"B"` at index `1` shifts `"C"` and `"D"` left to close the gap:
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```js
+    const letters = ["A", "B", "C", "D"];
+    letters.splice(1, 1);
+    console.log(letters); // ["A", "C", "D"]
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    letters = ["A", "B", "C", "D"]
+    letters.pop(1)
+    print(letters)  # ["A", "C", "D"]
+    ```
+  </Tab>
+</Tabs>
+
+An ordered deletion from the beginning or middle takes `O(n)` because later elements shift. Removing the last element needs no shift and takes `O(1)`.
+
+### When Order Does Not Matter
+
+If order is irrelevant, replace the element at the target index with the last element, then remove the last slot:
+
+```text
+Start:                 ["A", "B", "C", "D"]
+Replace index 1:       ["A", "D", "C", "D"]
+Remove the last slot:  ["A", "D", "C"]
+```
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```js
+    const letters = ["A", "B", "C", "D"];
+    const index = 1;
+
+    letters[index] = letters[letters.length - 1];
+    letters.pop();
+    console.log(letters); // ["A", "D", "C"]
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    letters = ["A", "B", "C", "D"]
+    index = 1
+
+    letters[index] = letters[-1]
+    letters.pop()
+    print(letters)  # ["A", "D", "C"]
+    ```
+  </Tab>
+</Tabs>
+
+With a valid index already known, this takes `O(1)` time. If you must search for the value first, finding its index can still take `O(n)`.
+
+<Callout title="Choose based on order" type="info">
+Use ordered deletion when positions matter. Use replacement with the last element only when changing the order is acceptable.
+</Callout>
+
+## Big O Notation: Operation Summary
+
+Here `n` is the number of elements in the collection.
+
+| Operation | Time | Why |
+| --- | ---: | --- |
+| Access by known index | `O(1)` | Go directly to that position. |
+| Traverse the array | `O(n)` | Visit all `n` elements. |
+| Search by value | `O(n)` worst case | Check up to `n` elements. |
+| Insert at end | Amortized `O(1)` | Usually add without shifting; occasional growth copies elements. |
+| Insert at beginning or middle | `O(n)` | Shift later elements right. |
+| Delete last element | `O(1)` | No other elements move. |
+| Delete while preserving order | `O(n)` | Shift later elements left. |
+| Delete without preserving order | `O(1)` | Replace with the last element, then remove it. |
+
+---
+
+## Key Takeaways
+
+- Arrays keep elements in order and provide `O(1)` access when you know an index.
+- Use index-based traversal when positions matter; otherwise, iterate over values directly. Either way, visiting every element takes `O(n)`.
+- Appending is usually fast. Inserting at the beginning or middle shifts elements and takes `O(n)`.
+- Ordered deletion shifts elements. If order does not matter and the index is known, replacing the element with the last one avoids that shift.
+- JavaScript arrays and Python lists are growable indexed collections; a traditional fixed-size array has stricter storage and type rules.

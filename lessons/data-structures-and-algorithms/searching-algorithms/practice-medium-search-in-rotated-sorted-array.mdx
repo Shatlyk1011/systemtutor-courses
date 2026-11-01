@@ -1,0 +1,83 @@
+---
+title: "Search in Rotated Sorted Array"
+description: "Adapt binary search to an array with one rotation point."
+slug: "practice-medium-search-in-rotated-sorted-array"
+ 
+---
+
+## Try It Yourself
+
+Use the editor below to search a rotated sorted array in logarithmic time. At every step, identify which half is still normally sorted.
+
+Submit your implementation when it passes the examples. Handle one-element arrays, missing values, and targets on either side of the rotation.
+
+<PracticeExercise problemId="search-in-rotated-sorted-array" />
+
+## Solution
+
+![Rotated binary-search decision](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/3cf2b7c0-b4e3-4aa7-8dbf-f3dfb8f1f738/gallery/bbc1eb6b-8dec-46f1-a58f-9008d2d6f895)
+
+At least one half around the middle is sorted. Determine whether the target lies inside that sorted half; if it does, keep that half, and otherwise search the other side.
+
+This decision preserves binary search's ability to discard half of the remaining array after every comparison.
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```js
+    function searchRotated(nums, target) {
+      let left = 0;
+      let right = nums.length - 1;
+    
+      while (left <= right) {
+        const middle = left + Math.floor((right - left) / 2);
+        if (nums[middle] === target) return middle;
+    
+        if (nums[left] <= nums[middle]) {
+          if (nums[left] <= target && target < nums[middle]) {
+            right = middle - 1;
+          } else {
+            left = middle + 1;
+          }
+        } else if (nums[middle] < target && target <= nums[right]) {
+          left = middle + 1;
+        } else {
+          right = middle - 1;
+        }
+      }
+    
+      return -1;
+    }
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    def search_rotated(nums, target):
+        left = 0
+        right = len(nums) - 1
+    
+        while left <= right:
+            middle = left + (right - left) // 2
+            if nums[middle] == target:
+                return middle
+    
+            if nums[left] <= nums[middle]:
+                if nums[left] <= target < nums[middle]:
+                    right = middle - 1
+                else:
+                    left = middle + 1
+            elif nums[middle] < target <= nums[right]:
+                left = middle + 1
+            else:
+                right = middle - 1
+    
+        return -1
+    ```
+  </Tab>
+</Tabs>
+
+### Big O notation
+
+| Measure | Complexity | Explanation |
+|---|---:|---|
+| Time | `O(log n)` | A sorted-half check discards half of the remaining array each iteration. |
+| Auxiliary space | `O(1)` | The search stores only three indices. |

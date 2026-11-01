@@ -1,0 +1,101 @@
+---
+title: "Browser Support"
+description: "Use progressive enhancement and fallback strategies."
+---
+
+Browsers do not all support the same CSS features. **Progressive enhancement** starts with a usable page, then adds features in browsers that support them.
+
+The baseline does not need to look identical everywhere. It needs to preserve content and essential tasks.
+
+## Establish a working fallback
+
+This collection begins as ordinary stacked content:
+
+```html
+<div class="article-list">
+  <article>Planning: define the project goals and scope.</article>
+  <article>Delivery: review progress and share updates.</article>
+</div>
+```
+
+```css
+.article-list > article {
+  padding: 1.25rem;
+  color: #17352a;
+  background: #e7f3ec;
+  border: 1px solid #17352a;
+  border-radius: 0.75rem;
+}
+
+.article-list > article + article {
+  margin-top: 1rem;
+}
+```
+
+Even without a layout enhancement, both articles remain readable in source order. Keep essential content outside conditions that might not match.
+
+## Add a feature query
+
+```css
+/* [!code word:@supports] */
+@supports (display: grid) {
+  @media (min-width: 40rem) {
+    .article-list {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .article-list > article + article {
+      margin-top: 0;
+    }
+  }
+}
+```
+
+`@supports` tests a property-value declaration. The media query tests viewport width. When both conditions match, Grid creates two columns and `gap` replaces the fallback spacing between articles.
+
+Resetting the margin matters: retaining it would push the second grid item downward as well as adding the gap. Test how the enhancement interacts with existing styles, not only whether the new declaration is accepted.
+
+## Understand what feature detection tells you
+
+A passing feature query means the browser reports support for that property and value. It does not check for bugs or every related feature. For example, `(display: grid)` does not test every possible track-size value.
+
+If the browser does not understand `@supports`, it ignores the enhancement and keeps the baseline. This is why placing all content styling inside the query would be a poor fallback strategy.
+
+## Match testing to your audience
+
+Define which browser versions and devices the project needs to support. Consult the compatibility tables for the exact properties, values, and selectors in use, then test representative browsers.
+
+Include content wrapping, native form controls, fonts, focus, and responsive states. Device emulation helps inspect dimensions and settings; it does not turn one browser engine into another. A desktop Chromium preview cannot confirm Safari behavior.
+
+Test the CSS feature with a query when possible, rather than checking a browser name. Keep fallback rules clear so they are easy to maintain.
+
+## Key Takeaways
+
+- **Baseline:** Preserve readable content and essential tasks before enhancement.
+- **Detection:** Use `@supports` for CSS capabilities and media queries for display conditions.
+- **Limits:** Accepted syntax does not guarantee a bug-free interface.
+- **Testing:** Check exact feature compatibility and representative browser engines.
+
+## Try it yourself
+
+Three articles are readable in a stack. A proposed change moves all article styling into a feature query for display: grid and uses two columns at wider widths.
+
+Explain what happens when the query is unsupported, describe a baseline and enhancement, and name a test the query cannot replace. Use the lesson to check that your response addresses each part.
+
+<details>
+<summary>Hint</summary>
+
+Separate content styling from optional layout and consider width independently.
+
+</details>
+
+<details>
+<summary>Check your reasoning</summary>
+
+Keep readable article styles and spacing outside the query. Inside the query, add the wide-screen Grid layout and replace fallback spacing with a gap. Unsupported browsers retain the baseline. Check exact features and representative browsers; accepting display: grid does not prove every related behavior works.
+
+Other accurate approaches can also meet the task.
+
+</details>

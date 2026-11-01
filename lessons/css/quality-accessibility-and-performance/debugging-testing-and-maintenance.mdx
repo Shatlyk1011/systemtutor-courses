@@ -1,0 +1,304 @@
+---
+title: "Debugging, Testing, and Maintenance"
+---
+
+{/* Topics to cover: Debugging with DevTools; Visual Testing; Maintaining CSS. */}
+
+## Debugging with DevTools
+
+Start debugging with a specific question: which element is too wide, which rule sets its color, or which child overflows? DevTools can help you find the answer.
+
+### Reproduce and inspect the symptom
+
+Record the viewport width, page state, and steps that produce the problem. Select the actual affected element in the Elements or Inspector panel, then confirm its classes and ancestors. A rule cannot help if its selector does not match the element you intended.
+
+Use the Styles panel to inspect matching rules. Check for invalid declarations, overridden values, inherited styles, and conditions such as media queries. Turn one declaration off at a time to test your idea.
+
+### Trace the winning declaration
+
+The Computed view shows the resolved styles used for the selected element. Trace a surprising property back to its rule rather than adding another override immediately.
+
+For example, a crossed-out `padding: 1rem` may be valid CSS that loses to another declaration. Check cascade layers, importance, specificity, and source order as relevant. Adding `!important` without finding that cause can hide the conflict instead of resolving it.
+
+Force states such as `:hover` when needed so you can inspect an interaction without keeping the pointer in place. Treat live edits as experiments and copy the final fix into the source files. See the [DevTools CSS guide](https://developer.chrome.com/docs/devtools/css).
+
+### Inspect boxes and layout relationships
+
+Use the box-model display to distinguish content size, padding, border, and margin. If an element is a flex or grid item, inspect its container too. Layout overlays help reveal tracks, gaps, alignment, and available space.
+
+Consider a row that overflows when its text contains a long identifier:
+
+```html
+<div class="result-row">
+  <span class="result-row__badge">Result</span>
+  <p class="result-row__text">
+    project_activity_report_batch_2026
+  </p>
+</div>
+```
+
+```css
+.result-row {
+  display: flex;
+  align-items: start;
+  gap: 1rem;
+  max-width: 24rem;
+}
+
+.result-row__badge {
+  flex-shrink: 0;
+}
+
+.result-row__text {
+  flex: 1;
+  margin: 0;
+}
+```
+
+At a narrow width, check the paragraph’s minimum size and long string. Then try these declarations:
+
+```css
+/* [!code word:min-width\: 0] */
+/* [!code word:overflow-wrap\: anywhere] */
+.result-row__text {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+```
+
+Flex items can have an automatic content-based minimum width. `min-width: 0` allows this item to shrink, while `overflow-wrap: anywhere` permits the long identifier to wrap.
+
+### Verify the cause and the fix
+
+Remove the test declarations and confirm that the symptom returns, then restore the fix and check nearby widths. This ties the change to the observed cause.
+
+Avoid hiding page-wide overflow as the first response: clipping can conceal content that still has incorrect sizing. Save the fix in source, reload, and repeat the original reproduction steps.
+
+### Key Takeaways
+
+- **Reproduction:** Capture the exact viewport and state before changing CSS.
+- **Cascade:** Trace computed values to their source rules.
+- **Layout:** Inspect both the affected element and its container.
+- **Verification:** Test one hypothesis, save the source fix, and reproduce again.
+
+### Try it yourself
+
+At a narrow viewport a flex row with a long unbroken identifier overflows. The paragraph is a flex item. A teammate proposes hiding page-wide overflow.
+
+Describe a DevTools investigation and a candidate repair. Explain how to verify the cause without losing content. Use the lesson to check that your response addresses each part.
+
+<details>
+<summary>Hint</summary>
+
+Inspect the container and paragraph, especially minimum size and the long text.
+
+</details>
+
+<details>
+<summary>Check your reasoning</summary>
+
+Reproduce at the recorded width, inspect the paragraph and container, and test min-width: 0 and overflow-wrap: anywhere on the paragraph. Remove and restore the declarations to check the symptom; inspect nearby widths, save the fix and reload. Page-wide clipping could hide the identifier.
+
+Other accurate approaches can also meet the task.
+
+</details>
+
+## Visual Testing
+
+A **visual regression** is an unwanted change in how a page looks after an update. Visual testing compares the page with an earlier version to spot those changes. Test that controls still work as well.
+
+### Choose pages and states to check
+
+Choose representative pages and states rather than collecting screenshots with no clear purpose:
+
+| Dimension | Examples to inspect |
+| --- | --- |
+| Width | Narrow, medium, wide, and around a breakpoint. |
+| Content | Long headings, empty lists, and populated lists. |
+| Interaction | Focus, open menus, and form errors. |
+| Preferences | Light or dark appearance and reduced motion. |
+
+Resize continuously between chosen widths to find awkward wrapping or overflow. Named device sizes are useful samples, not proof that every intermediate width works.
+
+### Compare screenshots automatically
+
+In an initialized Playwright Test project, a screenshot assertion compares the current page with a stored reference image, called a **baseline**.
+
+This example assumes a running practice app at `http://localhost:3000` with a `/dashboard` page, a visible “Dashboard” heading, and predictable content. Adapt the route and heading to your app. Save the test as `tests/dashboard-visual.spec.ts`:
+
+```ts
+import { test, expect } from "@playwright/test";
+
+test.use({ viewport: { width: 390, height: 844 } });
+
+test("dashboard overview at a narrow width", async ({ page }) => {
+  await page.goto("http://localhost:3000/dashboard");
+  await expect(
+    page.getByRole("heading", { name: "Dashboard", exact: true }),
+  ).toBeVisible();
+
+  // [!code word:toHaveScreenshot]
+  await expect(page).toHaveScreenshot("dashboard-narrow.png", {
+    fullPage: true,
+    animations: "disabled",
+  });
+});
+```
+
+Generate the initial reference and inspect it:
+
+```bash
+npx playwright test tests/dashboard-visual.spec.ts --update-snapshots
+```
+
+Then run comparisons without updating:
+
+```bash
+npx playwright test tests/dashboard-visual.spec.ts
+```
+
+Review the initial baseline just as carefully as later differences; a stored screenshot can preserve a broken layout too. See the [Playwright visual comparison guide](https://playwright.dev/docs/test-snapshots).
+
+### Keep comparisons repeatable
+
+Use predictable data and the same browser, operating system, fonts, and viewport as the baseline. Wait for the content and images being tested to load. A visible heading does not always mean the rest of the page is ready.
+
+`animations: "disabled"` stabilizes supported animations for the capture: finite animations finish and infinite ones return to their initial state for the screenshot. This does not verify animation behavior or substitute for testing the reduced-motion preference. See the [screenshot assertion options](https://playwright.dev/docs/api/class-pageassertions#page-assertions-to-have-screenshot-1).
+
+### Investigate a difference before accepting it
+
+Compare the expected, actual, and difference images. Determine whether the cause is an intended design change, a regression, or an unstable environment. Update a baseline only after reviewing the new appearance; raising tolerances or accepting every changed image can hide defects.
+
+Also test interactions and accessibility manually. A screenshot cannot prove that keyboard order is sensible, a label is connected to a field, or a form submits correctly.
+
+### Key Takeaways
+
+- **Coverage:** Choose useful combinations of viewport, content, and state.
+- **Baselines:** Store reviewed references and keep the rendering environment repeatable.
+- **Differences:** Investigate changes before accepting new snapshots.
+- **Limits:** Pixel comparisons supplement interaction and accessibility checks.
+
+### Try it yourself
+
+A narrow dashboard screenshot differs after a CSS change. The reference and current image used different fonts; neither shows the open menu or keyboard focus.
+
+Decide what to stabilize and compare, how to handle the baseline, and which additional checks are needed. Use the lesson to check that your response addresses each part.
+
+<details>
+<summary>Hint</summary>
+
+Can a difference come from the environment? Does one image show how a control works?
+
+</details>
+
+<details>
+<summary>Check your reasoning</summary>
+
+Repeat with the same browser, fonts, viewport and predictable data, and wait for content. Inspect expected, actual and difference images; update the baseline only after review. Check the open menu, keyboard focus and interactions separately, and inspect other widths.
+
+Other accurate approaches can also meet the task.
+
+</details>
+
+## Maintaining CSS
+
+CSS is easier to maintain when you can tell why a rule exists, what it styles, and how to change it. Use clear names, useful comments, and small changes that you can check in the browser.
+
+### Explain decisions in comments
+
+A comment such as “sets the padding” adds little beside a padding declaration. Explain a constraint that a future reader cannot infer:
+
+```css
+.toolbar {
+  /* Keep actions on separate rows when translated labels need more space. */
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+```
+
+If a workaround addresses a specific browser or external component, record its reason and the condition under which it can be removed. Keep comments current when behavior changes. Group related rules and use consistent formatting and names.
+
+### Extract a shared decision deliberately
+
+Suppose two panels use the same radius because the design gives all panels one shared shape:
+
+```css
+.info-card {
+  padding: 1.25rem;
+  border-radius: 0.75rem;
+  background: #e7f3ec;
+}
+
+.status-panel {
+  padding: 1rem;
+  border-radius: 0.75rem;
+  background: #f1f5f9;
+}
+```
+
+Replace those rules with a shared custom property while preserving their other differences:
+
+```css
+/* [!code word:--radius-panel] */
+:root {
+  --radius-panel: 0.75rem;
+}
+
+.info-card {
+  padding: 1.25rem;
+  border-radius: var(--radius-panel);
+  background: #e7f3ec;
+}
+
+.status-panel {
+  padding: 1rem;
+  border-radius: var(--radius-panel);
+  background: #f1f5f9;
+}
+```
+
+The initial appearance stays the same, but future panel-radius changes have a clear shared location. Padding remains independent because these panels have different spacing needs.
+
+Share values because they represent one design decision, not just because two numbers currently match. Custom properties participate in the cascade and inherit by default, so verify their scope when introducing them.
+
+### Refactor without accumulating overrides
+
+Find the current rule and its uses before appending a replacement. Moving a rule, changing its selector, or moving it into a cascade layer can change which declaration wins even if its property values stay identical.
+
+Make one change, check the component’s variations, then remove the old rules. Explain any overrides that remain. If a rule loses, inspect the cascade before adding stronger selectors or `!important`.
+
+### Review behavior as well as the diff
+
+For a shared component change, inspect its representative pages at narrow and wide widths. Check long content and relevant focus, disabled, error, or expanded states.
+
+Use existing visual comparisons when they cover the change, and review differences before updating references. A behavior-preserving refactor should retain the intended appearance; an intentional design change should have an explicitly reviewed new appearance. See the [visual comparison guide](https://playwright.dev/docs/test-snapshots).
+
+### Key Takeaways
+
+- **Documentation:** Explain constraints, ownership, and removable workarounds.
+- **Shared values:** Extract decisions that should change together.
+- **Refactoring:** Trace dependencies and cascade effects before replacing rules.
+- **Review:** Check component states and representative layouts, not only source text.
+
+### Try it yourself
+
+Two panels both have a radius of 0.75rem. Their shapes should change together, but their padding must remain independent. One panel has an override in a cascade layer.
+
+Describe the refactor and review plan. Why might moving the override change the result even if its value stays the same? Use the lesson to check that your response addresses each part.
+
+<details>
+<summary>Hint</summary>
+
+Which value is a shared decision, and what determines the winning declaration?
+
+</details>
+
+<details>
+<summary>Check your reasoning</summary>
+
+Introduce a scoped shared custom property for the radius and use it in both panels; retain separate padding. Inspect the override and layer order before moving rules. Check representative pages, widths and states, then remove obsolete rules. Layer or source order can change the winning declaration.
+
+Other accurate approaches can also meet the task.
+
+</details>

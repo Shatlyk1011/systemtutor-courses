@@ -1,0 +1,153 @@
+---
+title: "Pseudo-Elements"
+description: "Style parts of an element and create decorative content."
+---
+
+A **pseudo-element** is a keyword added to a selector so CSS can style a particular part of an element. Some pseudo-elements also create rendered content without adding another HTML element.
+
+This lesson focuses on four pseudo-elements: `::before`, `::after`, `::first-line`, and `::selection`.
+
+Use this general form:
+
+```css
+selector::pseudo-element {
+  property: value;
+}
+```
+
+The pseudo-element comes after the rest of the selector. The element named before it is the **originating element**. For example, `.note` is the originating element in `.note::before`.
+
+Pseudo-elements are part of the rendered result; they are not independent HTML elements. CSS-generated content is not included in the DOM, so use it for decoration rather than essential information.
+
+## Distinguish a state from a part
+
+![Pseudo-class and pseudo-element](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/e14888a7-fc1d-46bc-8752-868336e60891/gallery/991673fd-2ae8-4483-accb-6645c5b4e7f9)
+
+Compare these selectors:
+
+- **`p:hover`:** Selects a paragraph while it is hovered. This is a pseudo-class: a condition on the originating element.
+- **`p::first-line`:** Selects the first rendered line of a paragraph. This is a pseudo-element: a part of the originating element's rendered result.
+
+The single colon introduces the state; the double colon introduces the rendered part.
+
+## Add decoration with `::before`
+
+Start with a note whose meaningful text is in HTML:
+
+```html
+<!-- [!code word:class="note"] -->
+<p class="note">Read the latest update.</p>
+```
+
+Now work through the rule in order:
+
+```css
+/* [!code word:\:\:before] */
+/* [!code word:content] */
+/* [!code word:"• "] */
+.note::before {
+  content: "• ";
+  color: green;
+}
+```
+
+1. `.note` identifies the originating paragraph.
+2. `::before` places the generated part before the paragraph's existing text.
+3. `content` supplies the generated value. Without content, or with `normal` or `none`, this pseudo-element is not rendered.
+4. `color` styles the generated bullet.
+
+The result is a green decorative bullet before “Read the latest update.” The bullet is not added to the HTML text, so the sentence remains meaningful if the decoration is removed.
+
+Use text such as `"• "`, or an empty string (`""`) when you need a generated box for decoration without visible text. `::before` is inline by default, so it sits in the text flow unless you give it another display value.
+
+### Completion check
+
+The HTML already contains the meaningful label. Complete only the generated decoration:
+
+```css
+.note::before {
+  content: ______;
+  color: purple;
+}
+```
+
+The missing value is `"• "`. The reasoning is the same as in the worked example: choose the originating element, attach `::before`, then provide the generated content.
+
+## Add decoration with `::after`
+
+![Generated content placement](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/e14888a7-fc1d-46bc-8752-868336e60891/gallery/9074dd7c-625d-4dd4-87e9-008607da8f70)
+
+`::after` uses the same pattern but renders after the element's existing content:
+
+```css
+/* [!code word:\:\:after] */
+/* [!code word:" •"] */
+.note::after {
+  content: " •";
+  color: green;
+}
+```
+
+With both rules present, the note has a decorative bullet before and after its text. Neither rule changes the text stored in the HTML. The generated content is rendered after the text; it is not a new element that you should use for an instruction or label.
+
+`::before` and `::after` are intended for normal elements such as paragraphs and headings. They cannot be applied to replaced elements such as `<img>`, whose contents come from an external resource.
+
+## Style the first rendered line
+
+```html
+<!-- [!code word:class="intro"] -->
+<p class="intro">Explore the guide and learn how its examples work.</p>
+```
+
+```css
+/* [!code word:\:\:first-line] */
+.intro::first-line {
+  font-weight: bold;
+}
+```
+
+The first displayed line becomes bold. It is a line created by layout, not the first line in the HTML source. The words on that line can change when the element width, document width, or font size changes.
+
+Only a limited group of properties applies to `::first-line`, including font properties, background properties, `color`, spacing, text decoration, text transformation, line height, and text shadow. Use it for text styling, not for arbitrary layout changes.
+
+## Style selected text
+
+`::selection` targets the portion of text a user selects:
+
+```css
+/* [!code word:\:\:selection] */
+.intro::selection {
+  background-color: yellow;
+  color: black;
+}
+```
+
+The colors appear while text in the introduction is selected; they do not permanently highlight the paragraph. `::selection` also accepts only a limited set of properties, including `color`, `background-color`, text-decoration properties, and text shadow. Browser support varies, so treat selection styling as an enhancement rather than the only way to communicate information.
+
+## Decide where the content belongs
+
+Choose the source of the content before you write the selector:
+
+- A label such as “Required” that communicates an instruction belongs in the HTML.
+- A visual bullet before an already meaningful note can be decorative generated content from `.note::before` and `content`.
+- A temporary highlight while someone drags across text uses `::selection`; it does not change the document's stored text.
+
+CSS-generated content is not part of the DOM and may not be announced reliably by assistive technology. Keep essential information in the HTML so it remains available when CSS is disabled and to users who do not perceive the decoration.
+
+## Try it yourself
+
+Use the same sequence in the practice below:
+
+1. Identify the originating element before writing the pseudo-element.
+2. Use `content` for `::before` and `::after`; use text properties for `::first-line`.
+3. Keep meaningful words in the HTML and use generated content only for decoration.
+
+<LessonPractice />
+
+## Key Takeaways
+
+- **Pseudo-elements:** Double-colon selectors style parts of an element.
+- **Generated decoration:** `::before` and `::after` use `content` to create content before or after an element's existing content.
+- **Rendered lines:** `::first-line` follows the browser's text wrapping.
+- **Selection:** `::selection` styles the text currently selected by a user.
+- **Meaningful content:** Essential text belongs in HTML rather than generated decoration.

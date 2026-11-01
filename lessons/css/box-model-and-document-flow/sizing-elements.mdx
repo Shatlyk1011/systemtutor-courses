@@ -1,0 +1,165 @@
+---
+title: "Sizing Elements"
+description: "Set dimensions, constraints, and aspect ratios."
+---
+
+A card should fit its container and leave room for its content. Use widths, heights, and size limits to control both.
+
+## Start with automatic sizing
+
+For an ordinary block in normal flow, `width: auto` uses the available horizontal space after accounting for margins, padding, and borders. `height: auto` usually grows with the content.
+
+```html
+<!-- [!code word:class="card"] -->
+<article class="card">
+  <h2>Project overview</h2>
+  <p>Track milestones, owners, and deadlines.</p>
+</article>
+```
+
+```css
+/* [!code word:auto] */
+.card {
+  box-sizing: border-box;
+  width: auto;
+  height: auto;
+  padding: 1rem;
+  border: 2px solid green;
+}
+```
+
+The card can become taller when its text wraps onto more lines. An explicit height would limit that space and could leave content overflowing.
+
+## Choose a width and constrain it
+
+Replace the card's width with these declarations:
+
+```css
+/* [!code word:90%] */
+/* [!code word:max-width] */
+/* [!code word:auto] */
+.card {
+  width: 90%;
+  max-width: 40rem;
+  margin: 0 auto;
+}
+```
+
+In this simple block layout, the percentage refers to the containing block's width, usually the parent's content width. The card takes 90% of that width, capped at `40rem`.
+
+If the root font size is 16 pixels:
+
+- **400-pixel container:** The card is 360 pixels wide.
+- **1000-pixel container:** The 900-pixel percentage result is capped at 640 pixels.
+
+Because the card is narrower than its container, the left and right `auto` margins share the remaining horizontal space and center it. Its `border-box` setting keeps padding and borders inside these widths.
+
+## Set size limits
+
+The sizing properties play different roles:
+
+| Property | Role |
+| --- | --- |
+| `width`, `height` | Request a size. |
+| `min-width`, `min-height` | Establish a lower limit. |
+| `max-width`, `max-height` | Establish an upper limit. |
+
+For a welcome panel that should have some height but grow with its text:
+
+```css
+/* [!code word:min-height] */
+.welcome {
+  min-height: 12rem;
+  padding: 1rem;
+}
+```
+
+With automatic height, the panel can expand beyond its minimum. By contrast, `max-height` alone does not create scrolling when content is taller; overflow handling is a separate decision.
+
+Choose limits that can fit the available space. A `min-width: 500px` box can overflow a 320-pixel container. If a minimum and maximum conflict, the minimum wins in ordinary sizing.
+
+## Give percentages a usable reference
+
+In a normal block layout, a percentage height usually works when the containing block has a known height:
+
+```css
+/* [!code word:300px] */
+/* [!code word:50%] */
+.preview {
+  height: 300px;
+}
+
+.preview-panel {
+  height: 50%;
+}
+```
+
+For a panel directly inside this preview, the height is 150 pixels. If the preview instead has an automatic height that depends on its content, the child's `height: 50%` generally behaves as `auto`. A percentage is useful only when its reference can be resolved.
+
+## Set proportions with `aspect-ratio`
+
+For a separate, empty preview box:
+
+```css
+/* [!code word:aspect-ratio] */
+/* [!code word:16 / 9] */
+.preview {
+  width: 320px;
+  max-width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  background-color: honeydew;
+}
+```
+
+At 320 pixels wide, the box aims for a height of 180 pixels. Leave at least one dimension automatic so `aspect-ratio` can calculate it. Content and size limits can change the final shape.
+
+## Compare a smaller container
+
+The card above requests 90% width and is capped at 40rem. If the root font size is 16 pixels and its container is 600 pixels wide, first find 90%: `600 × 0.9 = 540px`. Does the 640-pixel cap change that result?
+
+<details>
+<summary>Check the last step</summary>
+
+No. 540 pixels is below the 640-pixel maximum, so the card is 540 pixels wide.
+
+</details>
+
+Now calculate its width in an 800-pixel container. Explain which constraint wins.
+
+<details>
+<summary>Check the comparison</summary>
+
+90% is 720 pixels, so `max-width` caps the card at 640 pixels. The remaining space is shared by the automatic horizontal margins.
+
+</details>
+
+## Key Takeaways
+
+- **Automatic sizing:** Normal block boxes can fill available width and grow vertically with content.
+- **Constraints:** Minimum and maximum dimensions limit the requested size.
+- **Percentages:** A percentage depends on the containing block and the property being sized.
+- **Proportions:** `aspect-ratio` supplies a preferred relationship when a dimension is automatic.
+
+
+## Try it yourself
+
+In the editor, give the card a width of 90% and a maximum width of 240 pixels. Center it with automatic horizontal margins and allow its height to grow with content. Check that the card is centered, its border box is 240 pixels wide, and no fixed height restricts the text.
+
+<LessonPractice />
+
+Why is the width 240 pixels rather than 288 pixels? What happens to the card width if the container becomes 200 pixels wide? Calculate before opening the answer.
+
+<details>
+<summary>Hint</summary>
+
+Compare 90% of each container with the maximum; use the smaller result.
+
+</details>
+
+<details>
+<summary>Check your reasoning</summary>
+
+90% of 320 is 288 pixels, which exceeds the 240-pixel maximum. At 200 pixels, 90% is 180 pixels, below the cap. The editor shows one container size, so inspect the CSS and calculation as well as the preview.
+
+</details>

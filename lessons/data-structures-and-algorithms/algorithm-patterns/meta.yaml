@@ -1,0 +1,19 @@
+title: "Algorithm Patterns"
+description: "Master essential algorithmic problem-solving patterns including hash maps, two pointers, and sliding window."
+pages:
+  - introduction
+  - hash-maps-and-frequency-counters
+  - quiz-frequency-counters-and-hash-map-lookup
+  - practice-two-sum
+  - practice-valid-anagram
+  - practice-medium-group-anagrams
+  - two-pointers
+  - quiz-two-pointer-reasoning
+  - practice-valid-palindrome
+  - practice-medium-two-sum-ii
+  - practice-medium-container-with-most-water
+  - sliding-window
+  - quiz-sliding-window-reasoning
+  - practice-maximum-average-subarray
+  - practice-medium-longest-substring-without-repeating-characters
+  - practice-medium-minimum-size-subarray-sum

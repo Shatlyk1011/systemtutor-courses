@@ -1,0 +1,75 @@
+---
+title: "Koko Eating Bananas"
+description: "Use binary search on the answer to find the minimum valid eating speed."
+slug: "practice-medium-koko-eating-bananas"
+ 
+---
+
+## Try It Yourself
+
+Use the editor below to search possible eating speeds rather than array positions. For each candidate speed, calculate how many whole hours all piles require.
+
+Submit your implementation when it passes the examples. The answer may be one, the largest pile, or a speed between them.
+
+<PracticeExercise problemId="koko-eating-bananas" />
+
+## Solution
+
+![Binary search on eating speed](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/3cf2b7c0-b4e3-4aa7-8dbf-f3dfb8f1f738/gallery/cb9072f0-f768-4d04-92c6-9a0efb25ab53)
+
+Possible speeds form an ordered range from 1 through the largest pile. A candidate is feasible when the sum of each pile's rounded-up division by that speed is no more than h.
+
+If a speed is feasible, keep it as a possible answer and search lower speeds. Otherwise, discard it and every slower speed.
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```js
+    function minEatingSpeed(piles, h) {
+      let left = 1;
+      let right = Math.max(...piles);
+    
+      while (left < right) {
+        const speed = left + Math.floor((right - left) / 2);
+        let hours = 0;
+    
+        for (const pile of piles) {
+          hours += Math.ceil(pile / speed);
+        }
+    
+        if (hours <= h) right = speed;
+        else left = speed + 1;
+      }
+    
+      return left;
+    }
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    def min_eating_speed(piles, h):
+        left = 1
+        right = max(piles)
+    
+        while left < right:
+            speed = left + (right - left) // 2
+            hours = 0
+    
+            for pile in piles:
+                hours += (pile + speed - 1) // speed
+    
+            if hours <= h:
+                right = speed
+            else:
+                left = speed + 1
+    
+        return left
+    ```
+  </Tab>
+</Tabs>
+
+### Big O notation
+
+| Measure | Complexity | Explanation |
+|---|---:|---|
+| Time | `O(n log m)` | Each of log m candidate speeds scans all n piles, where m is the largest pile. |
+| Auxiliary space | `O(1)` | Only search boundaries and the current hour total are stored. |

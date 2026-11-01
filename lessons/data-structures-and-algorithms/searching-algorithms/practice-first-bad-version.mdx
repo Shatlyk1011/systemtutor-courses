@@ -1,0 +1,66 @@
+---
+title: "First Bad Version"
+description: "Apply boundary-focused binary search to locate the first bad version."
+slug: "practice-first-bad-version"
+ 
+---
+
+## Try It Yourself
+
+Use the editor below to find the boundary where good versions become bad. In this runner, firstBad represents the external version-check API used by the original problem.
+
+Submit your implementation when it passes the examples. The first bad version may be the first or last version in a very large range.
+
+<PracticeExercise problemId="first-bad-version" />
+
+## Solution
+
+![First bad version boundary](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/3cf2b7c0-b4e3-4aa7-8dbf-f3dfb8f1f738/gallery/8167218b-87b8-49c7-9845-c92a1f69f714)
+
+Keep a search range that is guaranteed to contain the first bad version. If the middle version is bad, it may be the answer, so keep it and discard only later versions. If it is good, discard it and everything earlier.
+
+The boundaries meet at the first version for which the bad-version condition is true.
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```js
+    function firstBadVersion(n, firstBad) {
+      let left = 1;
+      let right = n;
+    
+      while (left < right) {
+        const middle = left + Math.floor((right - left) / 2);
+    
+        if (middle >= firstBad) right = middle;
+        else left = middle + 1;
+      }
+    
+      return left;
+    }
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    def first_bad_version(n, first_bad):
+        left = 1
+        right = n
+    
+        while left < right:
+            middle = left + (right - left) // 2
+    
+            if middle >= first_bad:
+                right = middle
+            else:
+                left = middle + 1
+    
+        return left
+    ```
+  </Tab>
+</Tabs>
+
+### Big O notation
+
+| Measure | Complexity | Explanation |
+|---|---:|---|
+| Time | `O(log n)` | Each version check halves the remaining range. |
+| Auxiliary space | `O(1)` | The search uses only boundary and middle integers. |

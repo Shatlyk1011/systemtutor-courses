@@ -1,0 +1,157 @@
+---
+title: "Flexbox Patterns"
+description: "Build common navigation, card, and media layouts."
+---
+
+These examples use Flexbox for common layouts. For each one, choose a direction, decide which items can grow, and allow wrapping where needed.
+
+## A wrapping navigation bar
+
+```html
+<!-- [!code word:class="nav"] -->
+<nav class="nav" aria-label="Layout">
+  <a href="/projects">Projects</a>
+  <a href="/guides">Growing guides</a>
+  <a href="/tools">Tools</a>
+</nav>
+```
+
+```css
+/* [!code word:wrap] */
+/* [!code word:align-items] */
+.nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1.5rem;
+}
+```
+
+The links keep their natural sizes and move to another line when needed. In this row layout, the first gap value separates lines and the second separates items on each line. Keep the links' source order meaningful when the bar wraps.
+
+## A media object with flexible text
+
+A **media object** places a small visual beside a larger body of text:
+
+```html
+<!-- [!code word:class="media-object"] -->
+<!-- [!code word:class="media-object-copy"] -->
+<article class="media-object">
+  <span class="media-object-icon" aria-hidden="true">📦</span>
+  <div class="media-object-copy">
+    <h2>Project status</h2>
+    <p>Review milestones and upcoming deadlines.</p>
+  </div>
+</article>
+```
+
+```css
+/* [!code word:0 0 3rem] */
+/* [!code word:1 1 0] */
+/* [!code word:min-width] */
+.media-object {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.media-object-icon {
+  flex: 0 0 3rem;
+}
+
+.media-object-copy {
+  flex: 1 1 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+```
+
+The icon stays at `3rem`, while the text fills the remaining width. `min-width: 0` lets the text box shrink, and `overflow-wrap` breaks long strings when needed.
+
+## A card row with actions at the bottom
+
+For a container whose direct children are articles containing a heading, paragraph, and final link:
+
+```css
+/* [!code word:1 1 14rem] */
+/* [!code word:column] */
+/* [!code word:margin-block-start] */
+.card-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.card-row > article {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 14rem;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.card-row > article > a {
+  margin-block-start: auto;
+}
+```
+
+The outer row shares space among the cards. Each card is also a flex container, with its children in a column. Cards stretch to the same height on each line, and the link’s auto margin pushes it to the bottom.
+
+Heights and widths can differ between separate wrapped lines. Use Grid when cards need shared columns across rows.
+
+## Center a single item
+
+```css
+/* [!code word:justify-content] */
+/* [!code word:align-items] */
+.empty-state {
+  display: flex;
+  min-height: 16rem;
+  justify-content: center;
+  align-items: center;
+}
+```
+
+With a single child, both axes are centered. The minimum height provides vertical room while allowing the container to grow with larger content.
+
+## Choose a pattern
+
+A toolbar contains links of different lengths. Which example lets them move to a new line without assigning every link a fixed width?
+
+<details>
+<summary>Check your reasoning</summary>
+
+The wrapping navigation uses `flex-wrap: wrap`; the links retain their natural sizes and form another line when needed.
+
+</details>
+
+In the card example, why does the action need an auto margin inside each card rather than on the outer card row?
+
+<details>
+<summary>Check your reasoning</summary>
+
+The action is a direct item of the card's column. Its auto margin consumes spare space in that column; the outer row arranges the cards themselves.
+
+</details>
+
+## Key Takeaways
+
+- **Navigation:** Wrap natural-width links when the available space decreases.
+- **Media objects:** Keep one part stable while another fills the remaining space.
+- **Nested containers:** Use a separate flex layout inside each card.
+- **Centering:** Align on both axes and provide enough space for the effect.
+
+## Try it yourself
+
+Build a centered empty state in the editor. Use Flexbox to center its single child on both axes within the supplied 260px by 120px area. Keep the supplied HTML and styles. Check both horizontal and vertical space and explain why the container height matters.
+
+<LessonPractice />
+
+Use the editor hints if needed. A visual match is feedback for this size; inspect both alignment declarations and try a longer message in a separate browser test.
+
+<details>
+<summary>Check your reasoning</summary>
+
+Set `display: flex`, `justify-content: center`, and `align-items: center` on `.empty`. The height provides vertical space around the child; without spare cross-axis space there may be nothing visible to center within.
+
+</details>

@@ -1,0 +1,253 @@
+---
+title: "Logarithms and Complexity"
+description: "Understand what logarithms are, why O(log n) and O(n log n) are so fast, and how dividing problems in half powers searching, sorting, and recursion."
+---
+
+## Logarithms and Complexity Growth
+
+A logarithm is the mathematical inverse of exponentiation.
+
+If:
+
+$$
+b^x = n
+$$
+
+then:
+
+$$
+\log_b(n) = x
+$$
+
+In plain English, a logarithm asks: **what power do we need to raise $b$ to in order to get $n$?**
+
+```text
+Exponent:   2⁴ = 16       (2 multiplied by itself 4 times equals 16)
+Logarithm:  log₂(16) = 4  (How many times do we multiply 2 to get 16? Answer: 4)
+```
+
+In computer science, whenever you see $\log n$ without a base number, it almost always means **base 2** ($\log_2 n$). That's because computers work in binary (0s and 1s), and algorithms frequently solve problems by cutting data in half at each step.
+
+| Value ($n$) | Base 2 Logarithm ($\log_2 n$) | Exponent Equivalent ($2^x = n$) |
+| :--- | :--- | :--- |
+| $1$ | $0$ | $2^0 = 1$ |
+| $2$ | $1$ | $2^1 = 2$ |
+| $4$ | $2$ | $2^2 = 4$ |
+| $8$ | $3$ | $2^3 = 8$ |
+| $16$ | $4$ | $2^4 = 16$ |
+| $32$ | $5$ | $2^5 = 32$ |
+| $64$ | $6$ | $2^6 = 64$ |
+| $1{,}024$ | $10$ | $2^{10} = 1{,}024$ |
+| $1{,}048{,}576$ (~1M) | $20$ | $2^{20} = 1{,}048{,}576$ |
+| $1{,}073{,}741{,}824$ (~1B) | $30$ | $2^{30} = 1{,}073{,}741{,}824$ |
+
+<Callout title="The Halving Intuition" type="info">
+A great way to think about $\log_2(n)$ in programming is: **how many times can you cut $n$ in half until you reach 1?**
+
+For example, starting with $n = 16$:
+$$16 \xrightarrow{\div 2} 8 \xrightarrow{\div 2} 4 \xrightarrow{\div 2} 2 \xrightarrow{\div 2} 1$$
+It takes **4 cuts** to bring $16$ down to $1$, so $\log_2(16) = 4$.
+</Callout>
+
+---
+
+## $O(\log n)$ Growth
+
+An $O(\log n)$ algorithm grows very slowly as the input gets bigger. In fact, each time the input size doubles, the algorithm only needs to do **one more step**.
+
+On a chart, $O(\log n)$ starts by rising slightly and then flattens out. It grows way slower than linear time $O(n)$:
+
+![](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/18ada0b2-6e63-4158-a51d-f5d75673751a/gallery/b988c2f2-24bc-48bd-ac41-b2d846ede988)
+
+We see logarithmic time most often in **searching**, where each check cuts the remaining items in half.
+
+### Example: Binary Search
+
+In a sorted list, Binary Search looks right at the middle item. If the number we want is smaller than the middle item, we throw away the whole right half. If it's bigger, we throw away the left half. We repeat this until we find the item or run out of numbers.
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```js
+    function binarySearch(sortedArr, target) {
+      let left = 0;
+      let right = sortedArr.length - 1;
+
+      while (left <= right) {
+        const mid = Math.floor((left + right) / 2);
+
+        if (sortedArr[mid] === target) {
+          return mid; // Target found
+        }
+
+        if (sortedArr[mid] < target) {
+          left = mid + 1; // Discard left half
+        } else {
+          right = mid - 1; // Discard right half
+        }
+      }
+
+      return -1; // Target not present
+    }
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    def binary_search(sorted_arr, target):
+        left = 0
+        right = len(sorted_arr) - 1
+
+        while left <= right:
+            mid = (left + right) // 2
+
+            if sorted_arr[mid] == target:
+                return mid  # Target found
+
+            if sorted_arr[mid] < target:
+                left = mid + 1  # Discard left half
+            else:
+                right = mid - 1  # Discard right half
+
+        return -1  # Target not present
+    ```
+  </Tab>
+</Tabs>
+
+Notice how much faster $O(\log n)$ is compared to linear $O(n)$ as the input gets large:
+
+| Items in List ($n$) | Linear Search $O(n)$ Max Steps | Binary Search $O(\log n)$ Max Steps |
+| :--- | :--- | :--- |
+| $8$ | $8$ | $3$ |
+| $64$ | $64$ | $6$ |
+| $1{,}024$ | $1{,}024$ | $10$ |
+| $1{,}000{,}000$ (1 Million) | $1{,}000{,}000$ | $20$ |
+| $1{,}000{,}000{,}000$ (1 Billion) | $1{,}000{,}000{,}000$ | $30$ |
+
+If you double a list from $1$ million to $2$ million items, linear search has to check an extra $1{,}000{,}000$ items. But binary search only needs **1 extra step**!
+
+---
+
+## $O(n \log n)$ Growth
+
+An $O(n \log n)$ algorithm (sometimes called **linearithmic**) combines two parts:
+
+- $n$: doing work on all $n$ items (like looking through or merging items at each step).
+- $\log n$: repeating that work across $\log n$ split levels or stages.
+
+On a chart, $O(n \log n)$ grows faster than $O(\log n)$ because it touches all $n$ items. But it is still **much faster** than quadratic time ($O(n^2)$):
+
+![](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/18ada0b2-6e63-4158-a51d-f5d75673751a/gallery/3fcadc29-6bd6-414b-9ffa-497010a9993e)
+
+This complexity is famous for efficient **sorting** algorithms, such as Merge Sort, Quick Sort (on average), and Heap Sort.
+
+### Example: Merge Sort
+
+Merge Sort splits a list in half over and over until each piece has only 1 item (which takes $\log n$ levels of splitting). Then, it merges those pieces back together in sorted order, doing $O(n)$ work at each level:
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```js
+    function mergeSort(arr) {
+      if (arr.length <= 1) return arr;
+
+      const mid = Math.floor(arr.length / 2);
+      const left = mergeSort(arr.slice(0, mid));   // Recursive division
+      const right = mergeSort(arr.slice(mid));      // Recursive division
+
+      return merge(left, right); // O(n) work across O(log n) levels
+    }
+
+    function merge(left, right) {
+      const result = [];
+      let i = 0, j = 0;
+
+      while (i < left.length && j < right.length) {
+        if (left[i] < right[j]) result.push(left[i++]);
+        else result.push(right[j++]);
+      }
+
+      return [...result, ...left.slice(i), ...right.slice(j)];
+    }
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    def merge_sort(arr):
+        if len(arr) <= 1:
+            return arr
+
+        mid = len(arr) // 2
+        left = merge_sort(arr[:mid])   # Recursive division
+        right = merge_sort(arr[mid:])  # Recursive division
+
+        return merge(left, right)  # O(n) work across O(log n) levels
+
+
+    def merge(left, right):
+        result = []
+        i = j = 0
+
+        while i < len(left) and j < len(right):
+            if left[i] < right[j]:
+                result.append(left[i])
+                i += 1
+            else:
+                result.append(right[j])
+                j += 1
+
+        result.extend(left[i:])
+        result.extend(right[j:])
+        return result
+    ```
+  </Tab>
+</Tabs>
+
+### Comparing $O(\log n)$ and $O(n \log n)$
+
+| Complexity | Growth Speed | Typical Use Case |
+|---|---|---|
+| $O(\log n)$ | Extremely slow growth (almost flat) | Searching (like Binary Search) |
+| $O(n \log n)$ | Slightly steeper than linear $O(n)$ | Fast Sorting (like Merge Sort) |
+
+---
+
+## Logarithms in Recursion
+
+Logarithms appear naturally in recursion whenever a function breaks a big problem down into smaller pieces.
+
+When a recursive function cuts the problem in half on every call ($n \to n/2 \to n/4 \dots \to 1$), the recursion tree is only $\log_2 n$ levels tall:
+
+```text
+Level 0:                 [Size n]                     --> 1 call
+                          /    \
+Level 1:           [Size n/2]  [Size n/2]             --> 2 calls
+                    /    \        /    \
+Level 2:       [n/4]    [n/4]  [n/4]    [n/4]         --> 4 calls
+                ...      ...    ...      ...
+Level log₂(n): [ 1 ]    [ 1 ]  [ 1 ]    [ 1 ]         --> n calls
+```
+
+The total time depends on how many branches the function explores and how much work it does at each level:
+
+1. **Checking only one half $\to O(\log n)$ Time:**
+   If the code only follows one branch down (like recursive binary search), the total work is simply the height of the tree:
+   $$\text{Total Work} = O(1) \text{ per level} \times \log_2 n \text{ levels} = O(\log n)$$
+
+2. **Working on both halves $\to O(n \log n)$ Time:**
+   If the code visits both branches and does $O(n)$ work merging them (like merge sort), every level adds up to $n$ work:
+   $$\text{Total Work} = n \text{ work per level} \times \log_2 n \text{ levels} = O(n \log n)$$
+
+To sum it up, logarithms appear in three main patterns:
+
+- **Searching:** Cutting the search space in half at each step gives $O(\log n)$.
+- **Sorting:** Splitting data in half and merging all items back together gives $O(n \log n)$.
+- **Recursion:** Cutting a problem by a factor of 2 at each step gives a tree height of $O(\log n)$.
+
+---
+
+## Key Takeaways
+
+- **Opposite of Exponents:** A logarithm asks: *"How many times do I multiply the base to get $n$?"* In computer science, base 2 ($\log_2 n$) is standard because we frequently cut problems in half.
+- **$O(\log n)$ is Super Fast:** Each time the input size doubles, the algorithm only takes 1 extra step. This is standard for search algorithms like Binary Search.
+- **$O(n \log n)$ for Fast Sorting:** Doing $n$ work across $\log n$ levels gives $O(n \log n)$, which is the benchmark for fast sorting algorithms like Merge Sort.
+- **Recursion Tree Height:** Any time a recursive function cuts a problem in half, the recursion tree is only $O(\log n)$ levels deep.
+

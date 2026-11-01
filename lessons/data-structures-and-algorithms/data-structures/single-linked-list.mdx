@@ -1,0 +1,1000 @@
+---
+title: "Singly Linked List"
+description: "Understand the structure of singly linked lists, implement core operations, and compare their performance with doubly linked lists and arrays."
+---
+
+A **singly linked list** is a sequence of nodes connected in one direction. Each node stores a value and a `next` reference to the following node.
+
+The list keeps a `head` reference to its first node and a `tail` reference to its last node. The tail's `next` points to `null`, which marks the end of the list.
+
+![](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/c2d3d3d7-decc-4cc8-9405-d55b95d6181d/gallery/526414dd-716c-4335-913a-4466f0f6b743)
+
+Think of the structure like a **scavenger hunt**:
+
+- You only know where the first clue is.
+- Each clue reveals a message and gives you directions to find the next clue.
+- The final clue points to nothing (`null`), signaling that the hunt is over.
+
+<Callout title="Key Property: Unidirectional" type="info">
+In a singly linked list, connections only go forward: each node points to the next, never to the previous one. To find any element, you must start from the **head** and traverse forward one link at a time.
+</Callout>
+
+---
+
+## Anatomy of a Singly Linked List
+
+| Component | Description |
+|---|---|
+| **Node** | Stores a value and a `next` reference. |
+| **Head** | References the first node. |
+| **Tail** | References the last node. Its `next` is `null`. |
+| **Length** | Tracks the number of nodes for fast boundary checks. |
+
+### Visualizing a Node
+
+Each node is an independent object with two properties:
+
+![](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/c2d3d3d7-decc-4cc8-9405-d55b95d6181d/gallery/2bc4b772-f084-4860-b8d3-e8129b1287ff)
+
+---
+
+## Defining the Node and List
+
+To implement a singly linked list in code, we define two classes:
+1. `Node`: Holds the data and the reference to the next node.
+2. `SinglyLinkedList`: Manages the chain, tracking `head`, `tail`, and `length`.
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```javascript
+    class Node {
+      constructor(val) {
+        this.val = val;
+        this.next = null;
+      }
+    }
+
+    class SinglyLinkedList {
+      constructor() {
+        this.head = null;
+        this.tail = null;
+        this.length = 0;
+      }
+    }
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    class Node:
+        def __init__(self, val):
+            self.val = val
+            self.next = None
+
+
+    class SinglyLinkedList:
+        def __init__(self):
+            self.head = None
+            self.tail = None
+            self.length = 0
+    ```
+  </Tab>
+</Tabs>
+
+Tracking `tail` and `length` gives us two immediate performance advantages:
+- Appending items to the end runs in $O(1)$ constant time instead of requiring a full traversal.
+- Checking the number of items or validating index boundaries runs in $O(1)$ time.
+
+---
+
+## Core Operations
+
+### 1. Adding to the End (`push`)
+
+The `push` method appends a new node to the end of the list.
+
+![](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/c2d3d3d7-decc-4cc8-9405-d55b95d6181d/gallery/acde5772-aa60-4dd4-b332-b7586008fcdc)
+
+#### Step-by-Step Logic
+1. Create a new node with the provided value.
+2. If the list is empty (`!this.head`), point both `head` and `tail` to the new node.
+3. Otherwise, set the current `tail.next` to point to the new node, and update `tail` to be the new node.
+4. Increment `length` by 1.
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```javascript
+    push(val) {
+      const newNode = new Node(val);
+      if (!this.head) {
+        this.head = newNode;
+        this.tail = newNode;
+      } else {
+        this.tail.next = newNode;
+        this.tail = newNode;
+      }
+      this.length++;
+      return this;
+    }
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    def push(self, val):
+        new_node = Node(val)
+        if not self.head:
+            self.head = new_node
+            self.tail = new_node
+        else:
+            self.tail.next = new_node
+            self.tail = new_node
+        self.length += 1
+        return self
+    ```
+  </Tab>
+</Tabs>
+
+**Time Complexity:** $O(1)$ — Direct pointer update through the `tail` pointer.
+
+---
+
+### 2. Adding to the Beginning (`unshift`)
+
+The `unshift` method prepends a new node to the **start of the list**, making it the new `head`.
+
+![](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/c2d3d3d7-decc-4cc8-9405-d55b95d6181d/gallery/ecd47270-0b2c-41f1-b42b-5e620a25cbfa)
+
+#### Step-by-Step Logic
+1. Create a new node with the provided value.
+2. If the list is empty, set both `head` and `tail` to the new node.
+3. Otherwise, set the new node's `next` pointer to reference the current `head`.
+4. Update `head` to reference the new node.
+5. Increment `length` by 1.
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```javascript
+    unshift(val) {
+      const newNode = new Node(val);
+      if (!this.head) {
+        this.head = newNode;
+        this.tail = newNode;
+      } else {
+        newNode.next = this.head;
+        this.head = newNode;
+      }
+      this.length++;
+      return this;
+    }
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    def unshift(self, val):
+        new_node = Node(val)
+        if not self.head:
+            self.head = new_node
+            self.tail = new_node
+        else:
+            new_node.next = self.head
+            self.head = new_node
+        self.length += 1
+        return self
+    ```
+  </Tab>
+</Tabs>
+
+**Time Complexity:** $O(1)$ — Unlike arrays where prepending requires shifting every element to the right ($O(n)$), adding to the head of a linked list is instant.
+
+---
+
+### 3. Removing from the Beginning (`shift`)
+
+The `shift` method removes the node at the `head` of the list and returns it.
+
+![](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/c2d3d3d7-decc-4cc8-9405-d55b95d6181d/gallery/232b022f-3c55-4c36-9f3f-f7c4fb7dd965)
+
+#### Step-by-Step Logic
+1. If the list is empty, return `null`.
+2. Save the current `head` node in a temporary variable.
+3. Advance `head` to `head.next`.
+4. Decrement `length` by 1.
+5. If `length` reaches 0, set `tail` to `null`.
+6. Sever the removed node's `next` pointer and return it.
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```javascript
+    shift() {
+      if (!this.head) return null;
+      const removedNode = this.head;
+      this.head = this.head.next;
+      this.length--;
+      if (this.length === 0) {
+        this.tail = null;
+      }
+      removedNode.next = null;
+      return removedNode;
+    }
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    def shift(self):
+        if not self.head:
+            return None
+        removed_node = self.head
+        self.head = self.head.next
+        self.length -= 1
+        if self.length == 0:
+            self.tail = None
+        removed_node.next = None
+        return removed_node
+    ```
+  </Tab>
+</Tabs>
+
+**Time Complexity:** $O(1)$ — Constant time. In an array, removing from index `0` takes $O(n)$ time because all remaining elements must shift left.
+
+---
+
+### 4. Removing from the End (`pop`)
+
+The `pop` method removes the node at the `tail` of the list and returns it.
+
+![](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/c2d3d3d7-decc-4cc8-9405-d55b95d6181d/gallery/023dd657-213e-4a51-b6cf-c478371c1651)
+
+<Callout title="Why is Pop O(n) in a Singly Linked List?" type="warn">
+Even though we have a `tail` pointer, removing the tail requires pointing the **second-to-last node** to `null` and making it the new tail. Because singly linked lists only point forward, we must traverse the entire list from the `head` to locate that second-to-last node.
+</Callout>
+
+#### Step-by-Step Logic
+1. If the list is empty, return `null`.
+2. Start two pointers at `head`: `current` and `newTail`.
+3. Loop while `current.next` exists: advance `newTail` to `current`, and `current` to `current.next`.
+4. When the loop finishes, `current` is the tail, and `newTail` is the second-to-last node.
+5. Set `tail` to `newTail` and disconnect its `next` pointer (`tail.next = null`).
+6. Decrement `length` by 1.
+7. If `length` reaches 0, reset both `head` and `tail` to `null`.
+8. Return `current`.
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```javascript
+    pop() {
+      if (!this.head) return null;
+      let current = this.head;
+      let newTail = current;
+
+      while (current.next) {
+        newTail = current;
+        current = current.next;
+      }
+
+      this.tail = newTail;
+      this.tail.next = null;
+      this.length--;
+
+      if (this.length === 0) {
+        this.head = null;
+        this.tail = null;
+      }
+
+      return current;
+    }
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    def pop(self):
+        if not self.head:
+            return None
+        current = self.head
+        new_tail = current
+
+        while current.next:
+            new_tail = current
+            current = current.next
+
+        self.tail = new_tail
+        self.tail.next = None
+        self.length -= 1
+
+        if self.length == 0:
+            self.head = None
+            self.tail = None
+
+        return current
+    ```
+  </Tab>
+</Tabs>
+
+**Time Complexity:** $O(n)$ — Must traverse to the second-to-last node.
+
+---
+
+### 5. Accessing by Index (`get`)
+
+The `get` method retrieves the node at a given 0-based index.
+
+Unlike arrays, where index lookups are instant ($O(1)$) using memory offsets, a singly linked list must count forward from `head` step by step.
+
+#### Step-by-Step Logic
+1. Validate the index: if `index < 0` or `index >= this.length`, return `null`.
+2. Start a pointer `current` at `this.head`.
+3. Loop `index` times, moving `current = current.next`.
+4. Return `current`.
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```javascript
+    get(index) {
+      if (index < 0 || index >= this.length) return null;
+      let current = this.head;
+      for (let i = 0; i < index; i++) {
+        current = current.next;
+      }
+      return current;
+    }
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    def get(self, index):
+        if index < 0 or index >= self.length:
+            return None
+        current = self.head
+        for _ in range(index):
+            current = current.next
+        return current
+    ```
+  </Tab>
+</Tabs>
+
+**Time Complexity:** $O(n)$ — Requires sequential traversal from the head.
+
+---
+
+### 6. Updating by Index (`set`)
+
+The `set` method modifies the value stored in the node at a specific index.
+
+#### Step-by-Step Logic
+1. Call `get(index)` to find the target node.
+2. If found, update its value and return `true`.
+3. If not found (index out of bounds), return `false`.
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```javascript
+    set(index, val) {
+      const foundNode = this.get(index);
+      if (foundNode) {
+        foundNode.val = val;
+        return true;
+      }
+      return false;
+    }
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    def set(self, index, val):
+        found_node = self.get(index)
+        if found_node:
+            found_node.val = val
+            return True
+        return False
+    ```
+  </Tab>
+</Tabs>
+
+**Time Complexity:** $O(n)$ — Inherited from the traversal in `get`.
+
+---
+
+### 7. Inserting at Any Position (`insert`)
+
+The `insert` method inserts a new node at any valid index (`0` through `length`).
+
+![](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/c2d3d3d7-decc-4cc8-9405-d55b95d6181d/gallery/c16c7148-f48f-4947-9611-0e95eb9b92d1)
+
+#### Step-by-Step Logic
+1. If `index < 0` or `index > this.length`, return `false`.
+2. If `index === 0`, call `unshift(val)` to insert at the beginning.
+3. If `index === this.length`, call `push(val)` to append at the end.
+4. For middle positions:
+   - Locate the node right before the target index using `get(index - 1)`.
+   - Create the new node.
+   - Point the new node's `next` to `prev.next`.
+   - Re-route `prev.next` to point to the new node.
+5. Increment `length` and return `true`.
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```javascript
+    insert(index, val) {
+      if (index < 0 || index > this.length) return false;
+      if (index === 0) return Boolean(this.unshift(val));
+      if (index === this.length) return Boolean(this.push(val));
+
+      const prev = this.get(index - 1);
+      const newNode = new Node(val);
+      newNode.next = prev.next;
+      prev.next = newNode;
+      this.length++;
+      return true;
+    }
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    def insert(self, index, val):
+        if index < 0 or index > self.length:
+            return False
+        if index == 0:
+            self.unshift(val)
+            return True
+        if index == self.length:
+            self.push(val)
+            return True
+
+        prev = self.get(index - 1)
+        new_node = Node(val)
+        new_node.next = prev.next
+        prev.next = new_node
+        self.length += 1
+        return True
+    ```
+  </Tab>
+</Tabs>
+
+**Time Complexity:** $O(n)$ — Finding the position takes $O(n)$ traversal, but the pointer rewiring itself is instant ($O(1)$).
+
+---
+
+### 8. Removing from Any Position (`remove`)
+
+The `remove` method deletes the node at a given index and returns it.
+
+
+![](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/c2d3d3d7-decc-4cc8-9405-d55b95d6181d/gallery/f3f9d8fe-e568-4234-9ac8-b3cbc307f71a)
+
+#### Step-by-Step Logic
+1. If `index < 0` or `index >= this.length`, return `null`.
+2. If `index === 0`, delegate to `shift()`.
+3. If `index === this.length - 1`, delegate to `pop()`.
+4. For middle positions:
+   - Locate the previous node: `prev = this.get(index - 1)`.
+   - Identify the node to remove: `removedNode = prev.next`.
+   - Bypass the removed node: `prev.next = removedNode.next`.
+   - Clear `removedNode.next = null`.
+5. Decrement `length` and return the removed node.
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```javascript
+    remove(index) {
+      if (index < 0 || index >= this.length) return null;
+      if (index === 0) return this.shift();
+      if (index === this.length - 1) return this.pop();
+
+      const prev = this.get(index - 1);
+      const removedNode = prev.next;
+      prev.next = removedNode.next;
+      removedNode.next = null;
+      this.length--;
+      return removedNode;
+    }
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    def remove(self, index):
+        if index < 0 or index >= self.length:
+            return None
+        if index == 0:
+            return self.shift()
+        if index == self.length - 1:
+            return self.pop()
+
+        prev = self.get(index - 1)
+        removed_node = prev.next
+        prev.next = removed_node.next
+        removed_node.next = None
+        self.length -= 1
+        return removed_node
+    ```
+  </Tab>
+</Tabs>
+
+**Time Complexity:** $O(n)$ — Locating the node takes $O(n)$, while unlinking is $O(1)$.
+
+---
+
+### 9. Reversing the List (`reverse`)
+
+Reversing a singly linked list in-place is one of the classic data structure algorithms. It inverts the direction of all pointer links so that the head becomes the tail, the tail becomes the head, and all intermediate links point backward.
+
+![](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/c2d3d3d7-decc-4cc8-9405-d55b95d6181d/gallery/c44b2491-43b0-449c-beb3-ce55214f63bb)
+
+#### The Three-Pointer Algorithm
+To flip links without losing references to the rest of the list, we maintain three pointers as we traverse:
+1. `prev`: Starts at `null`.
+2. `current`: Starts at `this.head`.
+3. `next`: Temporarily preserves the upcoming node (`current.next`).
+
+#### Step-by-Step Loop
+1. Swap `this.head` and `this.tail`.
+2. Loop while `current` is not `null`:
+   - Store `next = current.next` (saves remaining chain).
+   - Reverse pointer: `current.next = prev`.
+   - Shift `prev` forward: `prev = current`.
+   - Shift `current` forward: `current = next`.
+3. Return the reversed list.
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```javascript
+    reverse() {
+      let current = this.head;
+      this.head = this.tail;
+      this.tail = current;
+
+      let prev = null;
+      let next = null;
+
+      while (current) {
+        next = current.next;     // 1. Save next node
+        current.next = prev;     // 2. Reverse pointer direction
+        prev = current;          // 3. Step prev forward
+        current = next;          // 4. Step current forward
+      }
+
+      return this;
+    }
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    def reverse(self):
+        current = self.head
+        self.head = self.tail
+        self.tail = current
+
+        prev = None
+        next_node = None
+
+        while current:
+            next_node = current.next  # 1. Save next node
+            current.next = prev       # 2. Reverse pointer direction
+            prev = current            # 3. Step prev forward
+            current = next_node       # 4. Step current forward
+
+        return self
+    ```
+  </Tab>
+</Tabs>
+
+**Time Complexity:** $O(n)$ — Single pass through all $n$ nodes.  
+**Space Complexity:** $O(1)$ — Done entirely in-place with three temporary pointer variables.
+
+---
+
+### 10. Displaying the List (`print`)
+
+A helper method to print the elements of the list sequentially for debugging and inspection:
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```javascript
+    print() {
+      const values = [];
+      let current = this.head;
+      while (current) {
+        values.push(current.val);
+        current = current.next;
+      }
+      console.log(values.join(" -> ") + " -> null");
+    }
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    def print(self):
+        values = []
+        current = self.head
+        while current:
+            values.append(str(current.val))
+            current = current.next
+        print(" -> ".join(values) + " -> None")
+    ```
+  </Tab>
+</Tabs>
+
+---
+
+## Complete Implementation
+
+Here is the complete, cohesive `SinglyLinkedList` implementation with all methods unified:
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```javascript
+    class Node {
+      constructor(val) {
+        this.val = val;
+        this.next = null;
+      }
+    }
+
+    class SinglyLinkedList {
+      constructor() {
+        this.head = null;
+        this.tail = null;
+        this.length = 0;
+      }
+
+      push(val) {
+        const newNode = new Node(val);
+        if (!this.head) {
+          this.head = newNode;
+          this.tail = newNode;
+        } else {
+          this.tail.next = newNode;
+          this.tail = newNode;
+        }
+        this.length++;
+        return this;
+      }
+
+      unshift(val) {
+        const newNode = new Node(val);
+        if (!this.head) {
+          this.head = newNode;
+          this.tail = newNode;
+        } else {
+          newNode.next = this.head;
+          this.head = newNode;
+        }
+        this.length++;
+        return this;
+      }
+
+      shift() {
+        if (!this.head) return null;
+        const removedNode = this.head;
+        this.head = this.head.next;
+        this.length--;
+        if (this.length === 0) {
+          this.tail = null;
+        }
+        removedNode.next = null;
+        return removedNode;
+      }
+
+      pop() {
+        if (!this.head) return null;
+        let current = this.head;
+        let newTail = current;
+
+        while (current.next) {
+          newTail = current;
+          current = current.next;
+        }
+
+        this.tail = newTail;
+        this.tail.next = null;
+        this.length--;
+
+        if (this.length === 0) {
+          this.head = null;
+          this.tail = null;
+        }
+
+        return current;
+      }
+
+      get(index) {
+        if (index < 0 || index >= this.length) return null;
+        let current = this.head;
+        for (let i = 0; i < index; i++) {
+          current = current.next;
+        }
+        return current;
+      }
+
+      set(index, val) {
+        const foundNode = this.get(index);
+        if (foundNode) {
+          foundNode.val = val;
+          return true;
+        }
+        return false;
+      }
+
+      insert(index, val) {
+        if (index < 0 || index > this.length) return false;
+        if (index === 0) return Boolean(this.unshift(val));
+        if (index === this.length) return Boolean(this.push(val));
+
+        const prev = this.get(index - 1);
+        const newNode = new Node(val);
+        newNode.next = prev.next;
+        prev.next = newNode;
+        this.length++;
+        return true;
+      }
+
+      remove(index) {
+        if (index < 0 || index >= this.length) return null;
+        if (index === 0) return this.shift();
+        if (index === this.length - 1) return this.pop();
+
+        const prev = this.get(index - 1);
+        const removedNode = prev.next;
+        prev.next = removedNode.next;
+        removedNode.next = null;
+        this.length--;
+        return removedNode;
+      }
+
+      reverse() {
+        let current = this.head;
+        this.head = this.tail;
+        this.tail = current;
+
+        let prev = null;
+        let next = null;
+
+        while (current) {
+          next = current.next;
+          current.next = prev;
+          prev = current;
+          current = next;
+        }
+
+        return this;
+      }
+
+      print() {
+        const values = [];
+        let current = this.head;
+        while (current) {
+          values.push(current.val);
+          current = current.next;
+        }
+        console.log(values.join(" -> ") + " -> null");
+      }
+    }
+
+    // Example Usage
+    const list = new SinglyLinkedList();
+    list.push(10).push(20).push(30);
+    list.print(); // 10 -> 20 -> 30 -> null
+
+    list.unshift(5);
+    list.print(); // 5 -> 10 -> 20 -> 30 -> null
+
+    list.insert(2, 15);
+    list.print(); // 5 -> 10 -> 15 -> 20 -> 30 -> null
+
+    list.reverse();
+    list.print(); // 30 -> 20 -> 15 -> 10 -> 5 -> null
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    class Node:
+        def __init__(self, val):
+            self.val = val
+            self.next = None
+
+
+    class SinglyLinkedList:
+        def __init__(self):
+            self.head = None
+            self.tail = None
+            self.length = 0
+
+        def push(self, val):
+            new_node = Node(val)
+            if not self.head:
+                self.head = new_node
+                self.tail = new_node
+            else:
+                self.tail.next = new_node
+                self.tail = new_node
+            self.length += 1
+            return self
+
+        def unshift(self, val):
+            new_node = Node(val)
+            if not self.head:
+                self.head = new_node
+                self.tail = new_node
+            else:
+                new_node.next = self.head
+                self.head = new_node
+            self.length += 1
+            return self
+
+        def shift(self):
+            if not self.head:
+                return None
+            removed_node = self.head
+            self.head = self.head.next
+            self.length -= 1
+            if self.length == 0:
+                self.tail = None
+            removed_node.next = None
+            return removed_node
+
+        def pop(self):
+            if not self.head:
+                return None
+            current = self.head
+            new_tail = current
+
+            while current.next:
+                new_tail = current
+                current = current.next
+
+            self.tail = new_tail
+            self.tail.next = None
+            self.length -= 1
+
+            if self.length == 0:
+                self.head = None
+                self.tail = None
+
+            return current
+
+        def get(self, index):
+            if index < 0 or index >= self.length:
+                return None
+            current = self.head
+            for _ in range(index):
+                current = current.next
+            return current
+
+        def set(self, index, val):
+            found_node = self.get(index)
+            if found_node:
+                found_node.val = val
+                return True
+            return False
+
+        def insert(self, index, val):
+            if index < 0 or index > self.length:
+                return False
+            if index == 0:
+                self.unshift(val)
+                return True
+            if index == self.length:
+                self.push(val)
+                return True
+
+            prev = self.get(index - 1)
+            new_node = Node(val)
+            new_node.next = prev.next
+            prev.next = new_node
+            self.length += 1
+            return True
+
+        def remove(self, index):
+            if index < 0 or index >= self.length:
+                return None
+            if index == 0:
+                return self.shift()
+            if index == self.length - 1:
+                return self.pop()
+
+            prev = self.get(index - 1)
+            removed_node = prev.next
+            prev.next = removed_node.next
+            removed_node.next = None
+            self.length -= 1
+            return removed_node
+
+        def reverse(self):
+            current = self.head
+            self.head = self.tail
+            self.tail = current
+
+            prev = None
+            next_node = None
+
+            while current:
+                next_node = current.next
+                current.next = prev
+                prev = current
+                current = next_node
+
+            return self
+
+        def print(self):
+            values = []
+            current = self.head
+            while current:
+                values.append(str(current.val))
+                current = current.next
+            print(" -> ".join(values) + " -> None")
+
+
+    # Example Usage
+    sll = SinglyLinkedList()
+    sll.push(10).push(20).push(30)
+    sll.print()  # 10 -> 20 -> 30 -> None
+
+    sll.unshift(5)
+    sll.print()  # 5 -> 10 -> 20 -> 30 -> None
+
+    sll.insert(2, 15)
+    sll.print()  # 5 -> 10 -> 15 -> 20 -> 30 -> None
+
+    sll.reverse()
+    sll.print()  # 30 -> 20 -> 15 -> 10 -> 5 -> None
+    ```
+  </Tab>
+</Tabs>
+
+---
+
+## Performance Summary
+
+| Operation | Time Complexity |
+|---|---|
+| Push at tail | $O(1)$ |
+| Pop from tail | $O(n)$ |
+| Unshift at head | $O(1)$ |
+| Shift from head | $O(1)$ |
+| Get or set by index | $O(n)$ |
+| Insert or remove by index | $O(n)$ |
+| Search | $O(n)$ |
+| Reverse | $O(n)$ |
+
+## Singly Linked List vs. Arrays
+
+Understanding the performance trade-offs between linked lists and arrays allows you to choose the right data structure for your specific use case.
+
+| Operation | Singly Linked List | Array / Dynamic Array | Architectural Explanation |
+|---|---|---|---|
+| **Access (by index)** | **$O(n)$** | **$O(1)$** | Arrays calculate physical memory addresses via arithmetic offset; linked lists must traverse sequentially from `head`. |
+| **Search (by value)** | **$O(n)$** | **$O(n)$** | Both must inspect elements one by one in unsorted collections. |
+| **Insertion at Head (`unshift`)** | **$O(1)$** | **$O(n)$** | Linked list rewires a single pointer; arrays must shift every subsequent element one position to the right. |
+| **Insertion at Tail (`push`)** | **$O(1)$** | **$O(1)$** | Linked list updates `tail.next`; arrays append to pre-allocated capacity (occasional resize is $O(n)$). |
+| **Insertion in Middle** | **$O(n)$** | **$O(n)$** | Linked list spends $O(n)$ traversing to the position; array spends $O(n)$ shifting elements. |
+| **Deletion at Head (`shift`)** | **$O(1)$** | **$O(n)$** | Linked list advances `head`; array must shift every remaining item left. |
+| **Deletion at Tail (`pop`)** | **$O(n)$** | **$O(1)$** | Singly linked list must traverse from head to find the second-to-last node; array decrements its size counter. |
+| **Deletion in Middle** | **$O(n)$** | **$O(n)$** | Linked list requires $O(n)$ traversal; array requires $O(n)$ shifting. |
+| **Memory Allocation** | **Node by node** | **Contiguous block** | Linked-list nodes do not need to sit next to one another; array elements do. |
+| **Memory Overhead** | **Higher** | **Lower** | Each linked-list node stores a `next` reference in addition to its value. |
+
+---
+
+## Applications and When to Use a Singly Linked List
+
+### Optimal Use Cases
+
+- **Frequent changes at the head:** Prepending and removing nodes both take $O(1)$ time.
+- **Stacks:** Use `unshift` and `shift` to add and remove from the same end in $O(1)$ time.
+- **Queues:** Use `push` at the tail and `shift` at the head; both operations take $O(1)$ time.
+- **Dynamic collections:** The list grows and shrinks one node at a time.
+- **Building other structures:** Singly linked lists can support chaining in hash maps and adjacency lists in graphs.
+
+### When to Avoid
+
+- **Frequent Random Index Lookups:** If your application constantly reads values by index (e.g., `data[450]`), arrays provide instant $O(1)$ access whereas linked lists require slow $O(n)$ traversal.
+- **Strict Memory Limitations:** Every node needs an additional `next` reference.
+- **Backward Traversal:** A singly linked list cannot move directly from a node to its predecessor.
+
+---
+
+## Key Takeaways
+
+- Every node stores a value and one `next` reference.
+- Links move from `head` to `tail`; there is no direct backward traversal.
+- Push, unshift, and shift run in $O(1)$ time when the list tracks its tail.
+- Pop takes $O(n)$ because the list must traverse from the head to find the node before the tail.
+- Index-based access takes $O(n)$ because linked lists do not provide random access.
+- Reversing the list takes $O(n)$ time and $O(1)$ auxiliary space.

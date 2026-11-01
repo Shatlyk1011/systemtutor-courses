@@ -1,0 +1,16 @@
+title: "Searching Algorithms"
+description: "Master foundational search algorithms from linear search to divide-and-conquer techniques."
+pages:
+  - introduction
+  - linear-search
+  - practice-find-even-number-digits
+  - quiz-searching-fundamentals-and-linear-search
+  - binary-search
+  - binary-search-boundaries
+  - practice-search-insert-position
+  - practice-first-bad-version
+  - practice-medium-search-in-rotated-sorted-array
+  - binary-search-on-the-answer
+  - quiz-binary-search-boundaries-and-answer
+  - practice-medium-koko-eating-bananas
+  - quiz-binary-search-and-ordered-boundaries

@@ -1,0 +1,895 @@
+---
+title: "Flexbox"
+---
+
+{/* Topics to cover: Flexbox Basics; Direction and Wrapping; Flex Item Sizing; Main-Axis Alignment; Cross-Axis Alignment; Flexbox Patterns; Debugging Flexbox. */}
+
+## Flexbox Basics
+
+**Flexbox** arranges a collection of items along one main axis. It is useful when you want a row or column whose items can share space, shrink, and align with one another.
+
+### Create a container and its items
+
+Start with three dashboard cards inside a wrapper:
+
+```html
+<!-- [!code word:class="row"] -->
+<!-- [!code word:class="card"] -->
+<div class="row">
+  <article class="card">Revenue</article>
+  <article class="card">Orders</article>
+  <article class="card">Customers</article>
+</div>
+```
+
+```css
+/* [!code word:display\: flex] */
+/* [!code word:gap] */
+.row {
+  display: flex;
+  gap: 1rem;
+}
+```
+
+The wrapper becomes the **flex container**. Its direct children in normal flow become **flex items**: the three articles here. Elements inside an article do not become items of the outer container.
+
+`gap` separates neighboring items. It does not add space around the outside of the collection.
+
+### Identify the two axes
+
+Flexbox uses two directions, called **axes**, at right angles to each other:
+
+| Axis | Purpose | With `flex-direction: row` in horizontal English text |
+| --- | --- | --- |
+| Main axis | The direction in which items are laid out. | Left to right. |
+| Cross axis | The direction at right angles to the main axis. | Top to bottom. |
+
+`flex-direction` defines the main axis. Changing it to `column` makes the main axis run down the page in a horizontal writing mode. Main-axis alignment therefore does not always mean horizontal alignment.
+
+Writing direction matters too: a normal row follows the inline direction, so it starts on the right in right-to-left text. Later lessons use axis names to keep these relationships clear.
+
+### Understand the starting behavior
+
+Without additional flex rules, the cards:
+
+- Form a single row because the initial direction is `row`.
+- Keep their content-based starting sizes rather than automatically becoming equal widths.
+- Can shrink when space is limited, subject to their minimum sizes.
+- Do not wrap onto another flex line until wrapping is enabled.
+
+This follows the initial item sizing combination `flex: 0 1 auto`: no growth, shrinking allowed, and an automatic basis. The sizing lesson explains each part.
+
+### Make space available for alignment
+
+```css
+/* [!code word:justify-content] */
+/* [!code word:space-between] */
+.row {
+  justify-content: space-between;
+}
+```
+
+Add this after the earlier container rule. It puts any leftover width between the cards. If the cards and gaps already fill the row, there is no extra space to share.
+
+Flexbox can also wrap, but each line distributes its own space. It does not create shared columns across separate lines.
+
+### Practice identifying items
+
+Suppose `.row` contains an article, and that article contains a heading. Which boxes are flex items of `.row`? Try answering before opening the explanation.
+
+<details>
+<summary>Check your reasoning</summary>
+
+The article is a direct child and is a flex item. Its heading is inside the article, so it is not an item of the outer `.row`.
+
+</details>
+
+Now imagine changing the row to a column. Which axis follows the cards, and where is the cross axis?
+
+<details>
+<summary>Check your reasoning</summary>
+
+The main axis follows the column, top to bottom in horizontal writing. The cross axis runs across it. The axis names describe their relationship to the direction, not fixed screen directions.
+
+</details>
+
+### Key Takeaways
+
+- **Container:** Set `display: flex` on the parent of the items you want to arrange.
+- **Axes:** `flex-direction` sets the main axis. The cross axis runs at right angles to it.
+- **Defaults:** Items can shrink, but do not grow or wrap by default.
+- **Space:** Alignment distributes the space left after item sizing and gaps.
+
+### Try it yourself
+
+In the editor, turn the three direct children of `.toolbar` into a row with a `12px` gap. Keep the supplied HTML and card styles. Check that all three items sit on one line and that the gap appears between neighbors. Then answer: if a label were nested inside one item, would it be another item of `.toolbar`?
+
+<LessonPractice courseSlugId="css/docs/flexbox-layouts/flexbox-basics" />
+
+The preview compares appearance at one size; inspect your CSS and reasoning as well. Try the hints in the editor if you get stuck.
+
+<details>
+<summary>Check your reasoning</summary>
+
+Use `display: flex` and `gap: 12px` on `.toolbar`. A nested label is not a direct child of `.toolbar`, so it is not one of that container's flex items.
+
+</details>
+
+## Direction and Wrapping
+
+`flex-direction` chooses the main axis. `flex-wrap` decides whether items stay on one flex line or can move to additional lines. Together, they determine the flow of a flex layout.
+
+### Choose a direction
+
+```css
+/* [!code word:flex-direction] */
+/* [!code word:column] */
+.steps {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+```
+
+In a horizontal writing mode, the steps form a vertical stack. The first step stays before the second in the document and appears above it.
+
+| Direction | Main axis | Starting side in horizontal, left-to-right text |
+| --- | --- | --- |
+| `row` | Inline axis. | Left. |
+| `row-reverse` | Reversed inline axis. | Right. |
+| `column` | Block axis. | Top. |
+| `column-reverse` | Reversed block axis. | Bottom. |
+
+A row follows the document's inline direction. For right-to-left text, `row` starts on the right; it is not permanently tied to the left edge.
+
+### Allow items to wrap
+
+```css
+/* [!code word:flex-wrap] */
+/* [!code word:wrap] */
+/* [!code word:0 1 10rem] */
+.cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.cards > article {
+  flex: 0 1 10rem;
+}
+```
+
+Each article starts from a `10rem` basis. The container places as many as fit on a line, accounting for their sizes and gaps, before starting another line. The next sizing lesson explains the three `flex` values.
+
+With a 16-pixel root font size, no item margins or padding, and enough room for each card's content:
+
+- At 352 pixels of available width, two 160-pixel cards fit with a 16-pixel gap.
+- At 320 pixels, the cards and gap need 336 pixels, so the cards move onto separate lines.
+- An item that is itself wider than a line may still need to shrink or handle overflowing content.
+
+Items wrap when the container runs out of space, whatever device is in use. For a column to wrap into more columns, give it a height limit.
+
+### Distinguish wrapping values
+
+- **`nowrap`:** The initial value. Items remain on one flex line, even if they shrink or overflow.
+- **`wrap`:** Adds lines toward the cross-end side.
+- **`wrap-reverse`:** Adds lines with cross-start and cross-end reversed.
+
+`wrap-reverse` changes the stacking direction of flex lines. It does not reverse the sequence of items within each line.
+
+Direction and wrapping can also be written together:
+
+```css
+/* [!code word:flex-flow] */
+/* [!code word:row wrap] */
+.cards {
+  flex-flow: row wrap;
+}
+```
+
+Add this declaration to a flex container; the shorthand sets both properties.
+
+### Preserve a meaningful reading order
+
+Reversing the direction changes what you see, but keeps the HTML order and usual Tab order. Write the HTML in a sensible reading order first.
+
+### Predict the next line
+
+With the card sizes above, what happens at 320 pixels if you change `wrap` to `nowrap`? The cards can shrink; which part of the rule permits that?
+
+<details>
+<summary>Check your reasoning</summary>
+
+They stay on one line. The middle `1` in `flex: 0 1 10rem` permits shrinking, although minimum sizes can still cause overflow.
+
+</details>
+
+A column needs multiple columns of steps. Which constraint must it have before wrapping can occur?
+
+<details>
+<summary>Check your reasoning</summary>
+
+Give the column a limited main size (height in horizontal writing), so there is a point where another line is needed.
+
+</details>
+
+### Key Takeaways
+
+- **Direction:** Chooses the main axis and its starting side.
+- **Wrapping:** Creates more flex lines when the items do not fit.
+- **Shorthand:** `flex-flow` combines direction and wrapping.
+- **Order:** Keep the document sequence meaningful when visual direction changes.
+
+### Try it yourself
+
+Make the editor's 230px-wide list flow in a row and wrap. Each item has a 100px basis and the gap is 10px. Keep the HTML and supplied styles. Two items should fit on the first line and the third should move to the next. Explain why all three cannot fit without wrapping at their bases.
+
+<LessonPractice courseSlugId="css/docs/flexbox-layouts/direction-and-wrapping" />
+
+Use the editor hints if needed. The visual comparison checks one size, so also inspect your declarations and reasoning.
+
+<details>
+<summary>Check your reasoning</summary>
+
+Add `flex-direction: row` and `flex-wrap: wrap` to `.list`. Three 100px bases plus two 10px gaps need 320px, more than 230px. Two need 210px and fit.
+
+</details>
+
+## Flex Item Sizing
+
+Flexbox starts each item at a **basis**, or starting size. It then lets items grow to fill space or shrink to fit. The `flex` shorthand sets grow, shrink, and basis together.
+
+### Read the three values
+
+```css
+/* [!code word:1 1 8rem] */
+/* [!code word:3 1 8rem] */
+.sizes {
+  display: flex;
+  width: 32rem;
+}
+
+.sizes > article {
+  flex: 1 1 8rem;
+  min-width: 0;
+}
+
+.sizes > .featured {
+  flex: 3 1 8rem;
+}
+```
+
+Assume two articles, with the second using `class="featured"`:
+
+| Part | Meaning in `1 1 8rem` |
+| --- | --- |
+| `flex-grow: 1` | Receives a share of positive free space. |
+| `flex-shrink: 1` | Can give up space when the items do not fit. |
+| `flex-basis: 8rem` | Starts main-axis sizing from this basis. |
+
+The basis is not the final size. In a row, a basis such as `8rem` supplies the starting size instead of `width`. With `auto`, Flexbox starts from the set width or the content.
+
+### Distribute growth
+
+With a 16-pixel root font size and no gaps, padding, borders, or margins:
+
+1. The container is 512 pixels wide.
+2. Both bases are 128 pixels, leaving 256 pixels to share.
+3. Grow factors 1 and 3 divide that extra space into four shares of 64 pixels.
+4. The final widths are 192 pixels and 320 pixels.
+
+The featured item gets three times the **extra space**, not three times the final width. Equal grow factors also do not guarantee equal widths when starting bases differ. Size limits can constrain distribution.
+
+### Understand shrinking
+
+```css
+/* [!code word:0 1 200px] */
+/* [!code word:400px] */
+.shrink {
+  display: flex;
+  width: 300px;
+}
+
+.shrink > article {
+  flex: 0 1 200px;
+  min-width: 0;
+}
+
+.shrink > .wide {
+  flex-basis: 400px;
+}
+```
+
+For two short articles, the bases total 600 pixels, creating a 300-pixel shortage. Both shrink factors are 1, but each factor is multiplied by that item's base size. The 200-pixel item loses 100 pixels; the 400-pixel item loses 200 pixels. Their final widths are 100 and 200 pixels, assuming no other size constraints.
+
+`min-width: 0` lets these row items shrink below the size their content would normally allow. Check that the text can still wrap or scroll.
+
+### Recognize useful combinations
+
+- **`flex: 0 1 auto`:** The initial combination; can shrink but does not grow.
+- **`flex: 1 1 auto`:** Can grow and shrink from an automatic basis.
+- **`flex: 1 1 0`:** Shares space from a zero basis, subject to minimum and maximum sizes.
+- **`flex: none`:** Expands to `0 0 auto`; disables growing and shrinking.
+
+Using all three values makes the intended basis explicit.
+
+### Treat visual order separately
+
+```css
+/* [!code word:order] */
+/* [!code word:-1] */
+.sizes > .featured {
+  order: -1;
+}
+```
+
+Lower `order` values appear earlier; the initial value is 0. Equal values follow source order. This changes visual order, not document order or the usual tab sequence. Keep meaningful reading and interaction order in HTML.
+
+### Check a growth calculation
+
+Two items each start at 100px in a 400px row with no gaps. Their grow factors are 1 and 1. How much free space remains, and what is each final size?
+
+<details>
+<summary>Check your reasoning</summary>
+
+The bases use 200px, leaving 200px. Each item receives 100px, so each finishes at 200px, assuming no size constraints.
+
+</details>
+
+If the second grow factor becomes 3, which size changes: its basis or its share of the extra space?
+
+<details>
+<summary>Check your reasoning</summary>
+
+Its basis remains 100px. It receives three of the four shares of free space, giving final sizes of 150px and 250px.
+
+</details>
+
+### Key Takeaways
+
+- **Basis:** Establishes the starting main size.
+- **Growth:** Shares extra space according to grow factors.
+- **Shrinking:** Uses shrink factors multiplied by base sizes.
+- **Order:** Changes visual placement while the source sequence stays meaningful.
+
+### Try it yourself
+
+In the editor, give both panels a `100px` basis and permission to shrink. Give the first a grow factor of 1 and the second a grow factor of 3. Keep the 400px row and supplied styles. Check that the panels finish at 150px and 250px. Explain why the second panel is not three times as wide as the first.
+
+<LessonPractice courseSlugId="css/docs/flexbox-layouts/flex-item-sizing" />
+
+Use the editor hints if needed. The picture is feedback at one size; check the three values in your CSS as well.
+
+<details>
+<summary>Check your reasoning</summary>
+
+Set `flex: 1 1 100px` on both panels and `flex: 3 1 100px` on the second. The factors divide the 200px of extra space, not the total final width.
+
+</details>
+
+## Main-Axis Alignment
+
+`justify-content` places the items along the **main axis** using any leftover space. It works on each flex line after the items have grown or shrunk.
+
+### Start with a container that has spare space
+
+```css
+/* [!code word:justify-content] */
+/* [!code word:center] */
+.actions {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+}
+```
+
+Assume the direct children are three buttons. In the initial `row` direction, they form a centered group, with a `1rem` gap between neighbors.
+
+With a 600-pixel content width, three 100-pixel items, and two 16-pixel gaps, 268 pixels remain. Centering puts 134 pixels before the group and 134 pixels after it. This example assumes no margins, borders, or padding affect those measurements.
+
+### Choose a distribution
+
+| Value | Effect along the main axis |
+| --- | --- |
+| `flex-start` | Packs items toward main-start. |
+| `flex-end` | Packs items toward main-end. |
+| `center` | Centers the group. |
+| `space-between` | Places remaining space between items, with none added at the outer edges. |
+| `space-around` | Adds equal space on each item's sides; edge spaces are half the spaces between neighbors. |
+| `space-evenly` | Adds equal spaces between neighbors and at the outer edges. |
+
+`gap` still applies. With distributed alignment, the visible space between items can be larger than the declared gap.
+
+### Follow the main axis when direction changes
+
+```css
+/* [!code word:column] */
+/* [!code word:min-height] */
+/* [!code word:space-between] */
+.stack {
+  display: flex;
+  flex-direction: column;
+  min-height: 20rem;
+  justify-content: space-between;
+}
+```
+
+In horizontal text, the main axis now runs vertically. The extra height provides room for the first and last items to move apart. Without extra main-axis space, changing the distribution may have little visible effect.
+
+For a wrapped container, each line performs its own main-axis distribution. A line containing one item will not reproduce the spacing of a line containing three.
+
+### Push one group away with an auto margin
+
+```css
+/* [!code word:margin-inline-start] */
+/* [!code word:auto] */
+.toolbar {
+  display: flex;
+  gap: 1rem;
+}
+
+.toolbar > .account-link {
+  margin-inline-start: auto;
+}
+```
+
+In a normal row, the auto margin takes the spare space before the account link. The earlier items stay together and the account link moves to the far end.
+
+`justify-self` does not align individual flex items on the main axis. Use an auto margin for this layout.
+
+### Predict the distribution
+
+In the 600px example, what happens to the 268px of spare space if `center` becomes `space-between`? Keep the two 16px gaps.
+
+<details>
+<summary>Check your reasoning</summary>
+
+The 268px is divided between the two spaces: 134px is added to each existing 16px gap, for 150px between neighbors. No extra space is added at the edges.
+
+</details>
+
+If the buttons grow until they fill the row, why might changing `justify-content` make no visible difference?
+
+<details>
+<summary>Check your reasoning</summary>
+
+There is no positive free space left to distribute after sizing and gaps.
+
+</details>
+
+### Key Takeaways
+
+- **Main axis:** `justify-content` follows the chosen flex direction.
+- **Distribution:** Alignment uses space left after sizing, gaps, and auto margins.
+- **Groups:** An auto margin can separate one group from another.
+- **Wrapped lines:** Each line distributes its own available space.
+
+### Try it yourself
+
+In the editor, spread the two items to opposite ends of the 300px row with `justify-content`. Keep their sizes and the HTML. Check that each item touches an end and explain what space the declaration distributes.
+
+<LessonPractice courseSlugId="css/docs/flexbox-layouts/main-axis-alignment" />
+
+Use the editor hints as needed. The visual comparison cannot verify which property you used, so inspect your CSS too.
+
+<details>
+<summary>Check your reasoning</summary>
+
+Set `justify-content: space-between` on `.bar`. The two 60px items leave 180px, which goes between them because no gaps or margins are specified.
+
+</details>
+
+## Cross-Axis Alignment
+
+The **cross axis** runs across the main axis. In a normal row, it runs vertically. Use `align-items` for all items, `align-self` for one item, and `align-content` for wrapped lines.
+
+### Align the items on a line
+
+```css
+/* [!code word:align-items] */
+/* [!code word:center] */
+.toolbar {
+  display: flex;
+  min-height: 6rem;
+  align-items: center;
+  gap: 1rem;
+}
+```
+
+In the initial row direction and a horizontal writing mode, this centers each item vertically within its flex line. A text label and a taller button can share a visual center without needing equal heights.
+
+| Value | Cross-axis effect |
+| --- | --- |
+| `stretch` | Fills the line’s cross size when the item’s size is automatic, within its size limits. |
+| `flex-start` | Aligns item margin boxes at cross-start. |
+| `flex-end` | Aligns them at cross-end. |
+| `center` | Centers them across the line. |
+| `baseline` | Aligns their text baselines. |
+
+The initial `normal` alignment behaves as `stretch` for flex items. An item with an explicit cross size does not become that line's full size simply because stretching is enabled.
+
+### Override one item
+
+```css
+/* [!code word:align-self] */
+/* [!code word:flex-end] */
+.toolbar > .help {
+  align-self: flex-end;
+}
+```
+
+Add this rule to the toolbar example. The help item aligns at cross-end while its siblings keep the container's centered alignment. Put `align-self` on the item; `align-items` belongs on the container.
+
+Set `align-self: auto` to follow the container’s `align-items` again. Here, that centers the help item alongside the others.
+
+### Distribute the flex lines
+
+```css
+/* [!code word:wrap] */
+/* [!code word:align-content] */
+/* [!code word:space-between] */
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  height: 12rem;
+  align-items: flex-start;
+  align-content: space-between;
+  gap: 1rem;
+}
+```
+
+With enough tags to form two lines, this separates the lines across the available height. `align-items` continues to align individual tags inside each line.
+
+Two conditions make the line distribution visible:
+
+- The container uses wrapping. `align-content` has no effect on a `nowrap` flex container.
+- There is spare space on the cross axis after the line sizes and gaps are accounted for.
+
+Wrapping must be enabled, even if the items happen to fit on one line. With just one line, `space-between` has no lines to move apart.
+
+### Recheck the axis in a column
+
+When `flex-direction` becomes `column` in a horizontal writing mode, the cross axis becomes horizontal. `align-items: center` then centers items horizontally, while `justify-content` controls the vertical main axis.
+
+### Choose the target of alignment
+
+In the toolbar, you want only `.help` at cross-end while its siblings stay centered. Which property belongs on `.help`?
+
+<details>
+<summary>Check your reasoning</summary>
+
+Use `align-self: flex-end` on `.help`. It overrides the container's `align-items` for that item.
+
+</details>
+
+Two wrapped tag lines need to be separated within a tall container. Would you change `align-items` or `align-content`? Why?
+
+<details>
+<summary>Check your reasoning</summary>
+
+Use `align-content` on the container: it distributes lines. `align-items` positions items within their lines.
+
+</details>
+
+### Key Takeaways
+
+- **`align-items`:** Sets cross-axis alignment for items on each line.
+- **`align-self`:** Overrides that alignment for one item.
+- **`align-content`:** Distributes lines in a wrapping flex container.
+- **Axes:** Cross-axis alignment changes orientation when flex direction changes.
+
+### Try it yourself
+
+In the editor, center both items across the row's 120px height, then align only the second item at the bottom. Keep the HTML, sizes, and row direction. Check the first item's center and the second item's bottom edge. Explain which declaration affects one item and which affects both.
+
+<LessonPractice courseSlugId="css/docs/flexbox-layouts/cross-axis-alignment" />
+
+The preview checks appearance at one size; inspect the declarations too. The editor offers progressive hints.
+
+<details>
+<summary>Check your reasoning</summary>
+
+Add `align-items: center` to `.strip` and `align-self: flex-end` to `.last`. The container sets the default for both; the item's rule overrides it for the second item.
+
+</details>
+
+## Flexbox Patterns
+
+These examples use Flexbox for common layouts. For each one, choose a direction, decide which items can grow, and allow wrapping where needed.
+
+### A wrapping navigation bar
+
+```html
+<!-- [!code word:class="nav"] -->
+<nav class="nav" aria-label="Layout">
+  <a href="/projects">Projects</a>
+  <a href="/guides">Growing guides</a>
+  <a href="/tools">Tools</a>
+</nav>
+```
+
+```css
+/* [!code word:wrap] */
+/* [!code word:align-items] */
+.nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1.5rem;
+}
+```
+
+The links keep their natural sizes and move to another line when needed. In this row layout, the first gap value separates lines and the second separates items on each line. Keep the links' source order meaningful when the bar wraps.
+
+### A media object with flexible text
+
+A **media object** places a small visual beside a larger body of text:
+
+```html
+<!-- [!code word:class="media-object"] -->
+<!-- [!code word:class="media-object-copy"] -->
+<article class="media-object">
+  <span class="media-object-icon" aria-hidden="true">📦</span>
+  <div class="media-object-copy">
+    <h2>Project status</h2>
+    <p>Review milestones and upcoming deadlines.</p>
+  </div>
+</article>
+```
+
+```css
+/* [!code word:0 0 3rem] */
+/* [!code word:1 1 0] */
+/* [!code word:min-width] */
+.media-object {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.media-object-icon {
+  flex: 0 0 3rem;
+}
+
+.media-object-copy {
+  flex: 1 1 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+```
+
+The icon stays at `3rem`, while the text fills the remaining width. `min-width: 0` lets the text box shrink, and `overflow-wrap` breaks long strings when needed.
+
+### A card row with actions at the bottom
+
+For a container whose direct children are articles containing a heading, paragraph, and final link:
+
+```css
+/* [!code word:1 1 14rem] */
+/* [!code word:column] */
+/* [!code word:margin-block-start] */
+.card-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.card-row > article {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 14rem;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.card-row > article > a {
+  margin-block-start: auto;
+}
+```
+
+The outer row shares space among the cards. Each card is also a flex container, with its children in a column. Cards stretch to the same height on each line, and the link’s auto margin pushes it to the bottom.
+
+Heights and widths can differ between separate wrapped lines. Use Grid when cards need shared columns across rows.
+
+### Center a single item
+
+```css
+/* [!code word:justify-content] */
+/* [!code word:align-items] */
+.empty-state {
+  display: flex;
+  min-height: 16rem;
+  justify-content: center;
+  align-items: center;
+}
+```
+
+With a single child, both axes are centered. The minimum height provides vertical room while allowing the container to grow with larger content.
+
+### Choose a pattern
+
+A toolbar contains links of different lengths. Which example lets them move to a new line without assigning every link a fixed width?
+
+<details>
+<summary>Check your reasoning</summary>
+
+The wrapping navigation uses `flex-wrap: wrap`; the links retain their natural sizes and form another line when needed.
+
+</details>
+
+In the card example, why does the action need an auto margin inside each card rather than on the outer card row?
+
+<details>
+<summary>Check your reasoning</summary>
+
+The action is a direct item of the card's column. Its auto margin consumes spare space in that column; the outer row arranges the cards themselves.
+
+</details>
+
+### Key Takeaways
+
+- **Navigation:** Wrap natural-width links when the available space decreases.
+- **Media objects:** Keep one part stable while another fills the remaining space.
+- **Nested containers:** Use a separate flex layout inside each card.
+- **Centering:** Align on both axes and provide enough space for the effect.
+
+### Try it yourself
+
+Build a centered empty state in the editor. Use Flexbox to center its single child on both axes within the supplied 260px by 120px area. Keep the supplied HTML and styles. Check both horizontal and vertical space and explain why the container height matters.
+
+<LessonPractice courseSlugId="css/docs/flexbox-layouts/flexbox-patterns" />
+
+Use the editor hints if needed. A visual match is feedback for this size; inspect both alignment declarations and try a longer message in a separate browser test.
+
+<details>
+<summary>Check your reasoning</summary>
+
+Set `display: flex`, `justify-content: center`, and `align-items: center` on `.empty`. The height provides vertical space around the child; without spare cross-axis space there may be nothing visible to center within.
+
+</details>
+
+## Debugging Flexbox
+
+When Flexbox does not behave as expected, check the container, its axes, and the available space. A valid property may have no visible effect if it is on the wrong element or has no space to work with.
+
+### Inspect the container first
+
+In Chrome DevTools:
+
+1. Inspect the wrapper that should arrange the items.
+2. Confirm its applied `display` value is `flex` or `inline-flex`.
+3. Use the **flex** badge in the Elements panel to toggle the layout overlay.
+4. Inspect direction, wrapping, gaps, and the actual container dimensions.
+5. Select a direct child to inspect its item sizing and minimum sizes.
+
+The flex editor can also change alignment visually. An overlay makes it easier to distinguish flex lines from the boxes inside them. See the [Chrome Flexbox debugging guide](https://developer.chrome.com/docs/devtools/css/flexbox).
+
+### Match a symptom to a question
+
+| Symptom | Check first |
+| --- | --- |
+| Items remain in normal block flow. | Is the intended wrapper actually a flex container? |
+| `justify-content` seems ineffective. | Is there positive main-axis space after item growth and auto margins? |
+| Vertical centering changes nothing. | Which axis is vertical, and does the container have spare space? |
+| `align-content` does nothing. | Is wrapping enabled, and is there cross-axis space for the lines? |
+| A long title pushes a sibling outside the container. | Is an automatic minimum preventing the text item from shrinking? |
+
+### Reproduce a content-size problem
+
+```html
+<!-- [!code word:class="result-copy"] -->
+<div class="result">
+  <div class="result-copy">
+    <p>averylongproductidentifierwithoutanyspaces</p>
+  </div>
+  <button type="button">Save</button>
+</div>
+```
+
+```css
+/* [!code word:1 1 0] */
+/* [!code word:flex\: none] */
+.result {
+  display: flex;
+  width: 16rem;
+  gap: 1rem;
+}
+
+.result-copy {
+  flex: 1 1 0;
+}
+
+.result > button {
+  flex: none;
+}
+```
+
+The copy can grow and shrink, but its automatic minimum can still protect the width of an unbroken word. Setting a shrink factor alone does not remove that minimum.
+
+Add these two declarations:
+
+```css
+/* [!code word:min-width] */
+/* [!code word:overflow-wrap] */
+.result-copy {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+```
+
+- **`min-width: 0`:** Permits the row item to become narrower than its automatic minimum.
+- **`overflow-wrap: anywhere`:** Lets an otherwise unbreakable string break when necessary.
+
+`min-width` lets the item shrink; `overflow-wrap` lets its text break across lines. In a column with limited height, check `min-height` for a similar size limit.
+
+### Verify the fix
+
+Resize the component and try longer content. Keep the button readable and ensure the title remains available. Inspect any crossed-out declaration to find the rule that overrides it, then change the stylesheet itself after confirming the experiment in DevTools.
+
+Avoid applying `overflow: hidden` merely to conceal the symptom. Clipping may remove visible text without correcting the sizing decision.
+
+### Trace before changing a rule
+
+In the result example, the copy has `flex: 1 1 0` but still overflows. What should you inspect before increasing its shrink factor?
+
+<details>
+<summary>Check your reasoning</summary>
+
+Inspect the copy item's minimum size and the unbroken text. The automatic minimum can stop the item shrinking even though its shrink factor permits it.
+
+</details>
+
+If you set `min-width: 0` but the long word still paints outside its narrower box, what separate change helps the text fit?
+
+<details>
+<summary>Check your reasoning</summary>
+
+Add `overflow-wrap: anywhere` to permit breaks within the long word. The minimum controls the box; wrapping controls the text inside it.
+
+</details>
+
+### Key Takeaways
+
+- **Structure:** Inspect the correct container and its direct children.
+- **Axes and space:** Check what the alignment property is trying to distribute.
+- **Minimums:** A shrink factor does not override every size constraint.
+- **Verification:** Retest the actual content and save the confirmed stylesheet change.
+
+### Try it yourself
+
+Reproduce this problem in a local HTML file and open it in a browser. The flex row should fit within 240px while the identifier remains readable and the button stays visible. Inspect the row and its direct children in DevTools, then change the CSS and retest at 240px and 180px. Explain what each change fixes.
+
+```html
+<div class="result">
+  <div class="copy">averylongproductidentifierwithoutanyspaces</div>
+  <button type="button">Save</button>
+</div>
+<style>
+  .result { display: flex; width: 240px; gap: 16px; }
+  .copy { flex: 1 1 0; }
+  .result > button { flex: none; }
+</style>
+```
+
+Success means the row stays within its stated width at both sizes, the text wraps without being clipped, and the button remains readable. Inspect the item's box and the text separately. In DevTools, temporarily edit the row width to test the second size; then put the fixes in the stylesheet.
+
+<details>
+<summary>Hint 1</summary>
+
+Which direct child contains the long word? Inspect its minimum size before changing the parent.
+
+</details>
+
+<details>
+<summary>Hint 2</summary>
+
+One declaration permits the item to shrink; another permits the word to break.
+
+</details>
+
+<details>
+<summary>Check your reasoning</summary>
+
+Add `min-width: 0` and `overflow-wrap: anywhere` to `.copy`. The first removes the automatic minimum constraint on the item; the second allows the word to wrap inside it. Verify both widths and the button after applying them. A clipped result would not meet the text-readability criterion.
+
+</details>

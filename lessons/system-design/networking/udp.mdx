@@ -1,0 +1,74 @@
+---
+title: "UDP"
+description: Explore fast, connectionless delivery and its reliability trade-offs.
+---
+
+<Callout title="Lesson goal" type="info">
+  By the end of this lesson, you will understand how UDP delivers lightweight, connectionless datagrams, the trade-offs of unverified delivery, and why real-time systems like live streaming, gaming rely on UDP over TCP.
+</Callout>
+
+**UDP (User Datagram Protocol)** is a fast, lightweight communication tool used to send data packets across a network. It does not set up a connection first and does not check if data arrives, making it very fast but less reliable than TCP.
+
+![](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/e25a97c7-7bb0-4a6e-a419-05a6f6f3c1fa/gallery/3f3f00d6-7a21-4826-a278-a63458080c25)
+
+## UDP Datagrams
+
+A **UDP datagram** is a unit of data sent using UDP.
+
+Unlike TCP—which requires a three-way handshake before any communication can start—UDP sends datagrams immediately without establishing a connection first. This avoids the transport-level connection setup that TCP performs before sending application data.
+
+## UDP Delivery Tradeoffs
+
+UDP provides **no built-in guarantee** of:
+
+- **Delivery** — a message may not arrive.
+- **Ordering** — messages may not arrive in the order they were sent.
+- **Retransmission** — UDP does not automatically resend missing or corrupted messages.
+
+![UDP speed versus delivery guarantees](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/54de4736-cbfb-4ca3-add4-542a111f11df/gallery/13d765e2-6c49-4118-a5bc-9815e33e55a5)
+
+These properties are the central delivery tradeoffs of UDP. TCP provides reliable, ordered delivery to applications when the connection remains viable; acknowledgements and retransmissions support that behavior. UDP leaves delivery, ordering, and recovery to the application, which can reduce transport overhead and avoid waiting for an old update.
+
+| Feature | TCP Guarantee | UDP Guarantee |
+|---|---|---|
+| **Connection Setup** | Three-way handshake required | None (Connectionless) |
+| **Delivery** | Reliable delivery to the application through acknowledgements and retransmission | Not guaranteed by UDP |
+| **Packet Ordering** | Ordered byte stream through sequence numbers | Not guaranteed by UDP |
+| **Retransmission** | Automatic on packet loss | None |
+| **Overhead & Latency** | Connection setup and reliability work; loss can add delay | Small transport header and no transport handshake; network delay still applies |
+| **Best Used For** | File transfers, HTTP/HTTPS, emails | Live streaming, voice calls, games |
+
+---
+
+## UDP for Real-Time Media
+
+Live video, voice calls, and other real-time streams have a strict priority: data should arrive in time to be useful.
+
+### Timely data versus perfect delivery
+
+Real-time media often favors **timely data** over **perfect delivery**. If TCP were used here, a lost audio or video packet would cause playback to freeze while waiting for a retransmission. With UDP, the stream simply drops the missed frame and keeps playing in real time.
+
+| Priority | Goal | Protocol Fit |
+|---|---|---|
+| **Timely data** | Keep the live stream moving in real time | **UDP** |
+| **Perfect delivery** | Ensure every piece of data arrives correctly | **TCP** |
+
+<Callout title="Main takeaway" type="info">
+For real-time media, useful data that arrives on time matters more than perfect data that arrives too late.
+</Callout>
+
+## UDP for Online Games
+
+Online multiplayer games use UDP when the **current state** matters more than recovering **outdated packets**.
+
+![](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/54de4736-cbfb-4ca3-add4-542a111f11df/gallery/c2286351-9223-448b-8229-482753b1292c)
+
+With a TCP byte stream, later data can be held until earlier missing data is recovered. For rapidly changing game state, an application can instead use UDP and apply the newest position update (Tick 2), ignoring a stale update (Tick 1). This is a design choice: a game may still use reliable transport for actions that must not be lost.
+
+## Key Takeaways
+
+- **Connectionless Transport:** UDP sends standalone datagrams immediately without the three-way handshake delay of TCP.
+- **Delivery Trade-offs:** UDP trades TCP's reliability, sequence ordering, and retransmissions for maximum transmission speed and low overhead.
+- **Timely Over Perfect:** Real-time applications (voice calls, video calls, live streaming) favor timely data flow over TCP's retransmission pauses.
+- **State Over History:** Fast-paced online multiplayer games use UDP to drop outdated state packets rather than lagging to retrieve old positions.
+- **TCP vs. UDP Choice:** Use **TCP** when complete reliability and ordered delivery are required (web pages, database queries, file transfers); use **UDP** when speed, low latency, and real-time responsiveness are the priority.

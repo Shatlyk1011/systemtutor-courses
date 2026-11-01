@@ -1,0 +1,68 @@
+---
+title: "Writing Modes and Logical Properties"
+description: "Make spacing and sizing follow the direction of content."
+---
+
+CSS can describe a side of a box in two ways. A **physical** property such as `margin-left` always names the left side. A **logical** property such as `margin-inline-start` follows the direction in which content is written. Logical properties help a layout adapt when the language or writing mode changes.
+
+## Inline and block directions
+
+The **inline axis** runs along a line of text. The **block axis** runs in the direction that lines or blocks are added. In horizontal English text, the inline axis runs left to right and the block axis runs top to bottom. In horizontal right-to-left text, the inline axis starts on the right. A vertical writing mode changes the axes: inline runs vertically and block runs horizontally.
+
+| Horizontal writing | Inline start | Inline end | Block start | Block end |
+| --- | --- | --- | --- | --- |
+| Left to right | Left | Right | Top | Bottom |
+| Right to left | Right | Left | Top | Bottom |
+
+These mappings are specific to horizontal writing. The terms `start` and `end` describe positions in the writing flow, not fixed physical sides. See [MDN's guide to logical properties](https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Logical_properties_and_values).
+
+## Apply spacing in the reading direction
+
+```html
+<section lang="en" dir="ltr">
+  <p class="note">A note in English.</p>
+</section>
+<section lang="ar" dir="rtl">
+  <p class="note">ملاحظة باللغة العربية.</p>
+</section>
+```
+
+```css
+.note {
+  border-inline-start: 0.25rem solid green;
+  padding-inline-start: 1rem;
+  margin-block-end: 1.5rem;
+}
+```
+
+The border and padding appear on the left for the English note and on the right for the Arabic note. The bottom margin remains on the block end for both horizontal examples. A physical `border-left` would stay on the left in both cases.
+
+Set the language and direction in HTML when appropriate: `lang` identifies the language, while `dir` sets the base direction. One does not automatically set the other. See [MDN's `dir` reference](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Global_attributes/dir).
+
+## Use logical sizes and shorthands
+
+`inline-size` corresponds to width in horizontal writing and height in vertical writing. `block-size` corresponds to the other dimension. The same pattern applies to minimum and maximum sizes, such as `max-inline-size`.
+
+```css
+.article {
+  max-inline-size: 40rem;
+  margin-inline: auto;
+  padding-block: 1rem 2rem;
+  padding-inline: 1rem;
+}
+```
+
+In horizontal writing, the article has a maximum width of `40rem` and equal automatic margins on its inline sides. `padding-block: 1rem 2rem` sets the block-start padding to `1rem` and block-end padding to `2rem`; a single value applies to both sides. Logical shorthands use start then end, not the four-side order of `padding`. [MDN's spacing guide](https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Logical_properties_and_values/Margins_borders_padding) shows these mappings in different writing modes.
+
+Physical properties remain useful when a design really needs a fixed side. If physical and logical declarations target the same side, the cascade determines which one wins. Test the component in both directions and check that content, spacing, and alignment still make sense.
+
+## Check your understanding
+
+A horizontal right-to-left card has `padding-inline-start: 1rem` and `margin-block-end: 2rem`. The padding is on the right, and the margin is on the bottom. What changes if the card switches to left-to-right? The padding moves to the left; the bottom margin stays in place.
+
+## Key Takeaways
+
+- **Axes:** Inline follows a line of text; block follows the progression of lines or blocks.
+- **Logical sides:** Start and end adapt to writing direction and mode.
+- **Spacing and size:** Logical margins, padding, borders, and sizes follow those axes.
+- **Direction:** Set the appropriate HTML language and base direction, then test the layout in each direction.

@@ -1,0 +1,469 @@
+---
+title: "Grid Placement and Layout Decisions"
+---
+
+{/* Topics to cover: Grid Placement; Grid Alignment; Grid or Flexbox. */}
+
+## Grid Placement
+
+Choose where a grid item goes using line numbers, the number of tracks to span, or a named area.
+
+### Place an item between lines
+
+```html
+<!-- [!code word:class="feature"] -->
+<div class="board">
+  <article class="feature">Overview</article>
+  <article>Reports</article>
+  <article>Settings</article>
+</div>
+```
+
+```css
+/* [!code word:grid-column] */
+/* [!code word:grid-row] */
+/* [!code word:1 / 3] */
+.board {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-rows: repeat(2, 5rem);
+  gap: 1rem;
+}
+
+.feature {
+  grid-column: 1 / 3;
+  grid-row: 1 / 3;
+}
+```
+
+The first number is a starting line and the second is an ending line:
+
+- `grid-column: 1 / 3` covers the first two columns, between column lines 1 and 3.
+- `grid-row: 1 / 3` covers the first two rows, between row lines 1 and 3.
+- The remaining articles automatically occupy the available cells in the third column.
+
+The ending number is a line, not the number of an additional column to include.
+
+### Complete a placement
+
+On a three-column grid, make `.feature` start at column line 1 and end at line 3. Which value completes `grid-column`?
+
+<details>
+<summary>Check your answer</summary>
+
+Use `grid-column: 1 / 3;`. The item covers two tracks between the lines.
+
+</details>
+
+### Express a span
+
+The featured item's placement can also be written as:
+
+```css
+/* [!code word:1 / span 2] */
+.feature {
+  grid-column: 1 / span 2;
+  grid-row: 1 / span 2;
+}
+```
+
+This starts at line 1 and spans two tracks on each axis. `grid-column: span 2` instead requests a two-column span while leaving the starting column to automatic placement.
+
+Now start at line 2 and cover two tracks. Write the placement using `span`.
+
+<details>
+<summary>Check your answer</summary>
+
+Use `grid-column: 2 / span 2;`, ending at line 4.
+
+</details>
+
+Negative line numbers count backward from the end of the **explicit** grid. For example, `grid-column: 1 / -1` spans from the first to the last explicit column line. It does not automatically include implicit columns created beyond that grid.
+
+### Name larger layout regions
+
+For a separate layout with direct children using `heading`, `sidebar`, and `main` classes:
+
+```css
+/* [!code word:grid-template-areas] */
+/* [!code word:"heading heading"] */
+/* [!code word:"sidebar main"] */
+/* [!code word:grid-area] */
+.layout {
+  display: grid;
+  grid-template-columns: 12rem minmax(0, 1fr);
+  grid-template-areas:
+    "heading heading"
+    "sidebar main";
+  gap: 1rem;
+}
+
+.heading {
+  grid-area: heading;
+}
+
+.sidebar {
+  grid-area: sidebar;
+}
+
+.main {
+  grid-area: main;
+}
+```
+
+Each quoted string describes a row. Repeating `heading` across both columns creates a single area spanning that row. `grid-area` assigns each item to its named region.
+
+Follow these rules:
+
+- Each quoted row must have the same number of cells.
+- All cells with the same name must form one rectangle.
+- A period, `.`, marks an unnamed cell in the template; it does not prevent automatic items from using that space.
+
+Use the same name in `grid-area` and the template. Here, `heading` fills both cells in the first row, while `main` fills the second cell in the second row. Area names are your own CSS names; they do not have to match HTML tag names.
+
+Keep the HTML in a useful reading order. Moving an item to another visual region does not rewrite its source position or the usual tab sequence.
+
+### Key Takeaways
+
+- **Lines:** Placement starts and ends at grid boundaries.
+- **Spans:** Express how many tracks an item covers.
+- **Negative numbers:** Count from the end of the explicit grid.
+- **Areas:** Name rectangular regions, then assign items with `grid-area`.
+
+
+### Try it yourself
+
+In the editor, place the featured tile across the first two columns using line numbers. It should occupy the first row from line 1 to line 3; the other two tiles should fill the third column in the first row and the first column in the next row. Keep the HTML and track definitions.
+
+<LessonPractice courseSlugId="css/docs/grid-layouts/grid-placement" />
+
+Inspect the CSS as well as the result. Explain why line 3 ends a two-column span, then consider whether changing visual placement changes the HTML reading order.
+
+<details>
+<summary>Hint</summary>
+
+Grid lines are boundaries, so two tracks lie between lines 1 and 3. Put the placement on the item.
+
+</details>
+
+<details>
+<summary>Check your reasoning</summary>
+
+Use `grid-column: 1 / 3;` on `.feature`. Lines 1 and 3 bound two tracks. CSS placement changes visual position, not the source order.
+
+</details>
+
+For a separate layout with two columns, name the first row `header header` and the second row `aside main`. Which item must receive `grid-area: header`?
+
+<details>
+<summary>Check the area</summary>
+
+Assign it to the header item, such as `.header { grid-area: header; }`. The repeated name forms one rectangular area across both columns.
+
+</details>
+
+## Grid Alignment
+
+Grid has two kinds of alignment: moving items inside their areas, and moving the rows and columns as a group inside the container.
+
+### Align items within their areas
+
+```css
+/* [!code word:align-items] */
+/* [!code word:justify-items] */
+.labels {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-auto-rows: 6rem;
+  align-items: center;
+  justify-items: start;
+  gap: 1rem;
+}
+```
+
+In a horizontal writing mode, each label sits at the left of its area in left-to-right text, centered vertically. Unlike Flexbox, Grid's alignment axes do not switch through `flex-direction`:
+
+| Property | What it aligns |
+| --- | --- |
+| `align-items` | All items within their areas on the block axis. |
+| `justify-items` | All items within their areas on the inline axis. |
+| `align-self` | One item on the block axis. |
+| `justify-self` | One item on the inline axis. |
+
+For horizontal text, the block axis is vertical and the inline axis is horizontal. Start and end follow the text direction. Items with automatic sizes usually stretch to fill their areas, though images with a natural aspect ratio can behave differently.
+
+### Choose the axis
+
+In horizontal left-to-right text, which property centers every item vertically inside its area?
+
+<details>
+<summary>Check your answer</summary>
+
+Use `align-items: center;`: the block axis is vertical in this writing mode.
+
+</details>
+
+Now keep the other items at inline start and move only `.featured` to inline end. Which property belongs on that item?
+
+<details>
+<summary>Check your answer</summary>
+
+Use `justify-self: end;` on `.featured`. It overrides the container's inline item alignment for that item.
+
+</details>
+
+### Center an item on both axes
+
+```css
+/* [!code word:place-items] */
+/* [!code word:center] */
+.centered {
+  display: grid;
+  min-height: 16rem;
+  place-items: center;
+}
+```
+
+`place-items: center` sets both `align-items` and `justify-items` to `center`. With one child, that child is centered within its area. This shorthand does not center a Flexbox main axis because `justify-items` is ignored in flex layout.
+
+For one exception in the label grid:
+
+```css
+/* [!code word:justify-self] */
+/* [!code word:end] */
+.labels > .featured {
+  justify-self: end;
+}
+```
+
+Its inline alignment changes while its siblings keep `justify-items: start`.
+
+### Distribute the tracks themselves
+
+```css
+/* [!code word:justify-content] */
+/* [!code word:align-content] */
+.small-grid {
+  display: grid;
+  width: 30rem;
+  height: 20rem;
+  grid-template-columns: repeat(2, 6rem);
+  grid-template-rows: repeat(2, 4rem);
+  gap: 1rem;
+  justify-content: center;
+  align-content: center;
+}
+```
+
+The fixed tracks occupy less space than the container, so both content-alignment properties center the entire track group. By comparison, `justify-items: center` would only center each item inside its existing area.
+
+If fractional tracks already consume all available inline space, there is no remaining inline room to move the track group.
+
+### Overlap items deliberately
+
+```css
+/* [!code word:1 / 2] */
+/* [!code word:z-index] */
+.cover {
+  display: grid;
+}
+
+.cover > * {
+  grid-column: 1 / 2;
+  grid-row: 1 / 2;
+}
+
+.cover > .badge {
+  justify-self: end;
+  align-self: start;
+  z-index: 1;
+}
+```
+
+Both children use the same cell. Set `z-index` to put the badge in front; grid items can use it without `position`. Make sure the overlap leaves text readable and controls reachable.
+
+### Key Takeaways
+
+- **Items:** The `items` and `self` properties align within assigned areas.
+- **Tracks:** The `content` properties distribute the track group when space remains.
+- **Shorthand:** `place-items` sets both item-alignment axes.
+- **Overlap:** Shared grid coordinates and `z-index` can create intentional layers.
+
+
+### Try it yourself
+
+Center both labels vertically in their 100px grid areas and place them at inline start. Then move only the second label to inline end. Keep the supplied tracks and HTML.
+
+<LessonPractice courseSlugId="css/docs/grid-layouts/grid-alignment" />
+
+Check the declarations as well as the preview. Why would `justify-content` answer a different question from `justify-items` here?
+
+<details>
+<summary>Hint</summary>
+
+Use the container's `align-items` and `justify-items`, then override one item with `justify-self`.
+
+</details>
+
+<details>
+<summary>Check your reasoning</summary>
+
+Use `align-items: center; justify-items: start;` on the grid and `justify-self: end;` on the featured label. `justify-content` moves or distributes the track group when space remains; `justify-items` aligns each item within its area.
+
+</details>
+
+Imagine a fixed-size two-column grid narrower than its container. Which property centers the whole track group horizontally in left-to-right horizontal text?
+
+<details>
+<summary>Check the track group</summary>
+
+Use `justify-content: center;` on the container. It acts on the tracks together, not separately on each item.
+
+</details>
+
+## Grid or Flexbox
+
+Ask what needs to line up. Flexbox works along a row or column, with each wrapped line arranged separately. Grid keeps rows and columns aligned together. You can use either for components or page layouts.
+
+### Compare the layout needs
+
+| Need | Useful starting point | Reason |
+| --- | --- | --- |
+| A row of navigation links with different text lengths. | Flexbox. | Items can keep natural widths and wrap independently. |
+| A vertical stack with a final action pushed down. | Flexbox. | A column and an auto margin handle one main axis. |
+| Cards whose columns must align across rows. | Grid. | Rows share the same column tracks. |
+| A header spanning a sidebar and main region. | Grid. | Placement can describe both dimensions together. |
+
+These are starting points rather than exclusive rules. A component's size does not determine which system it should use.
+
+### Compare wrapping with shared columns
+
+Assume five short articles are direct children of either example container:
+
+```css
+/* [!code word:display\: flex] */
+/* [!code word:1 1 10rem] */
+.flex-collection {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.flex-collection > article {
+  flex: 1 1 10rem;
+  min-width: 0;
+}
+```
+
+At a 640-pixel content width with a 16-pixel root font size, three cards fit on the first line and two on the second. Each line distributes its own remaining width, so the two cards on the second line grow wider than the first three.
+
+```css
+/* [!code word:display\: grid] */
+/* [!code word:repeat(3, minmax(0, 1fr))] */
+.grid-collection {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+```
+
+Here, all rows use the same three column tracks. The two cards on the final row keep those column widths and leave the third cell unoccupied. This numeric template always keeps three columns; use automatic repetition when the count should adapt.
+
+The question is whether each line should distribute its own space or whether several rows must share column boundaries.
+
+### Decide from the constraint
+
+A row of buttons should wrap, and each line should distribute its own remaining space. Which layout is a useful starting point?
+
+<details>
+<summary>Check your reasoning</summary>
+
+Flexbox fits this constraint: each flex line distributes space independently. Grid can also wrap items, but shared columns are not required here.
+
+</details>
+
+Now change the requirement: cards on every row must share column boundaries. Which layout would you start with, and why?
+
+<details>
+<summary>Check your reasoning</summary>
+
+Grid provides shared column tracks across rows. The key evidence is the alignment requirement, not the fact that the items are cards.
+
+</details>
+
+### Combine them at different levels
+
+```html
+<!-- [!code word:class="dashboard"] -->
+<!-- [!code word:class="card-actions"] -->
+<div class="dashboard">
+  <article>
+    <h2>Project Alpha</h2>
+    <div class="card-actions">
+      <button type="button">Details</button>
+      <button type="button">Details</button>
+    </div>
+  </article>
+  <article>
+    <h2>Project Beta</h2>
+    <p>Review recent activity.</p>
+  </article>
+</div>
+```
+
+```css
+/* [!code word:grid-template-columns] */
+/* [!code word:flex-wrap] */
+.dashboard {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+  gap: 1rem;
+}
+
+.card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+```
+
+The dashboard controls the card tracks. The nested actions container arranges its own buttons. Each layout controls its own direct children, so Grid and Flexbox can work together here.
+
+### Key Takeaways
+
+- **Flexbox:** Lets each line manage its own item sizing and space.
+- **Grid:** Provides shared tracks across rows and columns.
+- **Combination:** A grid item can contain a separate flex layout.
+- **Choice:** Decide what needs to line up, then test with real content.
+
+
+### Try it yourself
+
+Choose a starting layout for each part of a project dashboard and explain your choices:
+
+1. Six cards occupy several rows. Cards in the same column must align, including on a partially filled last row.
+2. Each card has a row of actions with different label lengths. The actions may wrap independently inside that card.
+3. The dashboard becomes narrow. What would you test with real content before considering the layout finished?
+
+Your explanation should identify the alignment constraint, name the container each layout controls, and explain what happens on the final row. More than one implementation can work if it meets the stated constraints.
+
+<details>
+<summary>Hint 1</summary>
+
+Separate the outer relationship between cards from the inner relationship between actions.
+
+</details>
+
+<details>
+<summary>Hint 2</summary>
+
+Shared columns and independently wrapped lines have different space-distribution behavior.
+
+</details>
+
+<details>
+<summary>Check your reasoning</summary>
+
+Start with Grid on the dashboard so its cards share columns, including an incomplete final row. Use Flexbox on each actions container so its buttons can wrap and distribute space within that card. Test narrow and wide widths, long labels, overflow, and a useful source and keyboard order; a single screenshot does not establish those behaviors.
+
+</details>

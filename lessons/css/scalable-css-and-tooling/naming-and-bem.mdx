@@ -1,0 +1,131 @@
+---
+title: "Naming and BEM"
+description: "Use naming conventions to clarify component styles."
+---
+
+**BEM** stands for **Block, Element, Modifier**. It is a way to name classes for a component, its parts, and its variations.
+
+## Identify the three roles
+
+| Role | Meaning | Example |
+| --- | --- | --- |
+| Block | A component that has a meaningful identity on its own. | `profile-card` |
+| Element | A part that belongs to the block. | `profile-card__title` |
+| Modifier | A variation of a block or element. | `profile-card--featured` |
+
+This lesson uses the two-dashes naming style: `block__element--modifier`. BEM has other naming styles; choose one convention and use it consistently. See the [BEM naming conventions](https://bem.info/en/methodology/naming-convention/).
+
+## Keep the base class with its modifier
+
+```html
+<!-- [!code word:profile-card--featured] -->
+<article class="profile-card profile-card--featured">
+  <h2 class="profile-card__title">Alex Morgan</h2>
+  <p class="profile-card__description">Design lead based in London.</p>
+  <a class="profile-card__link" href="/people/alex">View details</a>
+</article>
+```
+
+```css
+.profile-card {
+  padding: 1.25rem;
+  color: #17352a;
+  background: #ffffff;
+  border: 1px solid #64748b;
+  border-radius: 0.75rem;
+}
+
+.profile-card__title {
+  margin-block: 0 0.5rem;
+  font-size: 1.25rem;
+}
+
+.profile-card__description {
+  margin-block: 0 1rem;
+}
+
+.profile-card__link {
+  color: inherit;
+  text-underline-offset: 0.2em;
+}
+
+/* [!code word:profile-card--featured] */
+.profile-card--featured {
+  background: #e7f3ec;
+  border-color: #17352a;
+}
+```
+
+Keep both classes on the featured card. `profile-card` supplies the base styles, including padding and rounded corners. `profile-card--featured` only changes the surface and border colors. Replace the example link with your page URL.
+
+BEM names describe component roles rather than a particular tag or current color. `profile-card__title` remains useful if the heading level changes. `green-heading` becomes confusing when the design changes to another color. See the [BEM quick start](https://bem.info/en/methodology/quick-start/).
+
+## Keep names independent of HTML nesting
+
+If a title sits inside a card header, it can still be `profile-card__title`. It does not need a name such as `profile-card__header__title`. An element belongs to its block, even when other markup sits between them.
+
+If an internal piece becomes independently reusable, consider making it another block. A reusable button inside a card can keep its own `button` class instead of having its whole identity tied to that card.
+
+## Remember that BEM is a naming convention
+
+Double underscores and double dashes have no special scoping behavior in CSS. `.profile-card__title` is an ordinary class selector. Another stylesheet can still target it, and normal cascade rules still resolve conflicts.
+
+Clear names reduce accidental collisions; they do not replace stylesheet organization or sensible selector specificity. Keep selectors simple instead of repeatedly adding ancestors to overpower earlier rules.
+
+## Keep the base and modifier distinct
+
+A featured card has `class="profile-card profile-card--featured"`. What does the base class provide that the modifier does not?
+
+<details>
+<summary>Check your reasoning</summary>
+
+The base rule supplies the shared card styles, including padding. The modifier changes only the featured colors.
+
+</details>
+
+Now take the next decision yourself: A card title is inside a header. Should its class be `profile-card__header__title` or `profile-card__title` in this convention? Why?
+
+<details>
+<summary>Check your reasoning</summary>
+
+Use `profile-card__title`: the element belongs to the block, regardless of intermediate markup.
+
+</details>
+
+## Key Takeaways
+
+- **Block:** Name a reusable component by its role.
+- **Element:** Name a component part without mirroring every HTML ancestor.
+- **Modifier:** Add a variation alongside the base class.
+- **Convention:** BEM improves clarity but does not create technical isolation.
+
+## Try it yourself
+
+Name a `notice` block, its message element, and an urgent block modifier using the convention in this lesson. Write HTML for an urgent notice with both required block classes and a paragraph for the message. Explain why the modifier alone is insufficient when it contains only variation styles.
+
+Check your work against these criteria:
+
+- Address each part of the scenario using the mechanism taught in this lesson.
+- Explain the decision and its effect, rather than only naming a tool or selector.
+- Compare your answer with the reasoning below; equivalent correct solutions are welcome.
+
+<details>
+<summary>Hint 1</summary>
+
+An element uses two underscores; a modifier uses two dashes.
+
+</details>
+
+<details>
+<summary>Hint 2</summary>
+
+The urgent notice needs both the base and modifier class values on the same element.
+
+</details>
+
+<details>
+<summary>Check your reasoning</summary>
+
+For example: `<section class="notice notice--urgent"><p class="notice__message">Act now</p></section>`. The base class supplies shared styles; the modifier only changes the variation.
+
+</details>

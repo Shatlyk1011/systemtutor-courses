@@ -1,0 +1,147 @@
+---
+title: "Nesting and Layers"
+description: "Organize component styles with native nesting and cascade layers."
+---
+
+**Nesting** keeps related selectors together. **Cascade layers** set the priority of groups of rules. You can use either or both to organize CSS.
+
+## Group related rules with nesting
+
+```html
+<article class="article-card">
+  <h2 class="article-card__title">CSS layout guide</h2>
+  <a class="article-card__link" href="/articles/css-layout">Details</a>
+</article>
+```
+
+```css
+/* [!code word:&] */
+.article-card {
+  padding: 1.25rem;
+  color: #17352a;
+  background: #e7f3ec;
+  border: 1px solid;
+  border-radius: 0.75rem;
+
+  & .article-card__title {
+    margin-block: 0 0.5rem;
+  }
+
+  & .article-card__link {
+    color: inherit;
+
+    &:focus-visible {
+      outline: 3px solid #1d4ed8;
+      outline-offset: 3px;
+    }
+  }
+}
+```
+
+`&` represents the parent selector. Here, `& .article-card__title` matches a title inside a card, while `&:focus-visible` attaches the pseudo-class to the link itself. Omitting the space changes the relationship.
+
+Browsers with native nesting support can read this CSS directly, without Sass. Check support in your target browsers, and keep nesting shallow so the selectors stay easy to follow.
+
+Nesting does not make names private. It also adds selector relationships: in this example, the title rule is more specific than a standalone `.article-card__title` rule. Avoid nesting merely to reproduce every HTML level.
+
+## Declare layer order explicitly
+
+This separate example uses flat selectors so the priority decision is easy to see:
+
+```html
+<article class="article-card compact">CSS layout guide</article>
+```
+
+```css
+/* [!code word:@layer] */
+@layer base, components, utilities;
+
+@layer base {
+  article {
+    line-height: 1.5;
+  }
+}
+
+@layer components {
+  .article-card {
+    padding: 1.25rem;
+    border: 1px solid #17352a;
+  }
+}
+
+@layer utilities {
+  .compact {
+    padding: 0.5rem;
+  }
+}
+```
+
+For these normal declarations, the later `utilities` layer wins, giving the card `0.5rem` padding. The browser compares layers before specificity. Within the same layer, specificity and source order still matter.
+
+Declaring the order at the top makes the intended priority visible even when layer blocks are spread across files.
+
+## Watch the boundaries
+
+Normal unlayered author rules outrank normal layered author rules. Leaving an old unlayered `.article-card` rule elsewhere can therefore defeat the expected layered padding.
+
+For `!important` declarations, layer order reverses: earlier layers take priority, and layered important declarations outrank unlayered important declarations. Do not use `!important` to patch a layer system without understanding that reversal.
+
+Layers do not create component scope, and nesting does not establish layer priority. Choose each feature for the problem it actually solves.
+
+## Trace selector and layer priority
+
+In the nesting example, does `&:focus-visible` select the link or a descendant of the link?
+
+<details>
+<summary>Check your reasoning</summary>
+
+It selects the link itself in its focus-visible state. There is no descendant space before the pseudo-class.
+
+</details>
+
+Now take the next decision yourself: With normal declarations in `@layer base, components`, which wins: `#notice` in base or `.notice` in components? Why?
+
+<details>
+<summary>Check your reasoning</summary>
+
+The later components layer wins for normal declarations before specificity is compared.
+
+</details>
+
+## Key Takeaways
+
+- **Nesting:** Keep related selectors together and use `&` to express relationships.
+- **Layers:** Declare override priority before comparing specificity within a layer.
+- **Unlayered rules:** Normal unlayered author styles outrank normal layered ones.
+- **Importance:** Important declarations reverse the normal layer ordering.
+
+## Try it yourself
+
+Given `@layer base, components;`, a base rule `#banner { color: red; }`, and a components rule `.banner { color: blue; }`, determine the color of `<p id="banner" class="banner">`. Then add an unlayered normal `.banner { color: green; }` and determine the new color. Explain both decisions.
+
+Check your work against these criteria:
+
+- Address each part of the scenario using the mechanism taught in this lesson.
+- Explain the decision and its effect, rather than only naming a tool or selector.
+- Compare your answer with the reasoning below; equivalent correct solutions are welcome.
+
+<details>
+<summary>Hint 1</summary>
+
+Compare layer priority before selector specificity.
+
+</details>
+
+<details>
+<summary>Hint 2</summary>
+
+For normal author declarations, an unlayered rule outranks layered rules.
+
+</details>
+
+<details>
+<summary>Check your reasoning</summary>
+
+The text is blue first: components is the later layer. It becomes green after the unlayered rule is added, even though the base selector has an ID. These conclusions assume the declarations have the same origin and importance.
+
+</details>

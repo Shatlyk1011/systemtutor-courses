@@ -1,0 +1,138 @@
+---
+title: "Min Stack"
+description: "Design a stack that reports its minimum value in constant time."
+slug: "practice-medium-min-stack"
+ 
+---
+
+## Try It Yourself
+
+Use the editor below to process stack operations while supporting getMin in constant time. Track minimum history as values are pushed and popped.
+
+Submit your implementation when it passes the examples. Duplicate minimum values must remain valid after one copy is removed.
+
+<PracticeExercise problemId="min-stack" />
+
+## Solution
+
+![Stack with running minimum](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/03ce588b-f581-46ee-b98b-277331400e55/gallery/6cf2f7a8-7f7e-4d2b-bf6f-63f984c86624)
+
+Keep a normal value stack and a second stack of minimums. Push onto the minimum stack whenever the new value is less than or equal to its current top.
+
+When popping a value equal to the current minimum, pop the minimum stack too. Its new top then restores the previous minimum.
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```js
+    function runMinStack(operations, values) {
+      class MinStack {
+        constructor() {
+          this.items = [];
+          this.minimums = [];
+        }
+    
+        push(value) {
+          this.items.push(value);
+          const minimum = this.minimums[this.minimums.length - 1];
+    
+          if (this.minimums.length === 0 || value <= minimum) {
+            this.minimums.push(value);
+          }
+        }
+    
+        pop() {
+          const value = this.items.pop();
+          if (value === this.minimums[this.minimums.length - 1]) {
+            this.minimums.pop();
+          }
+        }
+    
+        top() {
+          return this.items[this.items.length - 1];
+        }
+    
+        getMin() {
+          return this.minimums[this.minimums.length - 1];
+        }
+      }
+    
+      let stack;
+      const output = [];
+    
+      for (let index = 0; index < operations.length; index++) {
+        const operation = operations[index];
+    
+        if (operation === "MinStack") {
+          stack = new MinStack();
+          output.push(null);
+        } else if (operation === "push") {
+          stack.push(values[index][0]);
+          output.push(null);
+        } else if (operation === "pop") {
+          stack.pop();
+          output.push(null);
+        } else if (operation === "top") {
+          output.push(stack.top());
+        } else {
+          output.push(stack.getMin());
+        }
+      }
+    
+      return output;
+    }
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    def run_min_stack(operations, values):
+        class MinStack:
+            def __init__(self):
+                self.items = []
+                self.minimums = []
+    
+            def push(self, value):
+                self.items.append(value)
+    
+                if not self.minimums or value <= self.minimums[-1]:
+                    self.minimums.append(value)
+    
+            def pop(self):
+                value = self.items.pop()
+                if value == self.minimums[-1]:
+                    self.minimums.pop()
+    
+            def top(self):
+                return self.items[-1]
+    
+            def get_min(self):
+                return self.minimums[-1]
+    
+        stack = None
+        output = []
+    
+        for index, operation in enumerate(operations):
+            if operation == "MinStack":
+                stack = MinStack()
+                output.append(None)
+            elif operation == "push":
+                stack.push(values[index][0])
+                output.append(None)
+            elif operation == "pop":
+                stack.pop()
+                output.append(None)
+            elif operation == "top":
+                output.append(stack.top())
+            else:
+                output.append(stack.get_min())
+    
+        return output
+    ```
+  </Tab>
+</Tabs>
+
+### Big O notation
+
+| Measure | Complexity | Explanation |
+|---|---:|---|
+| Time | `O(n)` | The wrapper processes n operations, and every stack operation is O(1). |
+| Auxiliary space | `O(n)` | The value and minimum stacks can each hold up to n values. |

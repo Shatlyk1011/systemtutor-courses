@@ -1,0 +1,5 @@
+title: "Selectors and the Cascade"
+description: "Learn selectors and the cascade through focused lessons."
+pages:
+  - selecting-elements
+  - resolving-style-conflicts

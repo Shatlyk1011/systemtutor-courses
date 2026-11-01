@@ -1,0 +1,64 @@
+---
+title: "Reverse Linked List"
+description: "Reverse every next pointer in a singly linked list."
+slug: "practice-reverse-linked-list"
+ 
+---
+
+## Try It Yourself
+
+Use the editor below to reverse a singly linked list without creating replacement nodes. Preserve the next node before changing the current node's pointer.
+
+Submit your implementation when it passes the examples. Empty and single-node lists should return safely.
+
+<PracticeExercise problemId="reverse-linked-list" />
+
+## Solution
+
+![Reversing links in place](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/03ce588b-f581-46ee-b98b-277331400e55/gallery/8407272a-b445-4cc8-9ba4-75ab4b7ccc06)
+
+Keep previous and current pointers. Save the current node's original next pointer, redirect current.next toward previous, then advance both pointers.
+
+When current reaches null, previous points to the original tail, which is now the new head.
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```js
+    function reverseList(head) {
+      let previous = null;
+      let current = head;
+    
+      while (current !== null) {
+        const next = current.next;
+        current.next = previous;
+        previous = current;
+        current = next;
+      }
+    
+      return previous;
+    }
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    def reverse_list(head):
+        previous = None
+        current = head
+    
+        while current is not None:
+            next_node = current.next
+            current.next = previous
+            previous = current
+            current = next_node
+    
+        return previous
+    ```
+  </Tab>
+</Tabs>
+
+### Big O notation
+
+| Measure | Complexity | Explanation |
+|---|---:|---|
+| Time | `O(n)` | Every node is visited and rewired exactly once. |
+| Auxiliary space | `O(1)` | The reversal uses three node references regardless of list length. |

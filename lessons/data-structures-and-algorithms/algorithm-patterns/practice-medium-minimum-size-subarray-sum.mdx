@@ -1,0 +1,71 @@
+---
+title: "Minimum Size Subarray Sum"
+description: "Use a shrinking sliding window to find the shortest qualifying subarray."
+slug: "practice-medium-minimum-size-subarray-sum"
+ 
+---
+
+## Try It Yourself
+
+Use the editor below to find the shortest contiguous window whose sum reaches the target. The positive input values allow the window to shrink safely whenever its sum is large enough.
+
+Submit your implementation when it passes the examples. Return zero if no window reaches the target.
+
+<PracticeExercise problemId="minimum-size-subarray-sum" />
+
+## Solution
+
+![Shortest valid sum window](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/1e3e13b6-0db0-43d8-9eab-205bdcf6fa8f/gallery/872a47db-0536-4c6e-b521-bca6e5b20f6a)
+
+Expand the right edge and add each value to the running sum. Whenever the sum reaches the target, record the current length and repeatedly remove values from the left to search for a shorter valid window.
+
+If no valid length was recorded, return zero.
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```js
+    function minSubArrayLen(target, nums) {
+      let left = 0;
+      let sum = 0;
+      let shortest = Infinity;
+    
+      for (let right = 0; right < nums.length; right++) {
+        sum += nums[right];
+    
+        while (sum >= target) {
+          shortest = Math.min(shortest, right - left + 1);
+          sum -= nums[left];
+          left++;
+        }
+      }
+    
+      return shortest === Infinity ? 0 : shortest;
+    }
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    def min_sub_array_len(target, nums):
+        left = 0
+        total = 0
+        shortest = float("inf")
+    
+        for right, value in enumerate(nums):
+            total += value
+    
+            while total >= target:
+                shortest = min(shortest, right - left + 1)
+                total -= nums[left]
+                left += 1
+    
+        return 0 if shortest == float("inf") else shortest
+    ```
+  </Tab>
+</Tabs>
+
+### Big O notation
+
+| Measure | Complexity | Explanation |
+|---|---:|---|
+| Time | `O(n)` | Each value is added once and removed from the window at most once. |
+| Auxiliary space | `O(1)` | The window is represented by indices and a running sum. |

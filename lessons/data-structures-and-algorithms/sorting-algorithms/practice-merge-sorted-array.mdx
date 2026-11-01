@@ -1,0 +1,75 @@
+---
+title: "Merge Sorted Array"
+description: "Merge two sorted arrays in place using pointers from the end."
+slug: "practice-merge-sorted-array"
+ 
+---
+
+## Try It Yourself
+
+Use the editor below to merge nums2 into the available space at the end of nums1. Compare the largest remaining values so unread values in nums1 are not overwritten.
+
+Submit your implementation when it passes the examples. Either input range may be empty, and values may be negative.
+
+<PracticeExercise problemId="merge-sorted-array" />
+
+## Solution
+
+![Backward in-place merge](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/03ce588b-f581-46ee-b98b-277331400e55/gallery/a8fadb0c-fa14-4aa4-aebc-ca79092f49ba)
+
+Start three pointers at the last real value of nums1, the last value of nums2, and the last available position. Write the larger candidate into the open position and move its pointer backward.
+
+When nums2 is exhausted, every remaining nums1 value is already correctly placed.
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```js
+    function mergeSortedArray(nums1, m, nums2, n) {
+      let first = m - 1;
+      let second = n - 1;
+      let write = m + n - 1;
+    
+      while (second >= 0) {
+        if (first >= 0 && nums1[first] > nums2[second]) {
+          nums1[write] = nums1[first];
+          first--;
+        } else {
+          nums1[write] = nums2[second];
+          second--;
+        }
+    
+        write--;
+      }
+    
+      return nums1;
+    }
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    def merge_sorted_array(nums1, m, nums2, n):
+        first = m - 1
+        second = n - 1
+        write = m + n - 1
+    
+        while second >= 0:
+            if first >= 0 and nums1[first] > nums2[second]:
+                nums1[write] = nums1[first]
+                first -= 1
+            else:
+                nums1[write] = nums2[second]
+                second -= 1
+    
+            write -= 1
+    
+        return nums1
+    ```
+  </Tab>
+</Tabs>
+
+### Big O notation
+
+| Measure | Complexity | Explanation |
+|---|---:|---|
+| Time | `O(m + n)` | Each value from the two sorted ranges is considered at most once. |
+| Auxiliary space | `O(1)` | The merge writes into nums1's existing storage. |

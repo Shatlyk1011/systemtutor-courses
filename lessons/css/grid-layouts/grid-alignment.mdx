@@ -1,0 +1,161 @@
+---
+title: "Grid Alignment"
+description: "Align and overlap items in a grid."
+---
+
+Grid has two kinds of alignment: moving items inside their areas, and moving the rows and columns as a group inside the container.
+
+## Align items within their areas
+
+```css
+/* [!code word:align-items] */
+/* [!code word:justify-items] */
+.labels {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-auto-rows: 6rem;
+  align-items: center;
+  justify-items: start;
+  gap: 1rem;
+}
+```
+
+In a horizontal writing mode, each label sits at the left of its area in left-to-right text, centered vertically. Unlike Flexbox, Grid's alignment axes do not switch through `flex-direction`:
+
+| Property | What it aligns |
+| --- | --- |
+| `align-items` | All items within their areas on the block axis. |
+| `justify-items` | All items within their areas on the inline axis. |
+| `align-self` | One item on the block axis. |
+| `justify-self` | One item on the inline axis. |
+
+For horizontal text, the block axis is vertical and the inline axis is horizontal. Start and end follow the text direction. Items with automatic sizes usually stretch to fill their areas, though images with a natural aspect ratio can behave differently.
+
+## Choose the axis
+
+In horizontal left-to-right text, which property centers every item vertically inside its area?
+
+<details>
+<summary>Check your answer</summary>
+
+Use `align-items: center;`: the block axis is vertical in this writing mode.
+
+</details>
+
+Now keep the other items at inline start and move only `.featured` to inline end. Which property belongs on that item?
+
+<details>
+<summary>Check your answer</summary>
+
+Use `justify-self: end;` on `.featured`. It overrides the container's inline item alignment for that item.
+
+</details>
+
+## Center an item on both axes
+
+```css
+/* [!code word:place-items] */
+/* [!code word:center] */
+.centered {
+  display: grid;
+  min-height: 16rem;
+  place-items: center;
+}
+```
+
+`place-items: center` sets both `align-items` and `justify-items` to `center`. With one child, that child is centered within its area. This shorthand does not center a Flexbox main axis because `justify-items` is ignored in flex layout.
+
+For one exception in the label grid:
+
+```css
+/* [!code word:justify-self] */
+/* [!code word:end] */
+.labels > .featured {
+  justify-self: end;
+}
+```
+
+Its inline alignment changes while its siblings keep `justify-items: start`.
+
+## Distribute the tracks themselves
+
+```css
+/* [!code word:justify-content] */
+/* [!code word:align-content] */
+.small-grid {
+  display: grid;
+  width: 30rem;
+  height: 20rem;
+  grid-template-columns: repeat(2, 6rem);
+  grid-template-rows: repeat(2, 4rem);
+  gap: 1rem;
+  justify-content: center;
+  align-content: center;
+}
+```
+
+The fixed tracks occupy less space than the container, so both content-alignment properties center the entire track group. By comparison, `justify-items: center` would only center each item inside its existing area.
+
+If fractional tracks already consume all available inline space, there is no remaining inline room to move the track group.
+
+## Overlap items deliberately
+
+```css
+/* [!code word:1 / 2] */
+/* [!code word:z-index] */
+.cover {
+  display: grid;
+}
+
+.cover > * {
+  grid-column: 1 / 2;
+  grid-row: 1 / 2;
+}
+
+.cover > .badge {
+  justify-self: end;
+  align-self: start;
+  z-index: 1;
+}
+```
+
+Both children use the same cell. Set `z-index` to put the badge in front; grid items can use it without `position`. Make sure the overlap leaves text readable and controls reachable.
+
+## Key Takeaways
+
+- **Items:** The `items` and `self` properties align within assigned areas.
+- **Tracks:** The `content` properties distribute the track group when space remains.
+- **Shorthand:** `place-items` sets both item-alignment axes.
+- **Overlap:** Shared grid coordinates and `z-index` can create intentional layers.
+
+
+## Try it yourself
+
+Center both labels vertically in their 100px grid areas and place them at inline start. Then move only the second label to inline end. Keep the supplied tracks and HTML.
+
+<LessonPractice />
+
+Check the declarations as well as the preview. Why would `justify-content` answer a different question from `justify-items` here?
+
+<details>
+<summary>Hint</summary>
+
+Use the container's `align-items` and `justify-items`, then override one item with `justify-self`.
+
+</details>
+
+<details>
+<summary>Check your reasoning</summary>
+
+Use `align-items: center; justify-items: start;` on the grid and `justify-self: end;` on the featured label. `justify-content` moves or distributes the track group when space remains; `justify-items` aligns each item within its area.
+
+</details>
+
+Imagine a fixed-size two-column grid narrower than its container. Which property centers the whole track group horizontally in left-to-right horizontal text?
+
+<details>
+<summary>Check the track group</summary>
+
+Use `justify-content: center;` on the container. It acts on the tracks together, not separately on each item.
+
+</details>

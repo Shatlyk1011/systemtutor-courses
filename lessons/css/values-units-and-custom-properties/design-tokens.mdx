@@ -1,0 +1,133 @@
+---
+title: "Design Tokens"
+description: "Share reusable values using scope and inheritance."
+---
+
+A **design token** is a name for a reusable design decision, such as an accent color, card spacing, or corner radius. Reusing that name keeps related elements consistent.
+
+In this lesson, CSS custom properties represent those decisions in a stylesheet. A custom property is the CSS mechanism; it becomes a useful token when its name communicates a design role. The [Design Tokens Community Group format specification](https://www.designtokens.org/tr/2025.10/format/) describes a format for sharing tokens between tools, but here you will work directly in CSS.
+
+## Name shared decisions
+
+Start with three tokens:
+
+```css
+/* [!code word:--color-accent] */
+/* [!code word:--space-card] */
+/* [!code word:--radius-card] */
+:root {
+  --color-accent: green;
+  --space-card: 1rem;
+  --radius-card: 0.5rem;
+}
+```
+
+The names describe their purpose, rather than their current literal value:
+
+- **`--color-accent`:** The accent used by related interface elements.
+- **`--space-card`:** The spacing used inside a card.
+- **`--radius-card`:** The card's corner radius.
+
+For example, `--color-accent` can later change from green to purple without making its name misleading. A name such as `--green` describes the current value rather than its role.
+
+Change a shared value in one place to update every declaration that uses it. For example, changing `--space-card` updates the spacing wherever `var(--space-card)` appears.
+
+## Use the tokens in a component
+
+Consider two theme panels:
+
+```html
+<!-- [!code word:class="card"] -->
+<!-- [!code word:featured] -->
+<section class="panel">
+  <p class="card">Your order is being processed.</p>
+</section>
+
+<section class="panel featured">
+  <p class="card">Your order is ready to ship.</p>
+</section>
+```
+
+```css
+/* [!code word:var(--color-accent)] */
+/* [!code word:var(--space-card)] */
+/* [!code word:var(--radius-card)] */
+.card {
+  color: var(--color-accent);
+  padding: var(--space-card);
+  border: 2px solid var(--color-accent);
+  border-radius: var(--radius-card);
+}
+```
+
+Both cards use the root values: green text and borders, `1rem` of padding, and `0.5rem` corner radii.
+
+The component describes how to use each decision. The token definitions supply the actual values. This separation is useful because the same `.card` rule can work in more than one theme without repeating its properties.
+
+## Override a token within a section
+
+![Scoped token override]()
+{/*
+IMAGE PROMPT — Scoped token override
+Compare two sibling panels that use the same `.card` rule: one inherits the root `--color-accent: green`, while a featured panel overrides it with purple for its descendant card only.
+*/}
+
+Add a local override:
+
+```css
+/* [!code word:--color-accent] */
+/* [!code word:purple] */
+.panel.featured {
+  --color-accent: purple;
+}
+```
+
+Only the featured card gets purple text and a purple border. Its padding and radius stay the same:
+
+- The featured panel receives its own `--color-accent` value.
+- Its card inherits that local value.
+- The other panel keeps the root value because it is outside the featured panel's descendants.
+
+The card rule stays reusable because it refers to the token. There is no need to repeat the text and border declarations for the featured version.
+
+### Trace the accent value
+
+Follow `color: var(--color-accent)` for each card:
+
+1. For the first card, `--color-accent` is inherited from `:root`, so `var()` supplies `green`.
+2. The featured panel has its own `--color-accent: purple` declaration. That declaration wins on the panel and is inherited by its card, so `var()` supplies `purple` there.
+3. The first card is not inside the featured panel, so it still inherits the root value.
+
+The `.card` rule does not need to change. The value changes because `var()` reads the custom property available at each card's position in the document tree.
+
+### Explain the override
+
+Why can one `.card` become purple even though both cards match the same `.card` rule? Explain the roles of inheritance and `var()`; do not just say that the featured panel has a different color.
+
+## Understand scope and the cascade
+
+A custom property applies to the element where you define it and can pass down to its children. It does not pass up to parents or across to siblings.
+
+If several declarations set the same custom property on the same element, the cascade chooses the value. A value declared directly on a child also takes precedence over one it would otherwise inherit.
+
+That gives you a useful pattern:
+
+- Put shared defaults on `:root`.
+- Override a value on a section when its descendants need a variation.
+- Define a value directly on a component when that component needs its own setting.
+
+## Check your understanding
+
+Imagine a page uses the tokens from this lesson and a component contains `color: var(--color-accent)`.
+
+1. A featured section sets `--color-accent: purple`. Why do its descendant cards become purple without a new `.card` color declaration?
+2. The team may change the accent from green to purple later. Which name communicates the design decision better: `--green` or `--color-accent`? Explain why.
+3. Where would you define a default card radius shared by the whole document, and where would you define an override that should affect only one section and its descendants?
+
+## Key Takeaways
+
+- **Design tokens:** Named design decisions keep related styles consistent.
+- **Custom properties:** CSS can store tokens in reusable `--` values.
+- **Scope:** Ordinary custom properties reach the declaring element and its descendants.
+- **Local variation:** Override a token on a section to change its descendants without repeating component rules.
+- **Cascade:** Competing token declarations follow the same priority rules as other CSS declarations.

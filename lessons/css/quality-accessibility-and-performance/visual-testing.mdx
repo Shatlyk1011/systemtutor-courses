@@ -1,0 +1,99 @@
+---
+title: "Visual Testing"
+description: "Check responsive layouts and visual regressions."
+---
+
+A **visual regression** is an unwanted change in how a page looks after an update. Visual testing compares the page with an earlier version to spot those changes. Test that controls still work as well.
+
+## Choose pages and states to check
+
+Choose representative pages and states rather than collecting screenshots with no clear purpose:
+
+| Dimension | Examples to inspect |
+| --- | --- |
+| Width | Narrow, medium, wide, and around a breakpoint. |
+| Content | Long headings, empty lists, and populated lists. |
+| Interaction | Focus, open menus, and form errors. |
+| Preferences | Light or dark appearance and reduced motion. |
+
+Resize continuously between chosen widths to find awkward wrapping or overflow. Named device sizes are useful samples, not proof that every intermediate width works.
+
+## Compare screenshots automatically
+
+In an initialized Playwright Test project, a screenshot assertion compares the current page with a stored reference image, called a **baseline**.
+
+This example assumes a running practice app at `http://localhost:3000` with a `/dashboard` page, a visible “Dashboard” heading, and predictable content. Adapt the route and heading to your app. Save the test as `tests/dashboard-visual.spec.ts`:
+
+```ts
+import { test, expect } from "@playwright/test";
+
+test.use({ viewport: { width: 390, height: 844 } });
+
+test("dashboard overview at a narrow width", async ({ page }) => {
+  await page.goto("http://localhost:3000/dashboard");
+  await expect(
+    page.getByRole("heading", { name: "Dashboard", exact: true }),
+  ).toBeVisible();
+
+  // [!code word:toHaveScreenshot]
+  await expect(page).toHaveScreenshot("dashboard-narrow.png", {
+    fullPage: true,
+    animations: "disabled",
+  });
+});
+```
+
+Generate the initial reference and inspect it:
+
+```bash
+npx playwright test tests/dashboard-visual.spec.ts --update-snapshots
+```
+
+Then run comparisons without updating:
+
+```bash
+npx playwright test tests/dashboard-visual.spec.ts
+```
+
+Review the initial baseline just as carefully as later differences; a stored screenshot can preserve a broken layout too. See the [Playwright visual comparison guide](https://playwright.dev/docs/test-snapshots).
+
+## Keep comparisons repeatable
+
+Use predictable data and the same browser, operating system, fonts, and viewport as the baseline. Wait for the content and images being tested to load. A visible heading does not always mean the rest of the page is ready.
+
+`animations: "disabled"` stabilizes supported animations for the capture: finite animations finish and infinite ones return to their initial state for the screenshot. This does not verify animation behavior or substitute for testing the reduced-motion preference. See the [screenshot assertion options](https://playwright.dev/docs/api/class-pageassertions#page-assertions-to-have-screenshot-1).
+
+## Investigate a difference before accepting it
+
+Compare the expected, actual, and difference images. Determine whether the cause is an intended design change, a regression, or an unstable environment. Update a baseline only after reviewing the new appearance; raising tolerances or accepting every changed image can hide defects.
+
+Also test interactions and accessibility manually. A screenshot cannot prove that keyboard order is sensible, a label is connected to a field, or a form submits correctly.
+
+## Key Takeaways
+
+- **Coverage:** Choose useful combinations of viewport, content, and state.
+- **Baselines:** Store reviewed references and keep the rendering environment repeatable.
+- **Differences:** Investigate changes before accepting new snapshots.
+- **Limits:** Pixel comparisons supplement interaction and accessibility checks.
+
+## Try it yourself
+
+A narrow dashboard screenshot differs after a CSS change. The reference and current image used different fonts; neither shows the open menu or keyboard focus.
+
+Decide what to stabilize and compare, how to handle the baseline, and which additional checks are needed. Use the lesson to check that your response addresses each part.
+
+<details>
+<summary>Hint</summary>
+
+Can a difference come from the environment? Does one image show how a control works?
+
+</details>
+
+<details>
+<summary>Check your reasoning</summary>
+
+Repeat with the same browser, fonts, viewport and predictable data, and wait for content. Inspect expected, actual and difference images; update the baseline only after review. Check the open menu, keyboard focus and interactions separately, and inspect other widths.
+
+Other accurate approaches can also meet the task.
+
+</details>

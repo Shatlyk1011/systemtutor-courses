@@ -1,0 +1,215 @@
+---
+title: "Queue"
+description: "Understand the FIFO principle, implement a queue, analyze its operations, and explore common queue applications."
+---
+
+A **queue** is a linear data structure that follows **FIFO: First In, First Out**. The first item added is the first item removed.
+
+![](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/d6728834-bda9-4849-9f64-fc67a890e1a8/gallery/704db9a0-fd30-4d8b-97e7-03fa4fa6afe8)
+
+A line at a grocery store works the same way. New customers join at the back, or **rear**, while the customer who has waited the longest leaves from the **front** after being served.
+
+<Callout title="Two Ends" type="info">
+A queue accepts new items at the rear and removes existing items from the front. Keeping these roles separate preserves FIFO order.
+</Callout>
+
+---
+
+## How FIFO Works
+
+Start with an empty queue and follow three operations:
+
+| Operation | Queue State | What Happened |
+|---|---|---|
+| `enqueue(10)` | `[10]` | `10` enters at the rear and is also at the front. |
+| `enqueue(20)` | `[10, 20]` | `20` joins behind `10`. |
+| `dequeue()` | `[20]` | `10`, the first item added, is removed first. |
+
+The insertion order is `10`, then `20`. The removal order stays the same: `10`, then `20`.
+
+## Core Operations
+
+| Operation | Purpose |
+|---|---|
+| **Enqueue** | Add an item at the rear. |
+| **Dequeue** | Remove and return the item at the front. |
+| **Peek** | Read the front item without removing it. |
+| **Is Empty** | Check whether the queue contains any items. |
+
+Enqueue and dequeue define FIFO behavior. Peek and empty checks let code inspect the queue safely.
+
+---
+
+## Implementing a Queue
+
+The queue stores its items in an array or list and uses a `front` index to track the next item to remove. Enqueue adds at the end. Dequeue reads the current front item and moves the index forward.
+
+### Queue Class
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```javascript
+    class Queue {
+      constructor() {
+        this.items = [];
+        this.front = 0;
+      }
+
+      isEmpty() {
+        return this.front >= this.items.length;
+      }
+
+      enqueue(item) {
+        this.items.push(item);
+      }
+
+      dequeue() {
+        if (this.isEmpty()) {
+          throw new Error("Queue is empty");
+        }
+
+        const item = this.items[this.front];
+        this.front++;
+
+        if (this.isEmpty()) {
+          this.items = [];
+          this.front = 0;
+        }
+
+        return item;
+      }
+
+      peek() {
+        if (this.isEmpty()) {
+          throw new Error("Queue is empty");
+        }
+
+        return this.items[this.front];
+      }
+    }
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    class Queue:
+        def __init__(self):
+            self.items = []
+            self.front = 0
+
+        def is_empty(self):
+            return self.front >= len(self.items)
+
+        def enqueue(self, item):
+            self.items.append(item)
+
+        def dequeue(self):
+            if self.is_empty():
+                raise IndexError("Queue is empty")
+
+            item = self.items[self.front]
+            self.front += 1
+
+            if self.is_empty():
+                self.items = []
+                self.front = 0
+
+            return item
+
+        def peek(self):
+            if self.is_empty():
+                raise IndexError("Queue is empty")
+
+            return self.items[self.front]
+    ```
+  </Tab>
+</Tabs>
+
+### Using the Queue
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```javascript
+    const queue = new Queue();
+
+    queue.enqueue("first");
+    queue.enqueue("second");
+    queue.enqueue("third");
+
+    console.log(queue.peek());    // "first"
+    console.log(queue.dequeue()); // "first"
+    console.log(queue.dequeue()); // "second"
+    console.log(queue.isEmpty()); // false
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    queue = Queue()
+
+    queue.enqueue("first")
+    queue.enqueue("second")
+    queue.enqueue("third")
+
+    print(queue.peek())      # "first"
+    print(queue.dequeue())   # "first"
+    print(queue.dequeue())   # "second"
+    print(queue.is_empty())  # False
+    ```
+  </Tab>
+</Tabs>
+
+The first value enqueued is also the first value dequeued, so the implementation preserves FIFO order.
+
+<Callout title="Empty Queue Operations" type="warn">
+The implementation raises an error when `dequeue` or `peek` is called on an empty queue. Use the empty-check method first when an empty queue is possible.
+</Callout>
+
+## Performance and Big O
+
+**Big O notation** describes how an operation's running time changes as the input grows.
+
+- **Constant time — $O(1)$:** The work does not increase with the number of items.
+- **Linear time — $O(n)$:** The work grows with the number of items.
+
+| Operation | Time Complexity | Reason |
+|---|---|---|
+| Enqueue | $O(1)$ | Add at the rear. |
+| Dequeue | $O(1)$ | Read the front item and advance the front index. |
+| Peek | $O(1)$ | Read the item at the front index. |
+| Is empty | $O(1)$ | Compare the front index with the collection length. |
+
+The queue does not need to scan its existing items for any core operation.
+
+---
+
+## Applications of Queues
+
+### Print Spooling
+
+When several devices send jobs to one printer, the queue preserves the order in which those jobs arrived. The printer handles one job at a time, preventing jobs from overlapping.
+
+### Background Processing
+
+Applications can place work in a queue so it can be processed outside the main application flow. This keeps the main application responsive while tasks wait for a worker.
+
+For example, confirmation emails can be queued as users trigger them. A worker then processes the emails sequentially instead of making each user wait for sending to finish.
+
+### Task Scheduling and Shared Resources
+
+Queues help manage work that must be handled fairly and in arrival order. This makes them useful when multiple tasks are waiting for the same resource.
+
+## Stack vs. Queue
+
+| Feature | Stack | Queue |
+|---|---|---|
+| Ordering | Last In, First Out | First In, First Out |
+| Add operation | Push at the top | Enqueue at the rear |
+| Remove operation | Pop from the top | Dequeue from the front |
+| Everyday analogy | Stack of plates | Waiting line |
+
+## Key Takeaways
+
+- A queue follows First In, First Out order.
+- New items enter at the rear, and existing items leave from the front.
+- `enqueue` adds, `dequeue` removes, `peek` reads, and the empty check reports whether items remain.
+- A well-implemented queue performs its core operations in $O(1)$ time.
+- Print spooling, background jobs, and task scheduling use queues to preserve arrival order.

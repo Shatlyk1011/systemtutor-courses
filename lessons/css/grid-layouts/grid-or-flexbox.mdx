@@ -1,0 +1,149 @@
+---
+title: "Grid or Flexbox"
+description: "Choose a layout method for the problem at hand."
+---
+
+Ask what needs to line up. Flexbox works along a row or column, with each wrapped line arranged separately. Grid keeps rows and columns aligned together. You can use either for components or page layouts.
+
+## Compare the layout needs
+
+| Need | Useful starting point | Reason |
+| --- | --- | --- |
+| A row of navigation links with different text lengths. | Flexbox. | Items can keep natural widths and wrap independently. |
+| A vertical stack with a final action pushed down. | Flexbox. | A column and an auto margin handle one main axis. |
+| Cards whose columns must align across rows. | Grid. | Rows share the same column tracks. |
+| A header spanning a sidebar and main region. | Grid. | Placement can describe both dimensions together. |
+
+These are starting points rather than exclusive rules. A component's size does not determine which system it should use.
+
+## Compare wrapping with shared columns
+
+Assume five short articles are direct children of either example container:
+
+```css
+/* [!code word:display\: flex] */
+/* [!code word:1 1 10rem] */
+.flex-collection {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.flex-collection > article {
+  flex: 1 1 10rem;
+  min-width: 0;
+}
+```
+
+At a 640-pixel content width with a 16-pixel root font size, three cards fit on the first line and two on the second. Each line distributes its own remaining width, so the two cards on the second line grow wider than the first three.
+
+```css
+/* [!code word:display\: grid] */
+/* [!code word:repeat(3, minmax(0, 1fr))] */
+.grid-collection {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+```
+
+Here, all rows use the same three column tracks. The two cards on the final row keep those column widths and leave the third cell unoccupied. This numeric template always keeps three columns; use automatic repetition when the count should adapt.
+
+The question is whether each line should distribute its own space or whether several rows must share column boundaries.
+
+## Decide from the constraint
+
+A row of buttons should wrap, and each line should distribute its own remaining space. Which layout is a useful starting point?
+
+<details>
+<summary>Check your reasoning</summary>
+
+Flexbox fits this constraint: each flex line distributes space independently. Grid can also wrap items, but shared columns are not required here.
+
+</details>
+
+Now change the requirement: cards on every row must share column boundaries. Which layout would you start with, and why?
+
+<details>
+<summary>Check your reasoning</summary>
+
+Grid provides shared column tracks across rows. The key evidence is the alignment requirement, not the fact that the items are cards.
+
+</details>
+
+## Combine them at different levels
+
+```html
+<!-- [!code word:class="dashboard"] -->
+<!-- [!code word:class="card-actions"] -->
+<div class="dashboard">
+  <article>
+    <h2>Project Alpha</h2>
+    <div class="card-actions">
+      <button type="button">Details</button>
+      <button type="button">Details</button>
+    </div>
+  </article>
+  <article>
+    <h2>Project Beta</h2>
+    <p>Review recent activity.</p>
+  </article>
+</div>
+```
+
+```css
+/* [!code word:grid-template-columns] */
+/* [!code word:flex-wrap] */
+.dashboard {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+  gap: 1rem;
+}
+
+.card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+```
+
+The dashboard controls the card tracks. The nested actions container arranges its own buttons. Each layout controls its own direct children, so Grid and Flexbox can work together here.
+
+## Key Takeaways
+
+- **Flexbox:** Lets each line manage its own item sizing and space.
+- **Grid:** Provides shared tracks across rows and columns.
+- **Combination:** A grid item can contain a separate flex layout.
+- **Choice:** Decide what needs to line up, then test with real content.
+
+
+## Try it yourself
+
+Choose a starting layout for each part of a project dashboard and explain your choices:
+
+1. Six cards occupy several rows. Cards in the same column must align, including on a partially filled last row.
+2. Each card has a row of actions with different label lengths. The actions may wrap independently inside that card.
+3. The dashboard becomes narrow. What would you test with real content before considering the layout finished?
+
+Your explanation should identify the alignment constraint, name the container each layout controls, and explain what happens on the final row. More than one implementation can work if it meets the stated constraints.
+
+<details>
+<summary>Hint 1</summary>
+
+Separate the outer relationship between cards from the inner relationship between actions.
+
+</details>
+
+<details>
+<summary>Hint 2</summary>
+
+Shared columns and independently wrapped lines have different space-distribution behavior.
+
+</details>
+
+<details>
+<summary>Check your reasoning</summary>
+
+Start with Grid on the dashboard so its cards share columns, including an incomplete final row. Use Flexbox on each actions container so its buttons can wrap and distribute space within that card. Test narrow and wide widths, long labels, overflow, and a useful source and keyboard order; a single screenshot does not establish those behaviors.
+
+</details>

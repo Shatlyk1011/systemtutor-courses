@@ -1,0 +1,151 @@
+---
+title: "Attribute Selectors"
+description: "Match elements by their attributes and group selectors."
+---
+
+An **attribute selector** selects elements by an HTML attribute. Square brackets can check that an attribute exists or compare its value.
+
+## Check for an attribute
+
+Consider two links:
+
+```html
+<!-- [!code word:title="Read the documentation"] -->
+<a href="docs.html" title="Read the documentation">Documentation</a>
+<a href="tools.html">Tools</a>
+```
+
+```css
+/* [!code word:[title\]] */
+a[title] {
+  color: green;
+}
+```
+
+Only the first link matches. Read `a[title]` in two parts:
+
+1. `a` limits the match to links.
+2. `[title]` keeps the links that have a `title` attribute.
+
+The attribute's value can be empty or any other text; this selector checks presence, not a particular value.
+
+## Match an exact value
+
+Use `=` to match an exact attribute value:
+
+```css
+/* [!code word:[href="docs.html"\]] */
+a[href="docs.html"] {
+  font-weight: bold;
+}
+```
+
+This matches `href="docs.html"`, but not `href="docs.html#delivery"`. The second value contains extra text, so it is not an exact match.
+
+Complete the selector before reading the explanation:
+
+```css
+a[href__="docs.html"] {
+  font-weight: bold;
+}
+```
+
+The missing operator is `=`. Start by asking whether the whole value must match; then choose the operator that expresses that relationship.
+
+## Match words and parts of a value
+
+![Attribute value matching](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/e14888a7-fc1d-46bc-8752-868336e60891/gallery/58744dc0-9238-486f-8bc3-53aabe23bc9f)
+
+When an exact match is too narrow, choose the operator by the kind of match you need:
+
+| Selector | Matches when the value… |
+| --- | --- |
+| `~=` | Contains `value` as a whole word in a space-separated list. |
+| `|=` | Is exactly `value` or starts with `value-`; this is useful for language values such as `en` and `en-GB`. |
+| `^=` | Starts with `value`. |
+| `$=` | Ends with `value`. |
+| `*=` | Contains `value` anywhere. |
+
+These examples show both the match and the reason it works:
+
+```html
+<p class="note featured">A highlighted note</p>
+<p class="notebook">A word that only contains “note”</p>
+<p lang="en-GB">British English</p>
+<a href="https://example.com/guide.pdf">PDF guide</a>
+```
+
+```css
+/* The whole word note is present in the class list. */
+[class~="note"] {
+  background-color: yellow;
+}
+
+/* en-GB begins with en followed by a hyphen. */
+[lang|="en"] {
+  color: green;
+}
+
+/* The URL starts with https:// and ends with .pdf. */
+[href^="https://"][href$=".pdf"] {
+  font-weight: bold;
+}
+```
+
+The first rule matches `class="note featured"` but not `class="notebook"`: `~=` checks words, while `*=` would allow a match inside a larger word. The language rule matches `en` and `en-GB`, but not `english`. The last rule combines two conditions on the same link, so its `href` must start with `https://` **and** end with `.pdf`.
+
+For a class name, `.note` expresses the same whole-class match as `[class~="note"]`. Use the attribute form when the attribute itself, or the kind of value match, is what matters.
+
+## Group alternative selectors
+
+![Alternatives and combined conditions](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/e14888a7-fc1d-46bc-8752-868336e60891/gallery/78a896f0-cad6-4f5e-b43a-3c22307cf4cc)
+
+A **selector list** lets different matches share declarations:
+
+```html
+<a href="guide.pdf" title="Download the guide">PDF guide</a>
+<a href="guide.pdf">Another PDF guide</a>
+<a href="guide.html" title="Read online">HTML guide</a>
+```
+
+```css
+/* [!code word:[href$=".pdf"\]] */
+/* [!code word:[title\]] */
+/* [!code word:,] */
+a[href$=".pdf"],
+a[title] {
+  font-weight: bold;
+}
+```
+
+The first selector matches the first two links. The second matches the first and third. The comma means **or**, so all three links become bold because each matches at least one selector.
+
+Without a comma, conditions are joined on one element:
+
+```css
+a[title][href$=".pdf"] {
+  color: purple;
+}
+```
+
+Only the first link matches this rule because it has both the `title` attribute and an `href` ending in `.pdf`.
+
+## Choose the operator
+
+Before writing a selector, name the relationship you need:
+
+- The attribute exists: `[title]`.
+- The whole value matches: `[href="docs.html"]`.
+- A whole word appears in a list: `[class~="note"]`.
+- The value starts, ends, or contains text: use `^=`, `$=`, or `*=`.
+- Two conditions must hold on one element: join selectors without a comma.
+- Different alternatives can share a rule: separate selectors with a comma.
+
+<LessonPractice />
+
+## Key Takeaways
+
+- **Attribute selectors:** Square brackets test an attribute's presence or value.
+- **Operators:** Match an exact value, a whole word, or text at the start, end, or anywhere in a value.
+- **Class matching:** A whole class name differs from an exact attribute value or a substring.
+- **Selector lists:** Commas group alternatives so they can share declarations.

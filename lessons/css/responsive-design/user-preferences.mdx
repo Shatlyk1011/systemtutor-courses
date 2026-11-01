@@ -1,0 +1,142 @@
+---
+title: "User Preferences"
+description: "Respond to color, motion, contrast, and print preferences."
+---
+
+A responsive page can follow the user’s color, motion, and contrast preferences as well as fit their screen. Print rules can also make the page easier to print.
+
+## Respond to a dark color preference
+
+```css
+/* [!code word:prefers-color-scheme\: dark] */
+/* [!code word:--page-text] */
+/* [!code word:--page-surface] */
+:root {
+  color-scheme: light;
+  --page-text: #163c26;
+  --page-surface: #ffffff;
+}
+
+body {
+  color: var(--page-text);
+  background-color: var(--page-surface);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --page-text: #edf5ed;
+    --page-surface: #102117;
+  }
+}
+```
+
+The base palette uses a light surface. When the browser reports a dark preference, both foreground and background change together.
+
+- **`prefers-color-scheme`:** Detects a preference communicated by the browser or operating system.
+- **Custom properties:** Keep the paired colors reusable.
+- **`color-scheme`:** Lets browser-provided controls and surfaces use the supported scheme.
+
+`color-scheme` does not recolor every custom component automatically. Apply theme colors to the components that need them, and check links, borders, focus indicators, and text in each palette.
+
+## Reduce optional motion
+
+```css
+/* [!code word:prefers-reduced-motion\: reduce] */
+/* [!code word:transition\: none] */
+.button {
+  transition: background-color 180ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .button {
+    transition: none;
+  }
+}
+```
+
+The button can still change color, but the change becomes immediate. For other decorative effects, remove or replace the motion while preserving the information and action it communicates.
+
+`reduce` means the user prefers less optional motion. Keep controls and status information available.
+
+## Make boundaries more prominent
+
+```css
+/* [!code word:prefers-contrast\: more] */
+/* [!code word:currentColor] */
+@media (prefers-contrast: more) {
+  .card {
+    border: 2px solid currentColor;
+    box-shadow: none;
+  }
+}
+```
+
+When the user asks for higher contrast, this rule adds a solid border in the card’s text color. You still need to check the page’s color contrast.
+
+Keep readable colors in the default presentation too. A preference query should enhance that starting point.
+
+## Prepare useful printed content
+
+```css
+/* [!code word:print] */
+/* [!code word:display\: none] */
+@media print {
+  body {
+    color: black;
+    background-color: white;
+  }
+
+  .navigation,
+  .toolbar {
+    display: none;
+  }
+
+  .article {
+    max-width: none;
+  }
+}
+```
+
+Hide screen navigation and toolbars while keeping the article's meaningful content. Open print preview to check page breaks, clipped content, and colors. Print rules still follow the cascade; place relevant overrides after the base declarations.
+
+## Key Takeaways
+
+- **Color schemes:** Change paired colors and account for browser-provided controls.
+- **Motion:** Reduce optional effects while preserving information and actions.
+- **Contrast:** Add targeted improvements to an already readable default.
+- **Print:** Adapt layout and navigation while retaining the useful content.
+
+## Try it yourself
+
+A notice changes color when active. Write an override that removes its transition when reduced motion is requested, while preserving the color change. Explain what happens when the preference does not match.
+
+```css
+.notice {
+  background-color: white;
+  transition: background-color 200ms ease;
+}
+.notice.is-active { background-color: lightgreen; }
+```
+
+Check both preference settings in browser developer tools if available.
+
+<details>
+<summary>Hints</summary>
+
+Use the reduced-motion condition above. Override the transition on `.notice`, rather than hiding the notice or removing its active color.
+
+</details>
+
+<details>
+<summary>Check your work and reasoning</summary>
+
+```css
+@media (prefers-reduced-motion: reduce) {
+  .notice { transition: none; }
+}
+```
+
+The color still changes, immediately. Otherwise the override does not apply and the base transition remains. Test the actual interaction too; this rule alone does not account for all motion on a page.
+
+</details>

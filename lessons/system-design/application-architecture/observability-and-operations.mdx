@@ -1,0 +1,55 @@
+---
+title: Observability and Operations
+description: Use logs, metrics, and traces to understand production behavior.
+---
+
+<Callout title="Lesson goal" type="info">
+  By the end of this lesson you will understand the three primary observability signals — logs, metrics, and traces — and how alerts turn those signals into an operational response.
+</Callout>
+
+You cannot improve what you cannot see. Observability is the discipline of making your system's internal state visible from the outside, without having to redeploy code every time something goes wrong.
+
+## The three observability signals
+
+![](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/de9ef765-c009-496e-b966-629ad6184037/gallery/8de9f362-4325-4f06-b53f-bb38a62b0138)
+
+### Logs
+
+A **log** is a timestamped record of a discrete event. Logs tell you *what happened* at a specific moment in time.
+
+Good logs are:
+- **Structured** — written as key-value pairs (JSON) rather than free-form strings, so they can be queried programmatically.
+- **Contextual** — they include a request ID, user ID, or trace ID so you can group related events together.
+- **Actionable** — they contain enough information to understand the event without having to look at the source code.
+
+### Metrics
+
+A **metric** is a numeric measurement sampled over time. Metrics tell you *how much* and *how fast*.
+
+Common system metrics include:
+- **Request rate** — how many requests per second your system is handling.
+- **Error rate** — what percentage of requests are failing.
+- **Latency** — how long requests are taking (p50, p95, p99 percentiles matter more than averages).
+- **Saturation** — how close your resources (CPU, memory, disk I/O) are to their limits.
+
+The first three are the **RED method** (Rate, Errors, Duration). Saturation complements RED by showing whether the resources that serve that work are nearing their limits.
+
+### Traces
+
+A **trace** follows one request as it crosses service boundaries. It is made of **spans**, timed records for the individual operations within that request. Traces answer questions such as, “Which dependency made this checkout request slow?” They connect the aggregate view from metrics to the detailed events in logs.
+
+### Alerts
+
+Observability data is only useful if someone acts on it. A good alerting strategy:
+- Alerts on **symptoms** (high error rate, high latency) rather than causes (high CPU).
+- Avoids alert fatigue by keeping the signal-to-noise ratio high.
+- Defines clear runbooks so on-call engineers know what to do when an alert fires.
+
+![](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/ba63474e-1b92-4442-ad73-e67e7b1b8070/gallery/c6d6bd9a-3c25-4fa9-8c33-0f06c2eb5e91-metrics.webp)
+
+## Key takeaways
+
+- **Logs** record discrete events. Make them structured and contextual.
+- **Metrics** measure system behaviour over time. Track rate, errors, and latency as your baseline.
+- **Traces** follow an individual request across services and expose where time was spent.
+- **Alert** on user-facing symptoms, then use metrics, traces, and logs to investigate the cause.

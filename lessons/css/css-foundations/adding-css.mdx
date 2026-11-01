@@ -1,0 +1,137 @@
+---
+title: "Adding CSS"
+description: "Compare inline, internal, and external stylesheets."
+---
+
+To style a page, connect your CSS to the HTML. There are three common ways:
+
+- **External stylesheet:** CSS lives in a separate file.
+- **Internal stylesheet:** CSS lives in a `<style>` element in the HTML document.
+- **Inline style:** CSS declarations live in an element's `style` attribute.
+
+Each method can make the heading green. The difference is where the CSS lives and how easily you can reuse it.
+
+## External stylesheets
+
+![Linking an external stylesheet](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/e14888a7-fc1d-46bc-8752-868336e60891/gallery/06ff7590-42f5-439c-ad9a-cd9bada3600a)
+
+An **external stylesheet** is a separate file with a `.css` extension. Several HTML pages can link to the same file, so changing that file can update their shared styles.
+
+Create two files in the same folder: `index.html` and `styles.css`.
+
+In `index.html`, write:
+
+```html
+<!-- [!code word:<link] -->
+<!-- [!code word:rel="stylesheet"] -->
+<!-- [!code word:href="styles.css"] -->
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>The guide</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <h1>Documentation hub</h1>
+    <p>Find answers and browse the latest guides.</p>
+  </body>
+</html>
+```
+
+In `styles.css`, write:
+
+```css
+/* [!code word:green] */
+h1 {
+  color: green;
+}
+```
+
+Save both files, then open or reload `index.html` in a browser. The browser loads `styles.css` through the link, matches the `h1` selector to the heading, and applies `color: green` to its text.
+
+The `<link>` element belongs inside the HTML document's `<head>`. Its attributes tell the browser what to load:
+
+- `rel="stylesheet"` identifies the linked resource as a stylesheet.
+- `href="styles.css"` gives its location.
+
+The path must match the file's location. If you move the CSS file into a folder named `styles`, change the link to:
+
+```html
+<!-- [!code word:styles/styles.css] -->
+<link rel="stylesheet" href="styles/styles.css">
+```
+
+A CSS file contains CSS directly. Do not surround its rules with HTML `<style>` tags.
+
+## Internal stylesheets
+
+An **internal stylesheet** places CSS inside a `<style>` element in the HTML document's `<head>`.
+
+To try it, replace the stylesheet link in the example with this element:
+
+```html
+<!-- [!code word:<style>] -->
+<!-- [!code word:</style>] -->
+<style>
+  h1 {
+    color: green;
+  }
+</style>
+```
+
+The heading stays green, but the rule now lives in the HTML file. The selector `h1` still chooses which elements receive the style.
+
+These rules apply to the document containing the `<style>` element; another HTML page does not automatically receive them.
+
+## Inline styles
+
+An **inline style** puts CSS declarations directly inside an element's `style` attribute:
+
+```html
+<!-- [!code word:style] -->
+<!-- [!code word:color\: green;] -->
+<h1 style="color: green;">Documentation hub</h1>
+```
+
+Here, `color: green;` is a **declaration**: a property and its value. There is no selector or pair of braces because the attribute is already attached to the heading being styled.
+
+You can include several declarations, separated by semicolons:
+
+```html
+<!-- [!code word:color\: green;] -->
+<!-- [!code word:font-weight\: bold;] -->
+<h1 style="color: green; font-weight: bold;">Documentation hub</h1>
+```
+
+These styles apply only to this heading. To style another heading this way, edit its `style` attribute too.
+
+## Choose where styles belong
+
+![CSS placement comparison](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/e14888a7-fc1d-46bc-8752-868336e60891/gallery/23d7462f-37e0-49d8-a198-14e6672dacd6)
+
+Choose a method based on how you will use the styles:
+
+- **Shared across pages:** Use an external stylesheet to keep reusable rules in one place.
+- **Small, self-contained example:** Internal styles can keep the HTML and CSS together in one file.
+- **Quick experiment on one element:** An inline style can help you try a change.
+
+If you repeat the same styles across pages or elements, you must update each copy when the design changes.
+
+## Check your choice
+
+Choose the method before reading each answer:
+
+1. A site has five pages that should use the same heading styles. Use an **external stylesheet** so each page can link to one shared CSS file.
+2. You are making one small HTML example and want its CSS beside it. Use an **internal stylesheet** in that document's `<head>`.
+3. You want to test one color on one heading without creating a CSS file. Use an **inline style** on that heading.
+
+The same declaration can appear in all three places. Choose based on how widely you need to reuse it, not because the declaration itself changes.
+
+## Key Takeaways
+
+- **External CSS:** A separate `.css` file connects to HTML through a stylesheet link and can serve multiple pages.
+- **Internal CSS:** A `<style>` element holds rules inside one HTML document.
+- **Inline CSS:** A `style` attribute holds declarations directly on an element, without a selector or braces.
+- **File paths:** The link's `href` must point to the stylesheet's actual location.
+- **Shared styles:** External stylesheets let you maintain reusable rules in one place.

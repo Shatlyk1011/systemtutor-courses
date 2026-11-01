@@ -1,0 +1,168 @@
+---
+title: "Binary Search Boundaries"
+description: "Learn how lower and upper bounds locate insertion positions, duplicate values, and transitions in monotonic conditions."
+slug: "binary-search-boundaries"
+---
+
+Exact-match binary search answers a narrow question:
+
+> “Does the target exist, and where can I find an equal value?”
+
+That is not enough when a sorted collection contains duplicates or when the target is absent. In those cases, the useful answer may be the position where the target should be inserted.
+
+## Lower bound
+
+![Lower bound insertion point](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/bf48d3e5-37f4-44d4-bbd6-8d8635d1163b/gallery/f8c8830b-a2cf-46c4-9615-a559b2298f73)
+
+The **lower bound** is the first index whose value is **greater than or equal to** the target.
+
+This definition handles both cases:
+
+- If the target exists, it identifies the first matching position among duplicates.
+- If the target does not exist, it identifies the insertion position.
+
+| Search goal | Result |
+|---|---|
+| Exact match | An index containing the target, if one exists |
+| Lower bound | The first index with value `>= target` |
+
+<Callout title="Key idea" type="info">
+Lower bound changes the question from “Where is an equal value?” to “Where does the first value at least as large as the target begin?”
+</Callout>
+
+## Half-open boundary search
+
+![Narrowing toward the first valid index](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/bf48d3e5-37f4-44d4-bbd6-8d8635d1163b/gallery/9353d393-e819-46e6-ac8a-576122f7e201)
+
+A lower-bound search finds the **first valid index** in a range. Represent the search range as the half-open interval `[left, right)`:
+
+- `left` is included.
+- `right` is excluded.
+
+At each step, inspect a middle position and keep any qualifying position as a possible answer. Then continue searching toward the boundary where an earlier valid position may exist.
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```js
+    function firstValidIndex(start, end, qualifies) {
+      let left = start;
+      let right = end;
+
+      while (left < right) {
+        const middle = left + Math.floor((right - left) / 2);
+
+        if (qualifies(middle)) {
+          right = middle;
+        } else {
+          left = middle + 1;
+        }
+      }
+
+      return left;
+    }
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    def first_valid_index(start, end, qualifies):
+        left = start
+        right = end
+
+        while left < right:
+            middle = left + (right - left) // 2
+
+            if qualifies(middle):
+                right = middle
+            else:
+                left = middle + 1
+
+        return left
+    ```
+  </Tab>
+</Tabs>
+
+When the loop ends, `left == right`. That position is the first valid index for the searched range.
+
+### Preserve qualifying positions
+
+When `middle` qualifies, do **not** move past it. Set `right` to `middle` so the search can still find an earlier qualifying position. The half-open range makes this update natural because `right` is excluded from the active range.
+
+## Upper bounds and monotonic conditions
+
+![Lower and upper boundaries around duplicates](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/bf48d3e5-37f4-44d4-bbd6-8d8635d1163b/gallery/b41f0e27-0805-45c7-899b-8839ab7b31f8)
+
+An **upper bound** changes the comparison used for a boundary search. Instead of searching for the first position that meets a lower-bound condition, search for the first position where the value is **greater than** the target.
+
+For a sorted collection, the upper bound of a target is the first position whose value is greater than that target. The position immediately before this boundary is the target’s **last occurrence**, when the target exists.
+
+```text
+upper bound(target) = first position with value > target
+last occurrence     = upper bound(target) - 1
+```
+
+This works because all target values appear before the first value greater than the target.
+
+The same idea applies whenever a condition is **monotonic**: as positions advance, the condition changes in one direction and does not change back.
+
+To locate a boundary:
+
+1. Define the condition that separates the two regions.
+2. Change the comparison to search for the required side of the boundary.
+3. Find the first position where that condition becomes true.
+
+### Example: first bad version
+
+Versions are ordered, and the status changes from good to bad without changing back. The boundary is the **first bad version**.
+
+```text
+first bad version = first version where isBad(version) is true
+```
+
+The search does not need to inspect every version. It locates the transition between the good and bad regions by searching for the first position satisfying the bad-version condition.
+
+<Callout title="Key idea" type="success">
+Upper bounds and monotonic-condition searches use the same boundary pattern: change the comparison or predicate, then locate the first position where the desired condition becomes true.
+</Callout>
+
+## Performance and edge cases
+
+A robust boundary search must meet both performance and correctness requirements.
+
+| Measure | Requirement |
+|---|---|
+| Time | `O(log n)` |
+| Auxiliary space | `O(1)` |
+
+`O(log n)` time means the amount of work grows slowly as the input size `n` increases. `O(1)` auxiliary space means the algorithm uses a constant amount of extra memory, regardless of input size.
+
+Check the behavior for:
+
+- An empty array
+- Each possible insertion position
+- A target that is present
+- A target that is absent
+
+The result must still identify the correct position when the target is not found. Do not assume that a completed search means the target exists; validate the final result against the target.
+
+<Callout title="Validation reminder" type="success">
+A correct result must distinguish between “the target was found” and “this is the position where it should be inserted.”
+</Callout>
+
+### Practical checklist
+
+1. Confirm the algorithm meets `O(log n)` time.
+2. Confirm it uses `O(1)` auxiliary space.
+3. Test an empty array.
+4. Test insertion at every boundary and between elements.
+5. Test both present and absent targets.
+6. Validate the final position before reporting that the target was found.
+
+---
+
+## Key Takeaways
+
+- A lower bound is the first index whose value is greater than or equal to the target, so it finds either the first duplicate or the insertion position.
+- A half-open range, `[left, right)`, lets the array length remain a valid insertion position and ends when `left == right`.
+- When the middle position qualifies, keep it as a candidate by setting `right = middle`; otherwise, set `left = middle + 1`.
+- An upper bound is the first index whose value is greater than the target, so the preceding position is the last occurrence when the target exists.
+- The same boundary-search pattern finds the first true position in any monotonic condition in `O(log n)` time and `O(1)` auxiliary space.

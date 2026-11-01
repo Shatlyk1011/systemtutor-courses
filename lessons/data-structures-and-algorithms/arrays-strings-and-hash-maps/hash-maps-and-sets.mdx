@@ -1,0 +1,217 @@
+---
+title: "Hash Maps and Sets"
+description: "Learn key-value lookup, membership checks, collisions, and the average and worst-case costs of hash-based collections."
+---
+
+Suppose you scan an array and need to remember what you have already seen. Repeatedly searching the earlier part of the array can turn one pass into many scans. **Hash maps** and **sets** let you store information as you go and check it by key.
+
+| Structure | Stores | Useful question |
+| --- | --- | --- |
+| Hash map | A **key** paired with a **value** | “What count or index belongs to this item?” |
+| Set | Unique items, without associated values | “Have I seen this item before?” |
+
+In JavaScript, use `Map` and `Set`. In Python, use a dictionary (`dict`) and a set (`set`).
+
+## How Hashing Works
+
+![Hash lookup and collision](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/63971361-6f04-4a9f-a7d2-538fc84c4adc/gallery/eea5908e-81c8-43c5-afb5-0384523ef147)
+
+A hash table runs a key through a **hash function** to choose where to look for it. The same key produces a consistent hash, allowing the table to find it again. On a lookup, the table checks the selected location and compares keys to find the correct entry. The location can change if the table grows.
+
+```text
+key -> hash function -> location in a table -> stored entry
+```
+
+Two different keys can lead to the same location. This is a **collision**. For example, a small illustrative table might assign both `"tea"` and `"eat"` to location `2`. The table must still distinguish the two keys; one does not automatically replace the other. Implementations handle collisions internally, such as by checking multiple entries or another available location.
+
+Hashing avoids scanning every stored entry for a typical lookup. It does not make collisions impossible, and a table may occasionally need to grow and reorganize its entries.
+
+## Hash Maps: Keys and Values
+
+A map associates each unique key with one value. Setting an existing key **updates** its value. This makes maps useful for counts, saved indexes, and other facts you want to retrieve by name or number.
+
+### Insert, Read, Update, and Delete
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```js
+    const scores = new Map();
+
+    scores.set("Ada", 3);                // insert
+    scores.set("Ben", 5);
+    console.log(scores.has("Ada"));      // true
+    console.log(scores.get("Ada"));      // 3
+
+    scores.set("Ada", 4);                // update
+    scores.delete("Ben");               // delete
+    console.log(scores.get("Ada"));      // 4
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    scores = {}
+
+    scores["Ada"] = 3             # insert
+    scores["Ben"] = 5
+    print("Ada" in scores)        # True
+    print(scores["Ada"])          # 3
+
+    scores["Ada"] = 4             # update
+    del scores["Ben"]            # delete
+    print(scores["Ada"])          # 4
+    ```
+  </Tab>
+</Tabs>
+
+When you only need to know whether a key exists, check membership explicitly. A stored value such as `0` is still present. In JavaScript, `get` returns `undefined` for a missing key; in Python, direct indexing raises `KeyError`, while `get` can return a default value.
+
+### Count Repeated Items
+
+![Frequency map](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/63971361-6f04-4a9f-a7d2-538fc84c4adc/gallery/8afae725-2990-4f1e-900b-88f050ecf318)
+
+A **frequency map** uses each item as a key and its number of appearances as the value. For `["tea", "coffee", "tea"]`, the counts are `tea → 2` and `coffee → 1`.
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```js
+    const drinks = ["tea", "coffee", "tea"];
+    const counts = new Map();
+
+    for (const drink of drinks) {
+      counts.set(drink, (counts.get(drink) ?? 0) + 1);
+    }
+
+    console.log(counts.get("tea"));    // 2
+    console.log(counts.get("coffee")); // 1
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    drinks = ["tea", "coffee", "tea"]
+    counts = {}
+
+    for drink in drinks:
+        counts[drink] = counts.get(drink, 0) + 1
+
+    print(counts["tea"])     # 2
+    print(counts["coffee"])  # 1
+    ```
+  </Tab>
+</Tabs>
+
+Each item causes one average constant-time map read and update, so building the counts takes **`O(n)` average time** for `n` items. If there are `k` distinct items, the map stores `k` entries and uses **`O(k)` extra space**.
+
+---
+
+## Sets: Unique Items and Membership
+
+A set stores each distinct item once. Add an item, check whether it is present, or remove it. Use a set when you do not need a count or another value for each item.
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```js
+    const seen = new Set();
+
+    seen.add("red");
+    seen.add("blue");
+    seen.add("red");                  // duplicate: no second copy
+
+    console.log(seen.has("red"));     // true
+    console.log(seen.size);           // 2
+    seen.delete("blue");
+    console.log(seen.has("blue"));    // false
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    seen = set()                      # {} creates an empty dict
+
+    seen.add("red")
+    seen.add("blue")
+    seen.add("red")                   # duplicate: no second copy
+
+    print("red" in seen)              # True
+    print(len(seen))                  # 2
+    seen.discard("blue")
+    print("blue" in seen)             # False
+    ```
+  </Tab>
+</Tabs>
+
+### Worked Example: Detect a Duplicate
+
+Scan from left to right. If the current number is already in the set, you found a duplicate. Otherwise, add it before moving on.
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```js
+    function containsDuplicate(numbers) {
+      const seen = new Set();
+
+      for (const number of numbers) {
+        if (seen.has(number)) return true;
+        seen.add(number);
+      }
+
+      return false;
+    }
+
+    console.log(containsDuplicate([4, 2, 4])); // true
+    console.log(containsDuplicate([4, 2, 7])); // false
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    def contains_duplicate(numbers):
+        seen = set()
+
+        for number in numbers:
+            if number in seen:
+                return True
+            seen.add(number)
+
+        return False
+
+
+    print(contains_duplicate([4, 2, 4]))  # True
+    print(contains_duplicate([4, 2, 7]))  # False
+    ```
+  </Tab>
+</Tabs>
+
+The loop checks each of the `n` numbers at most once. With average `O(1)` membership checks, the algorithm takes **`O(n)` average time** and **`O(k)` extra space**, where `k` is the number of distinct numbers stored.
+
+## Choosing Keys
+
+Hash maps and sets work by comparing keys, so the choice of key matters:
+
+- In Python, dictionary keys and set items must be **hashable**. Numbers, strings, and tuples of hashable values work; lists do not.
+- JavaScript `Map` keys and `Set` items can also be objects, but two separately created objects with the same contents are distinct keys. Use the same object reference when you expect a match.
+- Neither structure sorts its contents. Keep an array or list if you need positions, and sort explicitly if a problem needs sorted order.
+
+<Callout title="Map or set?" type="info">
+Use a set for “is this present?” Use a map when each key needs an associated count, index, or other value. Checking a set before adding each item and checking a map before updating each key are common one-pass patterns.
+</Callout>
+
+## Big O Notation
+
+Let `k` be the number of stored keys. The usual algorithm analysis assumes hashing and comparing a key take constant time; processing a long or complex key can add work.
+
+| Operation | Average time | Possible worst case | Why |
+| --- | ---: | ---: | --- |
+| Map lookup or set membership | `O(1)` | `O(k)` | Severe collisions can require checking many entries. |
+| Map insert/update or set add | `O(1)` | `O(k)` | Collisions or table growth can add work. |
+| Delete a key or item | `O(1)` | `O(k)` | Finding the entry can require extra checks. |
+| Visit all entries | `O(k)` | `O(k)` | Every stored entry is visited. |
+
+**Space:** Storing `k` distinct keys uses `O(k)` space for the entries and table capacity. The `O(k)` worst-case lookup describes a basic hash-table model with heavy collisions. JavaScript and Python runtimes use implementation details to limit or handle collisions, so exact worst-case guarantees vary. For typical algorithm problems, use **average `O(1)`** per map or set operation and state that assumption when deriving an overall time cost.
+
+---
+
+## Key Takeaways
+
+- A hash map stores key-value pairs; a set stores unique items for membership checks.
+- A collision occurs when different keys lead to the same table location. The table still checks which key is which.
+- Lookups, updates, additions, and deletions are `O(1)` on average, with possible slower worst cases.
+- A map can count occurrences or remember indexes. A set can detect duplicates as you scan.
+- Building either structure from `n` input items usually takes `O(n)` average time and up to `O(n)` extra space.

@@ -1,0 +1,138 @@
+---
+title: "Combinators"
+description: "Select elements based on their relationships in the document."
+---
+
+Sometimes a class or element name is not enough. You may want paragraphs inside a particular section, or the paragraph immediately after a heading.
+
+A **combinator** connects selectors by describing a relationship between elements in the HTML structure.
+
+## Read the relationships
+
+![Combinator relationships](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/e14888a7-fc1d-46bc-8752-868336e60891/gallery/4b8293c7-0d2f-4df8-89a0-049a33a5dd81)
+
+Use this example for each rule below:
+
+```html
+<!-- [!code word:class="article"] -->
+<!-- [!code word:<h2>] -->
+<!-- [!code word:</h2>] -->
+<!-- [!code word:<div>] -->
+<!-- [!code word:</div>] -->
+<section class="article">
+  <h2>Reading notes</h2>
+  <p>Read the introduction.</p>
+  <div>
+    <p>Review the example.</p>
+  </div>
+  <p>Check the summary.</p>
+</section>
+<p>Explore another guide.</p>
+```
+
+The structure gives us three useful terms:
+
+- **Child:** An element directly inside another element. The heading is a child of the section.
+- **Descendant:** An element anywhere inside another element, including deeper levels. All three paragraphs inside the section are its descendants.
+- **Sibling:** An element that shares a parent with another element. The heading, two outer paragraphs, and `div` are siblings.
+
+When a selector has two parts, start with the element on the right. That is the
+element the rule can style. Then use the combinator and the selector on the left
+to check its relationship. For example, in `.article > p`, begin with each `p`,
+then keep only the ones whose direct parent is `.article`.
+
+## Descendants: a space
+
+A space between selectors matches descendants at any depth:
+
+```css
+/* [!code word:.article p] */
+.article p {
+  color: green;
+}
+```
+
+All three paragraphs inside `.article` match, including the paragraph inside the `div`. The paragraph outside the section does not match. The section itself is not selected by this rule.
+
+## Direct children: `>`
+
+Use `>` when the target must be directly inside the first element:
+
+```css
+/* [!code word:>] */
+.article > p {
+  color: green;
+}
+```
+
+This matches “Read the introduction” and “Check the summary.” The nested paragraph does not match because its parent is the `div`, not the section.
+
+Compare the reach:
+
+- **`.article p`:** Paragraphs at any depth inside the section.
+- **`.article > p`:** Only paragraphs whose direct parent has the class `article`.
+
+## The next sibling: `+`
+
+Use `+` to select a matching element immediately after another element with the same parent:
+
+```css
+/* [!code word:+] */
+h2 + p {
+  color: green;
+}
+```
+
+Only “Read the introduction” matches: it is the next element after the heading. Spaces and line breaks between HTML tags do not affect the match.
+
+The `+` combinator is also called the **adjacent-sibling combinator**.
+
+## Later siblings: `~`
+
+Use `~` to match later siblings, even when other elements are between them:
+
+```css
+/* [!code word:~] */
+h2 ~ p {
+  color: green;
+}
+```
+
+Both outer paragraphs match. The nested paragraph does not share the heading's parent, so it does not match. This is the **subsequent-sibling**, or **general-sibling**, combinator.
+
+## Fade the support
+
+The first three rules above show the complete reasoning. Now complete the target
+selector before checking the result:
+
+```css
+/* Select the paragraph immediately after the heading. */
+h2 + ____ {
+  color: green;
+}
+```
+
+The blank is `p`: start with the target element, then check that it is the next
+sibling of `h2`. Once that relationship is clear, write the full selector
+`h2 + p` without the prompt.
+
+## Try it yourself
+
+Return to the article example and choose the smallest selector that matches each intention:
+
+- Style every paragraph anywhere inside the article: `.article p`.
+- Style only paragraphs directly inside the article: `.article > p`.
+- Style only the paragraph immediately after the heading: `h2 + p`.
+- Style every later paragraph sharing the heading's parent: `h2 ~ p`.
+
+The selector on the right is always the element that receives the style. First identify that target, then ask whether its relationship must be “inside,” “directly inside,” “immediately after,” or “later alongside.”
+
+<LessonPractice />
+
+## Key Takeaways
+
+- **Space:** Matches descendants at any depth.
+- **`>`:** Matches direct children only.
+- **`+`:** Matches the next element sibling when it satisfies the second selector.
+- **`~`:** Matches later siblings that satisfy the second selector.
+- **Target:** In these examples, the selector on the right identifies the elements being styled.

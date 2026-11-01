@@ -1,0 +1,173 @@
+---
+title: "Component States"
+description: "Style hover, active, selected, and empty states."
+---
+
+A button can look different while hovered or pressed. A checkbox can stay checked. Choose a selector that matches the state you want to show.
+
+## Show interaction states
+
+| State | Meaning |
+| --- | --- |
+| `:hover` | A pointing device is over the element. |
+| `:focus-visible` | The browser considers a visible focus indicator appropriate. |
+| `:active` | The element is being activated, such as while a pointer is pressed. |
+| `:checked` | A native checkbox or radio is checked. |
+
+`:active` does not mean that a navigation item remains selected after a click.
+
+```html
+<button class="action" type="button">Create task</button>
+```
+
+```css
+.action {
+  padding: 0.75rem 1rem;
+  font: inherit;
+  color: #ffffff;
+  background: #17352a;
+  border: 2px solid #17352a;
+  border-radius: 0.5rem;
+}
+
+/* [!code word:hover\: hover] */
+@media (hover: hover) {
+  .action:hover {
+    background: #285b46;
+  }
+}
+
+.action:focus-visible {
+  outline: 3px solid #1d4ed8;
+  outline-offset: 3px;
+}
+
+.action:active {
+  background: #0d241b;
+  border-style: inset;
+}
+```
+
+The media query adds hover feedback when the primary input can hover. Keep the action visible and usable without that feedback: a touchscreen user may never hover. The later `:active` rule wins the background conflict while the button is pressed.
+
+## Show choices that stay selected
+
+Native controls expose checked state without extra scripting:
+
+```html
+<label class="notification-choice">
+  <input type="checkbox" name="notifications" value="email">
+  <span>Email updates</span>
+</label>
+```
+
+```css
+/* [!code word:checked] */
+.notification-choice input {
+  accent-color: #17352a;
+}
+
+.notification-choice input:checked + span {
+  font-weight: 700;
+  text-decoration: underline;
+}
+```
+
+The checkbox stays checked after activation until changed again. Its visible native check mark and the label treatment both show the choice.
+
+For a navigation link representing the current page, style the corresponding HTML attribute instead:
+
+```html
+<a class="link" href="/projects" aria-current="page">My projects</a>
+```
+
+```css
+.link[aria-current="page"] {
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 0.25em;
+}
+```
+
+The router or server must mark the actual current page; CSS reads that attribute but does not update it.
+
+## Recognize empty content carefully
+
+```html
+<p class="note"></p>
+```
+
+```css
+/* [!code word:empty] */
+.note:empty {
+  display: none;
+}
+```
+
+`:empty` checks whether an element has content, not whether a form field has a value. Child elements and even spaces between the tags can prevent a match in current browsers; comments do not. If a list is empty, write a message such as “No projects yet” in HTML so the user knows what happened.
+
+## Distinguish a press from a choice
+
+Why does `:active` not describe a checkbox that remains selected after the pointer is released?
+
+<details>
+<summary>Check your reasoning</summary>
+
+`:active` describes activation in progress; `:checked` describes the checkbox's persistent checked state.
+
+</details>
+
+A link has `aria-current="page"`. Does the CSS rule decide which page is current?
+
+<details>
+<summary>Check your reasoning</summary>
+
+No. The application or server sets the attribute; CSS matches it.
+
+</details>
+
+## Key Takeaways
+
+- **Interaction:** Hover, focus, and active states describe different moments.
+- **Persistent state:** Use checked controls or an appropriate state attribute.
+- **Input methods:** Keep essential actions available without hover.
+- **Empty content:** `:empty` checks element contents, not a field's value.
+
+## Try it yourself
+
+Create a labeled checkbox for “Email reminders”. Style its adjacent label text when checked, and give the checkbox a visible keyboard focus indicator. Explain which state persists after activation and why hover alone is insufficient feedback.
+
+Check that the native checkbox remains visible and operable, the selected styling changes when it is checked, and focus is visible when navigating by keyboard. Test with both a pointer and keyboard.
+
+<details>
+<summary>Hint 1</summary>
+
+Put the checkbox and a text `span` inside a label. The adjacent sibling selector can reach the span.
+
+</details>
+
+<details>
+<summary>Hint 2</summary>
+
+Use `:checked` for the persistent choice and `:focus-visible` for the keyboard indicator.
+
+</details>
+
+<details>
+<summary>Check your work and reasoning</summary>
+
+```html
+<label class="reminder">
+  <input type="checkbox" name="reminders">
+  <span>Email reminders</span>
+</label>
+```
+
+```css
+.reminder input:checked + span { font-weight: 700; text-decoration: underline; }
+.reminder input:focus-visible { outline: 3px solid #1d4ed8; outline-offset: 3px; }
+```
+
+`:checked` persists until the choice changes; `:active` is temporary. Hover may not be available on a touchscreen and does not communicate keyboard focus. The native check mark also conveys the choice.
+
+</details>

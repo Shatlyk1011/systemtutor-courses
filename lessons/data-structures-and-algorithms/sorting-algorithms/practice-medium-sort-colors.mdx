@@ -1,0 +1,77 @@
+---
+title: "Sort Colors"
+description: "Sort three distinct values in place with three pointers."
+slug: "practice-medium-sort-colors"
+ 
+---
+
+## Try It Yourself
+
+Use the editor below to partition zeros, ones, and twos in one pass. Keep a boundary for the next zero, a scanner for the current value, and a boundary for the next two.
+
+Submit your implementation when it passes the examples. Do not use a built-in sorting function or allocate another result array.
+
+<PracticeExercise problemId="sort-colors" />
+
+## Solution
+
+![Three-way partition pointers](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/03ce588b-f581-46ee-b98b-277331400e55/gallery/f3b4e980-effa-4236-b436-685a8a429b27)
+
+Everything before the left boundary is zero, and everything after the right boundary is two. The current pointer inspects the unknown region between them.
+
+Swap zeros left and advance both left and current. Swap twos right but inspect the replacement value before advancing. Ones are already in their middle region.
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```js
+    function sortColors(nums) {
+      let left = 0;
+      let current = 0;
+      let right = nums.length - 1;
+    
+      while (current <= right) {
+        if (nums[current] === 0) {
+          [nums[left], nums[current]] = [nums[current], nums[left]];
+          left++;
+          current++;
+        } else if (nums[current] === 2) {
+          [nums[current], nums[right]] = [nums[right], nums[current]];
+          right--;
+        } else {
+          current++;
+        }
+      }
+    
+      return nums;
+    }
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    def sort_colors(nums):
+        left = 0
+        current = 0
+        right = len(nums) - 1
+    
+        while current <= right:
+            if nums[current] == 0:
+                nums[left], nums[current] = nums[current], nums[left]
+                left += 1
+                current += 1
+            elif nums[current] == 2:
+                nums[current], nums[right] = nums[right], nums[current]
+                right -= 1
+            else:
+                current += 1
+    
+        return nums
+    ```
+  </Tab>
+</Tabs>
+
+### Big O notation
+
+| Measure | Complexity | Explanation |
+|---|---:|---|
+| Time | `O(n)` | The current and right boundaries process every value at most once. |
+| Auxiliary space | `O(1)` | Sorting is performed in place with three indices. |

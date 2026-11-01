@@ -1,0 +1,66 @@
+---
+title: "Fibonacci Number"
+description: "Practice recursive base cases and progress by computing Fibonacci numbers."
+slug: "practice-fibonacci-number"
+ 
+---
+
+## Try It Yourself
+
+Use the editor below to compute the nth Fibonacci number recursively. Identify the two base cases and make every other call move toward them.
+
+Submit your implementation when it passes the examples. Use memoization so repeated recursive subproblems are calculated only once.
+
+<PracticeExercise problemId="fibonacci-number" />
+
+## Solution
+
+The base cases return 0 and 1 immediately. Every larger Fibonacci number is the sum of the two smaller Fibonacci calls before it.
+
+A memo stores completed results. This keeps the recursive structure while preventing the same Fibonacci value from being expanded many times.
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```js
+    function fib(n) {
+      const memo = new Map();
+    
+      function calculate(value) {
+        if (value <= 1) return value;
+        if (memo.has(value)) return memo.get(value);
+    
+        const result = calculate(value - 1) + calculate(value - 2);
+        memo.set(value, result);
+        return result;
+      }
+    
+      return calculate(n);
+    }
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    def fib(n):
+        memo = {}
+    
+        def calculate(value):
+            if value <= 1:
+                return value
+            if value in memo:
+                return memo[value]
+    
+            result = calculate(value - 1) + calculate(value - 2)
+            memo[value] = result
+            return result
+    
+        return calculate(n)
+    ```
+  </Tab>
+</Tabs>
+
+### Big O notation
+
+| Measure | Complexity | Explanation |
+|---|---:|---|
+| Time | `O(n)` | Memoization calculates each Fibonacci value from 0 through n once. |
+| Auxiliary space | `O(n)` | The memo and recursive call stack can each grow with n. |

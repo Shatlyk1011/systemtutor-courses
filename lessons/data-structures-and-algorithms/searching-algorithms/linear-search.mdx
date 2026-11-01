@@ -1,0 +1,111 @@
+---
+title: "Linear Search"
+description: "Learn how linear search checks elements one by one, how to implement it, and its time complexity."
+slug: "linear-search"
+---
+
+Linear search checks array elements **one at a time** until it finds the target or reaches the end of the array. It is useful for unsorted data.
+
+## JavaScript search methods
+
+Many built-in JavaScript methods perform a linear search under the hood:
+
+| Method | Result |
+|---|---|
+| `indexOf` | Finds a matching index |
+| `includes` | Checks whether a value exists |
+| `find` | Finds a matching element |
+| `findIndex` | Finds the index of a matching element |
+
+## Implementing linear search
+
+![Sequential search trace](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/3cf2b7c0-b4e3-4aa7-8dbf-f3dfb8f1f738/gallery/5a80d35e-c6a7-43c2-9b85-bc3ead3c0181)
+
+The function below returns the index of the target. If the target is not found, it returns `-1`.
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```js
+    function linearSearch(array, target) {
+      for (let i = 0; i < array.length; i++) {
+        if (array[i] === target) {
+          return i;
+        }
+      }
+
+      return -1;
+    }
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    def linear_search(array, target):
+        for i in range(len(array)):
+            if array[i] == target:
+                return i
+
+        return -1
+    ```
+  </Tab>
+</Tabs>
+
+The loop stops as soon as it finds a match. Otherwise, it checks every element and then returns `-1`.
+
+## Examples
+
+### Basic usage
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```js
+    const numbers = [10, 15, 20, 25, 30];
+
+    console.log(linearSearch(numbers, 15)); // 1
+    console.log(linearSearch(numbers, 30)); // 4
+    console.log(linearSearch(numbers, 99)); // -1 (not found)
+
+    const fruits = ["apple", "banana", "cherry", "mango"];
+
+    console.log(linearSearch(fruits, "cherry")); // 2
+    console.log(linearSearch(fruits, "grape"));  // -1
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    numbers = [10, 15, 20, 25, 30]
+
+    print(linear_search(numbers, 15))  # 1
+    print(linear_search(numbers, 30))  # 4
+    print(linear_search(numbers, 99))  # -1 (not found)
+
+    fruits = ["apple", "banana", "cherry", "mango"]
+
+    print(linear_search(fruits, "cherry"))  # 2
+    print(linear_search(fruits, "grape"))   # -1
+    ```
+  </Tab>
+</Tabs>
+
+## Time complexity
+
+For an unsorted array, the number of checks depends on where the target appears:
+
+| Case | Complexity | Meaning |
+|---|---:|---|
+| Best case | `O(1)` | The target is the first element. |
+| Average case | `O(n)` | The search checks a portion of the array. |
+| Worst case | `O(n)` | The target is last, or it is not present. |
+
+<Callout title="When to use Linear Search" type="info">
+Linear search is the best (and often only) general search approach when data is completely **unsorted**. However, when data is sorted, more efficient algorithms like **Binary Search** ($O(\log n)$) can be used.
+</Callout>
+
+---
+
+## Key Takeaways
+
+- **Sequential Inspection:** Linear search inspects elements sequentially one by one from beginning to end until the target is found or the array ends.
+- **Works on Unsorted Data:** Unlike binary search, linear search does not require the input array to be sorted.
+- **Time Complexity:** Best case is $O(1)$ when the target is at index `0`. Average and worst cases are $O(n)$ when the target is near the end or absent.
+- **Space Complexity:** Operates in $O(1)$ constant auxiliary space because it only requires an index counter to traverse the array.
+- **Built-in Methods:** Common JavaScript methods like `indexOf`, `includes`, `find`, and `findIndex` perform a linear search under the hood.

@@ -1,0 +1,491 @@
+---
+title: "Responsive Content and Testing"
+---
+
+{/* Topics to cover: Fluid Typography; Responsive Images; User Preferences; Responsive Testing. */}
+
+## Fluid Typography
+
+**Fluid typography** lets text grow smoothly as the viewport widens. A heading can change within a set range while body text stays at a comfortable size.
+
+### Combine relative and viewport units
+
+```css
+/* [!code word:1rem + 2vw] */
+.title {
+  font-size: calc(1rem + 2vw);
+}
+```
+
+`rem` follows the root font size, while `vw` follows viewport width. At a 16-pixel root font size and an 800-pixel viewport, this expression becomes `16px + 16px = 32px`.
+
+Using only viewport units can make text too small on narrow screens or limit how much zoom enlarges it. Include a font-relative unit, then test narrow widths, larger text settings, and page zoom.
+
+### Bound the result with `clamp()`
+
+Replace the heading's unbounded size with:
+
+```css
+/* [!code word:clamp] */
+/* [!code word:1.5rem] */
+/* [!code word:1rem + 2vw] */
+/* [!code word:3rem] */
+.title {
+  font-size: clamp(1.5rem, 1rem + 2vw, 3rem);
+  line-height: 1.15;
+}
+```
+
+The arguments describe a minimum, a preferred expression, and a maximum:
+
+| Viewport width | Preferred value at a 16px root size | Chosen size |
+| --- | --- | --- |
+| 320px | `16px + 6.4px = 22.4px` | 24px, the minimum. |
+| 800px | `16px + 16px = 32px` | 32px, within the range. |
+| 2000px | `16px + 40px = 56px` | 48px, the maximum. |
+
+Inside `clamp()`, the arithmetic expression does not need another `calc()` wrapper. Keep spaces around the plus sign. The unitless line height scales with the heading's selected size.
+
+### Keep body text and line length comfortable
+
+```css
+/* [!code word:1rem] */
+/* [!code word:65ch] */
+.copy {
+  font-size: 1rem;
+  line-height: 1.6;
+  max-width: 65ch;
+}
+```
+
+Body text does not need to grow at the same rate as a display heading. This example keeps its size relative to the root and caps the paragraph width.
+
+`1ch` is based on the width of the font’s `0` character. A width of `65ch` will not fit exactly 65 characters on every line; line breaks depend on the words and font.
+
+### Apply the same idea to spacing
+
+```css
+/* [!code word:--section-space] */
+/* [!code word:clamp(1rem, 0.5rem + 2vw, 3rem)] */
+:root {
+  --section-space: clamp(1rem, 0.5rem + 2vw, 3rem);
+}
+
+.section {
+  padding-block: var(--section-space);
+}
+```
+
+The section's vertical padding grows smoothly without dropping below `1rem` or exceeding `3rem`. A custom property keeps the same spacing relationship available to other sections.
+
+Use a few deliberate relationships instead of giving every size its own unrelated formula. A layout breakpoint can still change columns while typography and spacing vary smoothly between those changes.
+
+### Check enlargement and wrapping
+
+Resize through the full range, then enlarge the page and test a larger default font size. Long headings should wrap, and their containers should grow rather than clip the new lines. Mixed units and limits do not guarantee a particular enlargement ratio on their own.
+
+### Key Takeaways
+
+- **Fluid expression:** Combine font-relative and viewport units deliberately.
+- **Bounds:** `clamp()` keeps a preferred size inside a chosen range.
+- **Reading measure:** Control line length as well as font size.
+- **Verification:** Test long content, zoom, and larger text settings.
+
+### Try it yourself
+
+Give `.headline` a fluid font size with a minimum of `1.5rem`, a preferred value of `1rem + 2vw`, and a maximum of `3rem`. Leave body text unchanged. Explain the chosen value at a `320px` viewport with a `16px` root font size.
+
+First calculate the preferred value, then compare it with the bounds. Check the order of the three arguments and the spaces around `+`.
+
+<details>
+<summary>Hints</summary>
+
+Use `clamp(minimum, preferred, maximum)`. At `320px`, `2vw` is `6.4px`.
+
+</details>
+
+<details>
+<summary>Check your work and reasoning</summary>
+
+```css
+.headline { font-size: clamp(1.5rem, 1rem + 2vw, 3rem); }
+```
+
+The preferred value is `22.4px`, below the `24px` minimum, so the chosen size is `24px`. Only the heading is selected. Test zoom and larger default text too; the calculation does not establish readability in every context.
+
+</details>
+
+## Responsive Images
+
+CSS controls an image’s displayed size and crop. HTML can offer different image files so the browser can choose one for the available space.
+
+### Fit an image without distortion
+
+```html
+<!-- [!code word:width="1200"] -->
+<!-- [!code word:height="800"] -->
+<img
+  class="image"
+  src="/images/conference-1200.jpg"
+  width="1200"
+  height="800"
+  alt="A speaker presenting at a conference">
+```
+
+```css
+/* [!code word:max-width] */
+/* [!code word:height\: auto] */
+.image {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+```
+
+Supply an actual 1200-by-800-pixel image at the example URL. The HTML dimensions give the browser the image's proportions before loading. CSS allows it to shrink with its container while keeping that ratio.
+
+At a 300-pixel available width, this image becomes 300 by 200 pixels. In a container wider than 1200 pixels, this rule does not force it to grow beyond its original width. `display: block` also avoids the baseline gap associated with an inline image.
+
+### Create a consistent thumbnail shape
+
+For a card thumbnail, add the `thumbnail` class to the same image:
+
+```css
+/* [!code word:aspect-ratio] */
+/* [!code word:cover] */
+/* [!code word:center top] */
+.thumbnail {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  object-position: center top;
+}
+```
+
+The image element's box now uses a 16:9 ratio. `object-fit` decides how the original image content fits that box:
+
+| Value | Result |
+| --- | --- |
+| `cover` | Preserves the source ratio, fills the box, and crops when needed. |
+| `contain` | Preserves the source ratio and shows the whole image, possibly leaving empty space. |
+| `fill` | Fills the box and can distort the source when ratios differ. |
+
+`object-position: center top` aligns the fitted content at the top and centers it horizontally. This can keep a subject near the top visible when the bottom is cropped. Recheck the subject at different card widths.
+
+### Offer alternative source sizes
+
+For a separate image intended to fill the viewport width:
+
+```html
+<!-- [!code word:srcset] -->
+<!-- [!code word:480w] -->
+<!-- [!code word:960w] -->
+<!-- [!code word:1440w] -->
+<!-- [!code word:sizes="100vw"] -->
+<img
+  class="responsive"
+  src="/images/conference-1440.jpg"
+  srcset="/images/conference-480.jpg 480w,
+          /images/conference-960.jpg 960w,
+          /images/conference-1440.jpg 1440w"
+  sizes="100vw"
+  width="1440"
+  height="960"
+  alt="A speaker presenting at a conference">
+```
+
+```css
+/* [!code word:width\: 100%] */
+body {
+  margin: 0;
+}
+
+.responsive {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+```
+
+Each number followed by `w` gives the file’s actual pixel width. Use versions with the same crop and proportions. Here, `sizes="100vw"` tells the browser that the image will fill the viewport width, matching the CSS.
+
+The browser chooses a file based on the displayed size, screen pixel density, and other conditions. Do not assume a particular URL is always selected at one viewport width. If the image instead sits inside a smaller column, update `sizes` to describe that layout.
+
+For a different composition at narrow widths, `<picture>` can offer alternate crops. `object-fit` only changes how the chosen file is drawn; it does not request a smaller file.
+
+### Key Takeaways
+
+- **Natural proportions:** Use dimension attributes with fluid CSS sizing.
+- **Cropping:** `object-fit` controls fitting; `object-position` controls placement.
+- **Sources:** `srcset` offers files and `sizes` describes the intended slot.
+- **Content:** Keep the subject and text alternative useful at every size.
+
+### Try it yourself
+
+A card needs a 16:9 thumbnail that fills its width without distortion. Cropping is acceptable, and the subject is near the top. Write CSS for `.card-image`, then explain whether your choice guarantees the subject remains visible.
+
+The surrounding card determines the available width. Check with a real image at narrow and wide card sizes.
+
+<details>
+<summary>Hints</summary>
+
+Set `width`, `aspect-ratio`, and an `object-fit` that fills the box while preserving the source ratio. Align the content toward the top.
+
+</details>
+
+<details>
+<summary>Check your work and reasoning</summary>
+
+```css
+.card-image {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  object-position: center top;
+}
+```
+
+`cover` fills the box without distortion but can crop content. Top alignment helps in some crops; it cannot guarantee the subject remains visible. Inspect the actual image and adjust if needed.
+
+</details>
+
+## User Preferences
+
+A responsive page can follow the user’s color, motion, and contrast preferences as well as fit their screen. Print rules can also make the page easier to print.
+
+### Respond to a dark color preference
+
+```css
+/* [!code word:prefers-color-scheme\: dark] */
+/* [!code word:--page-text] */
+/* [!code word:--page-surface] */
+:root {
+  color-scheme: light;
+  --page-text: #163c26;
+  --page-surface: #ffffff;
+}
+
+body {
+  color: var(--page-text);
+  background-color: var(--page-surface);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --page-text: #edf5ed;
+    --page-surface: #102117;
+  }
+}
+```
+
+The base palette uses a light surface. When the browser reports a dark preference, both foreground and background change together.
+
+- **`prefers-color-scheme`:** Detects a preference communicated by the browser or operating system.
+- **Custom properties:** Keep the paired colors reusable.
+- **`color-scheme`:** Lets browser-provided controls and surfaces use the supported scheme.
+
+`color-scheme` does not recolor every custom component automatically. Apply theme colors to the components that need them, and check links, borders, focus indicators, and text in each palette.
+
+### Reduce optional motion
+
+```css
+/* [!code word:prefers-reduced-motion\: reduce] */
+/* [!code word:transition\: none] */
+.button {
+  transition: background-color 180ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .button {
+    transition: none;
+  }
+}
+```
+
+The button can still change color, but the change becomes immediate. For other decorative effects, remove or replace the motion while preserving the information and action it communicates.
+
+`reduce` means the user prefers less optional motion. Keep controls and status information available.
+
+### Make boundaries more prominent
+
+```css
+/* [!code word:prefers-contrast\: more] */
+/* [!code word:currentColor] */
+@media (prefers-contrast: more) {
+  .card {
+    border: 2px solid currentColor;
+    box-shadow: none;
+  }
+}
+```
+
+When the user asks for higher contrast, this rule adds a solid border in the card’s text color. You still need to check the page’s color contrast.
+
+Keep readable colors in the default presentation too. A preference query should enhance that starting point.
+
+### Prepare useful printed content
+
+```css
+/* [!code word:print] */
+/* [!code word:display\: none] */
+@media print {
+  body {
+    color: black;
+    background-color: white;
+  }
+
+  .navigation,
+  .toolbar {
+    display: none;
+  }
+
+  .article {
+    max-width: none;
+  }
+}
+```
+
+Hide screen navigation and toolbars while keeping the article's meaningful content. Open print preview to check page breaks, clipped content, and colors. Print rules still follow the cascade; place relevant overrides after the base declarations.
+
+### Key Takeaways
+
+- **Color schemes:** Change paired colors and account for browser-provided controls.
+- **Motion:** Reduce optional effects while preserving information and actions.
+- **Contrast:** Add targeted improvements to an already readable default.
+- **Print:** Adapt layout and navigation while retaining the useful content.
+
+### Try it yourself
+
+A notice changes color when active. Write an override that removes its transition when reduced motion is requested, while preserving the color change. Explain what happens when the preference does not match.
+
+```css
+.notice {
+  background-color: white;
+  transition: background-color 200ms ease;
+}
+.notice.is-active { background-color: lightgreen; }
+```
+
+Check both preference settings in browser developer tools if available.
+
+<details>
+<summary>Hints</summary>
+
+Use the reduced-motion condition above. Override the transition on `.notice`, rather than hiding the notice or removing its active color.
+
+</details>
+
+<details>
+<summary>Check your work and reasoning</summary>
+
+```css
+@media (prefers-reduced-motion: reduce) {
+  .notice { transition: none; }
+}
+```
+
+The color still changes, immediately. Otherwise the override does not apply and the base transition remains. Test the actual interaction too; this rule alone does not account for all motion on a page.
+
+</details>
+
+## Responsive Testing
+
+Test a responsive layout across a range of widths, including between breakpoints. Also try larger text, zoom, and user preferences.
+
+### Resize continuously, then test boundaries
+
+Open the browser's responsive viewport tools and drag through a range of widths. When a problem appears, note the width and inspect the component that causes it.
+
+Then check the exact points where rules change. For an example breakpoint of `48rem` with a 16-pixel initial font size:
+
+| Width | What to inspect |
+| --- | --- |
+| 320px | Narrow layout, long text, and horizontal overflow. |
+| 767px | The last whole CSS pixel below the breakpoint. |
+| 768px | The boundary where an inclusive minimum query matches. |
+| 769px | The layout immediately above the boundary. |
+| 1280px | Maximum widths, line lengths, and unused space. |
+
+Use these widths as examples to test. Also try short landscape windows to find problems caused by limited height. See the [Chrome Device Mode guide](https://developer.chrome.com/docs/devtools/device-mode).
+
+### Stress the content
+
+Use a deliberately demanding card while checking a layout:
+
+```html
+<!-- [!code word:class="test-card"] -->
+<!-- [!code word:averylongprojectidentifierwithoutspaces] -->
+<article class="test-card">
+  <h2>A longer guide to planning a complex project with a distributed team</h2>
+  <p>Project identifier: averylongprojectidentifierwithoutspaces</p>
+  <a href="/guides/projects">Read the complete project guide</a>
+</article>
+```
+
+```css
+/* [!code word:min-width] */
+/* [!code word:overflow-wrap] */
+.test-card {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+```
+
+As a flex or grid item, this card can shrink because of `min-width: 0`. `overflow-wrap` lets long strings wrap. Check children too: a child with a fixed width can still overflow.
+
+Try longer labels, more items, missing images, and translated text too. Check that containers grow or wrap so the extra content stays visible.
+
+### Check enlargement and interaction
+
+Enlarge the page and test a larger default text size. Inspect whether:
+
+- Text wraps without losing words or controls.
+- Fixed and sticky elements leave the content and focused controls reachable.
+- Keyboard focus remains visible as the layout changes.
+- Links and buttons remain usable without hover.
+- Images and component columns fit their actual containers.
+
+For ordinary reading content, WCAG’s reflow criterion checks that everything remains available at a width equivalent to 320 CSS pixels, without scrolling both horizontally and vertically. Some two-dimensional content has exceptions. A 1280-pixel viewport at 400% zoom gives that 320-pixel width. See the [reflow guidance](https://www.w3.org/WAI/WCAG22/Understanding/reflow.html).
+
+### Test more than width
+
+| Condition | Check |
+| --- | --- |
+| Light and dark preferences | Text, links, controls, and focus indicators stay visible. |
+| Reduced motion | Optional motion is reduced while feedback remains available. |
+| Higher contrast | Important boundaries and states remain distinguishable. |
+| Print preview | Meaningful content survives pagination and screen controls are omitted appropriately. |
+| Narrow and wide component slots | Container queries respond to each instance's space. |
+
+Use developer tools to emulate conditions, then verify important paths on real devices and the browsers the site supports. Device emulation approximates selected properties; it does not reproduce every hardware, input, or browser behavior.
+
+### Key Takeaways
+
+- **Range:** Resize continuously and inspect query boundaries explicitly.
+- **Content:** Test long strings, extra items, and enlarged text.
+- **Conditions:** Check preferences, print output, and component-sized layouts.
+- **Devices:** Combine emulation with real-device and supported-browser checks.
+
+### Try it yourself
+
+A page has two columns at `min-width: 48rem`, a long unbroken project ID, and a decorative transition. The browser's initial font size is `16px`. Plan a test pass covering the breakpoint, overflow, zoom, and reduced motion. State what a failure would look like and one useful next step.
+
+Include widths immediately below, at, and above the threshold, difficult content at a narrow width, an enlargement check, and both motion preference states. Explain why a device preset alone is insufficient.
+
+<details>
+<summary>Hints</summary>
+
+Convert `48rem` using the stated initial size. Inspect item and child widths if the ID overflows; inspect the preference override if motion continues under `reduce`.
+
+</details>
+
+<details>
+<summary>Check your plan</summary>
+
+At `767px`, `768px`, and `769px`, check that columns change at the inclusive boundary. At `320px`, look for horizontal overflow from the ID and inspect minimum or fixed widths and wrapping. Zoom and enlarge default text to check that content and controls remain reachable. Compare normal and reduced-motion settings to check that decorative motion is reduced without losing feedback. A preset samples one configuration and can miss intermediate widths, content changes, and input behavior; use real devices and supported browsers for further checks.
+
+</details>

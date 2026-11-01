@@ -1,0 +1,439 @@
+---
+title: "The Box Model and Sizing"
+---
+
+{/* Topics to cover: The Box Model; Sizing Elements; Borders and Shadows. */}
+
+## The Box Model
+
+CSS treats each element as a box. The **box model** describes its content, padding, border, and margin. Together, these explain how much space it uses.
+
+### Identify the four layers
+
+![Box model layers]()
+{/*
+IMAGE PROMPT — Box model layers
+Show content inside padding inside a border, with margin outside. Label each layer and show the background extending through the padding and beneath the border.
+*/}
+
+Start with a note:
+
+```html
+<!-- [!code word:class="card"] -->
+<p class="card">Review your order details.</p>
+```
+
+```css
+/* [!code word:padding] */
+/* [!code word:border] */
+/* [!code word:margin] */
+.card {
+  width: 240px;
+  padding: 20px;
+  border: 2px solid green;
+  margin: 16px;
+  background-color: honeydew;
+}
+```
+
+Read the layers from the inside outward:
+
+| Layer | Purpose | In this example |
+| --- | --- | --- |
+| Content | Holds text, images, or other content. | The note's text. |
+| Padding | Adds space between the content and border. | 20 pixels on each side. |
+| Border | Surrounds the content and padding. | A 2-pixel green line. |
+| Margin | Adds space outside the border. | 16 pixels on each side. |
+
+The background paints behind the content and padding; by default, it also extends beneath the border. Margins are transparent. Use padding to give text breathing room inside a card and margins to separate the card from surrounding boxes.
+
+### Calculate the default size
+
+By default, a block uses `box-sizing: content-box`. Its `width` sets the content width, and padding and borders add to that size.
+
+The note's horizontal dimensions are:
+
+- **Content width:** `240px`.
+- **Border-box width:** `240px + 20px + 20px + 2px + 2px = 284px`.
+- **Width including margins:** `284px + 16px + 16px = 316px`.
+
+The **border box** includes content, padding, and borders, but not margins. The same addition applies vertically when you give the content an explicit height.
+
+This is why a `width: 100%` card with added padding can overflow its container under `content-box`. The percentage fills the reference width before padding and borders are added.
+
+### Include padding and borders with `border-box`
+
+Add this declaration to the card:
+
+```css
+/* [!code word:border-box] */
+.card {
+  box-sizing: border-box;
+}
+```
+
+Its declared `240px` width now includes padding and borders. The content width becomes `240px - 40px - 4px = 196px`.
+
+The margins remain outside, so the width including margins is `272px`. `border-box` includes padding and borders in the set size; the spacing is still there.
+
+A common page-wide setup applies this sizing model to elements and their generated pseudo-elements:
+
+```css
+/* [!code word:box-sizing] */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+```
+
+### Set spacing on individual sides
+
+`padding` and `margin` accept shorthand values in the same order:
+
+- **One value:** All four sides.
+- **Two values:** Top and bottom, then left and right.
+- **Three values:** Top, left and right, then bottom.
+- **Four values:** Top, right, bottom, left.
+
+For example, `padding: 12px 20px` adds 12 pixels vertically and 20 pixels horizontally. `margin-bottom: 24px` changes only the bottom margin.
+
+Vertical margins can combine through **margin collapse**, so they do not always add together like the horizontal calculation above. The Normal Flow lesson examines that behavior.
+
+### Check the calculation
+
+Suppose the original 240-pixel `content-box` note keeps its 20-pixel padding but its border becomes 4 pixels on each side. Start with the content and padding: `240 + 40 = 280px`. What is the border-box width?
+
+<details>
+<summary>Check the last step</summary>
+
+Add both 4-pixel borders: `280 + 8 = 288px`. The margin is outside that width.
+
+</details>
+
+Now keep those dimensions but switch to `border-box`. Calculate the content width and explain which parts still fit inside the declared width.
+
+<details>
+<summary>Check the comparison</summary>
+
+The content is `240 - 40 - 8 = 192px` wide. The padding and border remain present, but they now fit inside the declared 240 pixels.
+
+</details>
+
+### Key Takeaways
+
+- **Layers:** Content, padding, border, and margin describe space from the inside outward.
+- **`content-box`:** Declared dimensions cover the content; padding and borders add to them.
+- **`border-box`:** Declared dimensions include padding and borders, while margins stay outside.
+- **Spacing:** Padding separates content from its border; margin separates neighboring boxes.
+
+
+### Try it yourself
+
+Use the editor to make the note's border box 240 pixels wide, with 20 pixels of padding and a 2-pixel solid green border. Keep the margin at zero. The preview uses `border-box` as a reset, but write the declaration yourself so the rule expresses your intent.
+
+<LessonPractice courseSlugId="css/docs/box-model-and-document-flow/the-box-model" />
+
+Check your work: the border box is 240 pixels wide, padding sits inside the border, and the content width is 196 pixels. Why does adding a margin not change that content width?
+
+<details>
+<summary>Hint</summary>
+
+Subtract both horizontal padding and both borders from 240. Where is the margin relative to the border?
+
+</details>
+
+<details>
+<summary>Check your reasoning</summary>
+
+The content width is `240 - 40 - 4 = 196px`. Margin is outside the border box, so it adds outside space without changing the 240-pixel border box or its content width. A similar-looking preview alone cannot confirm the sizing rule; inspect your CSS too.
+
+</details>
+
+For a new box with `width: 200px`, `padding: 10px`, and `border: 5px solid`, calculate the border-box width under `content-box`, then the content width under `border-box`. Explain why the answers differ before opening the check.
+
+<details>
+<summary>Check the transfer</summary>
+
+With `content-box`, the border box is `200 + 20 + 10 = 230px`. With `border-box`, the content is `200 - 20 - 10 = 170px`. The same declared width refers to different layers.
+
+</details>
+
+## Sizing Elements
+
+A card should fit its container and leave room for its content. Use widths, heights, and size limits to control both.
+
+### Start with automatic sizing
+
+For an ordinary block in normal flow, `width: auto` uses the available horizontal space after accounting for margins, padding, and borders. `height: auto` usually grows with the content.
+
+```html
+<!-- [!code word:class="card"] -->
+<article class="card">
+  <h2>Project overview</h2>
+  <p>Track milestones, owners, and deadlines.</p>
+</article>
+```
+
+```css
+/* [!code word:auto] */
+.card {
+  box-sizing: border-box;
+  width: auto;
+  height: auto;
+  padding: 1rem;
+  border: 2px solid green;
+}
+```
+
+The card can become taller when its text wraps onto more lines. An explicit height would limit that space and could leave content overflowing.
+
+### Choose a width and constrain it
+
+Replace the card's width with these declarations:
+
+```css
+/* [!code word:90%] */
+/* [!code word:max-width] */
+/* [!code word:auto] */
+.card {
+  width: 90%;
+  max-width: 40rem;
+  margin: 0 auto;
+}
+```
+
+In this simple block layout, the percentage refers to the containing block's width, usually the parent's content width. The card takes 90% of that width, capped at `40rem`.
+
+If the root font size is 16 pixels:
+
+- **400-pixel container:** The card is 360 pixels wide.
+- **1000-pixel container:** The 900-pixel percentage result is capped at 640 pixels.
+
+Because the card is narrower than its container, the left and right `auto` margins share the remaining horizontal space and center it. Its `border-box` setting keeps padding and borders inside these widths.
+
+### Set size limits
+
+The sizing properties play different roles:
+
+| Property | Role |
+| --- | --- |
+| `width`, `height` | Request a size. |
+| `min-width`, `min-height` | Establish a lower limit. |
+| `max-width`, `max-height` | Establish an upper limit. |
+
+For a welcome panel that should have some height but grow with its text:
+
+```css
+/* [!code word:min-height] */
+.welcome {
+  min-height: 12rem;
+  padding: 1rem;
+}
+```
+
+With automatic height, the panel can expand beyond its minimum. By contrast, `max-height` alone does not create scrolling when content is taller; overflow handling is a separate decision.
+
+Choose limits that can fit the available space. A `min-width: 500px` box can overflow a 320-pixel container. If a minimum and maximum conflict, the minimum wins in ordinary sizing.
+
+### Give percentages a usable reference
+
+In a normal block layout, a percentage height usually works when the containing block has a known height:
+
+```css
+/* [!code word:300px] */
+/* [!code word:50%] */
+.preview {
+  height: 300px;
+}
+
+.preview-panel {
+  height: 50%;
+}
+```
+
+For a panel directly inside this preview, the height is 150 pixels. If the preview instead has an automatic height that depends on its content, the child's `height: 50%` generally behaves as `auto`. A percentage is useful only when its reference can be resolved.
+
+### Set proportions with `aspect-ratio`
+
+For a separate, empty preview box:
+
+```css
+/* [!code word:aspect-ratio] */
+/* [!code word:16 / 9] */
+.preview {
+  width: 320px;
+  max-width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  background-color: honeydew;
+}
+```
+
+At 320 pixels wide, the box aims for a height of 180 pixels. Leave at least one dimension automatic so `aspect-ratio` can calculate it. Content and size limits can change the final shape.
+
+### Compare a smaller container
+
+The card above requests 90% width and is capped at 40rem. If the root font size is 16 pixels and its container is 600 pixels wide, first find 90%: `600 × 0.9 = 540px`. Does the 640-pixel cap change that result?
+
+<details>
+<summary>Check the last step</summary>
+
+No. 540 pixels is below the 640-pixel maximum, so the card is 540 pixels wide.
+
+</details>
+
+Now calculate its width in an 800-pixel container. Explain which constraint wins.
+
+<details>
+<summary>Check the comparison</summary>
+
+90% is 720 pixels, so `max-width` caps the card at 640 pixels. The remaining space is shared by the automatic horizontal margins.
+
+</details>
+
+### Key Takeaways
+
+- **Automatic sizing:** Normal block boxes can fill available width and grow vertically with content.
+- **Constraints:** Minimum and maximum dimensions limit the requested size.
+- **Percentages:** A percentage depends on the containing block and the property being sized.
+- **Proportions:** `aspect-ratio` supplies a preferred relationship when a dimension is automatic.
+
+
+### Try it yourself
+
+In the editor, give the card a width of 90% and a maximum width of 240 pixels. Center it with automatic horizontal margins and allow its height to grow with content. Check that the card is centered, its border box is 240 pixels wide, and no fixed height restricts the text.
+
+<LessonPractice courseSlugId="css/docs/box-model-and-document-flow/sizing-elements" />
+
+Why is the width 240 pixels rather than 288 pixels? What happens to the card width if the container becomes 200 pixels wide? Calculate before opening the answer.
+
+<details>
+<summary>Hint</summary>
+
+Compare 90% of each container with the maximum; use the smaller result.
+
+</details>
+
+<details>
+<summary>Check your reasoning</summary>
+
+90% of 320 is 288 pixels, which exceeds the 240-pixel maximum. At 200 pixels, 90% is 180 pixels, below the cap. The editor shows one container size, so inspect the CSS and calculation as well as the preview.
+
+</details>
+
+## Borders and Shadows
+
+Borders, rounded corners, and shadows help a card or button stand out. Some add to its size; others only change how it looks.
+
+### Draw a border
+
+Use this card:
+
+```html
+<!-- [!code word:class="card"] -->
+<article class="card">
+  <h2>Order details</h2>
+  <p>Review your items and delivery options.</p>
+  <a href="/guides/orders">Read the guide</a>
+</article>
+```
+
+```css
+/* [!code word:2px solid green] */
+.card {
+  box-sizing: border-box;
+  padding: 1rem;
+  border: 2px solid green;
+  background-color: honeydew;
+}
+```
+
+The `border` shorthand sets three features:
+
+- **Width:** `2px` sets the line's thickness.
+- **Style:** `solid` draws a continuous line. Other styles include `dashed` and `dotted`.
+- **Color:** `green` supplies the line's color.
+
+A border occupies space in the box model. With `border-box`, it fits inside a declared width. Set a visible style: a border whose style is `none` does not draw a line.
+
+To style one side independently, use a side-specific property such as `border-bottom: 4px solid green`.
+
+### Round the corners
+
+```css
+/* [!code word:border-radius] */
+.card {
+  border-radius: 12px;
+}
+```
+
+`border-radius` rounds the border and background corners without changing the box's rectangular layout dimensions. One value applies to all four corners.
+
+Rounded corners do not automatically hide content that extends past them. `overflow: hidden` can clip that content, but it may also cut off shadows or focus outlines. Check links and buttons after using it.
+
+### Mark focus with an outline
+
+An **outline** draws around a box without taking up layout space. It is useful for showing which link or control has keyboard focus:
+
+```css
+/* [!code word:outline] */
+/* [!code word:outline-offset] */
+.card a:focus-visible {
+  outline: 3px solid purple;
+  outline-offset: 3px;
+}
+```
+
+`outline-offset` moves the outline away from the edge. Unlike adding a border, adding an outline does not move neighboring content.
+
+Tab to the card's link to inspect the indicator. Keep a visible focus indicator; removing the browser's outline without a suitable replacement makes keyboard navigation harder.
+
+### Add a box shadow
+
+```css
+/* [!code word:box-shadow] */
+.card {
+  box-shadow: 0 4px 12px 0 rgb(0 0 0 / 15%);
+}
+```
+
+Read the values in order:
+
+- **Horizontal offset:** `0` keeps the shadow centered horizontally.
+- **Vertical offset:** `4px` shifts it downward.
+- **Blur radius:** `12px` softens its edge.
+- **Spread radius:** `0` adds no expansion before blurring.
+- **Color:** Translucent black makes the shadow subtle.
+
+Box shadows do not reserve layout space. A large shadow can overlap nearby content even though the card's dimensions stay the same. Add `inset` for an inner shadow, or separate multiple shadows with commas.
+
+### Distinguish opacity from background transparency
+
+```css
+/* [!code word:opacity] */
+.card {
+  opacity: 0.5;
+}
+```
+
+`opacity: 0.5` makes the whole card partly transparent, including its text and child elements. A child cannot restore full opacity by setting `opacity: 1`.
+
+To make only the background translucent, remove the opacity declaration and use a color with an alpha channel:
+
+```css
+/* [!code word:20%] */
+.card {
+  background-color: rgb(0 128 0 / 20%);
+}
+```
+
+The background blends with what is behind it while the text keeps its own opacity. Neither approach changes the space the card occupies.
+
+### Key Takeaways
+
+- **Borders:** Set a line’s width, style, and color. Its thickness counts toward the box’s size.
+- **Corners:** `border-radius` rounds the border and background without automatically clipping children.
+- **Outlines:** Focus indicators can surround a box without shifting the layout.
+- **Shadows:** Decorative shadows add visual depth without reserving space.
+- **Opacity:** `opacity` affects the whole element and its children. A background color with alpha changes only the background.

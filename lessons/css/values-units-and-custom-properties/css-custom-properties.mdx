@@ -1,0 +1,97 @@
+---
+title: "CSS Custom Properties"
+---
+
+CSS custom properties, often called CSS variables, let you give a value a name and reuse it throughout a stylesheet. A named color or size can represent a shared design choice: instead of repeating the value in each rule, you refer to the name. These reusable design values can serve as design tokens, helping keep styles consistent and easier to update.
+
+## Declare and use a custom property
+
+![Declaring and using a custom property](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/f6dc8e6f-8ada-49e2-b45b-8c64936c23de/gallery/24beaaca-8a32-4802-9b37-b8192ca29a04)
+
+Declare a custom property inside a CSS rule using a name that begins with `--`. To use its value, pass the name to `var()`:
+
+```css
+:root {
+  --primary-color: #3498db;
+  --padding-size: 20px;
+}
+
+.button {
+  background-color: var(--primary-color);
+  padding: var(--padding-size);
+}
+```
+
+The `:root` selector matches the document's root element and is a common place for values used throughout a page. Here, `var(--primary-color)` supplies the button's background color, and `var(--padding-size)` supplies its padding.
+
+A descriptive name such as `--primary-color` communicates the value's purpose. If several rules use that property, changing its declaration updates each use without editing the same color in multiple places.
+
+## Scope, inheritance, and the cascade
+
+![Custom property inheritance](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/f6dc8e6f-8ada-49e2-b45b-8c64936c23de/gallery/af26cabf-8773-47a7-9696-f2eb0476e997)
+
+A custom property is available on the element where it is declared and can be inherited by its descendants. A property declared on `:root` is therefore available throughout the page, while one declared on a smaller section can provide a value for that section.
+
+```css
+:root {
+  --theme-color: blue;
+}
+
+.theme-dark {
+  --theme-color: darkblue;
+}
+
+.header {
+  color: var(--theme-color);
+}
+```
+
+A `.header` inside a `.theme-dark` element inherits `darkblue` from that ancestor. A header outside that section can inherit `blue` from the root. This lets one section use a different theme value without changing the root declaration.
+
+Custom properties still follow the cascade: when multiple declarations apply to the same element, CSS determines which one wins. A value declared on a child can also replace the value it would otherwise inherit.
+
+## Provide a fallback
+
+![Fallback for a missing property](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/f6dc8e6f-8ada-49e2-b45b-8c64936c23de/gallery/9b7ed678-9001-4dfa-bf56-264707141632)
+
+You can add a fallback as the second argument to `var()`. It is used when the custom property is not defined:
+
+```css
+:root {
+  --primary-color: #e74c3c;
+}
+
+.button {
+  background-color: var(--secondary-color, #95a5a6);
+  color: var(--primary-color);
+}
+```
+
+Because `--secondary-color` is not defined here, the button uses `#95a5a6` for its background. The text uses the defined `--primary-color`. The fallback does not check whether a defined value is suitable for the property using it, so choose and validate values carefully.
+
+## Define constraints with `@property`
+
+The `@property` rule can define the kind of value a custom property accepts, whether it inherits, and its initial value:
+
+```css
+@property --border-radius {
+  syntax: '<length>';
+  inherits: false;
+  initial-value: 0px;
+}
+
+.box {
+  --border-radius: 10px;
+  border-radius: var(--border-radius);
+}
+```
+
+Here, `syntax: '<length>'` specifies a length value, `inherits: false` means the property does not inherit from a parent, and `initial-value: 0px` supplies its initial value. The `.box` sets the value to `10px` and uses it for its border radius.
+
+## Key Takeaways
+
+- **Custom properties:** Declare reusable values with names beginning with `--`, then reference them with `var()`.
+- **Design tokens:** Named, shared design values make styles more consistent and easier to change.
+- **Scope and inheritance:** Properties declared on an element are available to it and can be inherited by descendants; the cascade still applies.
+- **Fallbacks:** A second `var()` argument provides a value when the custom property is not defined.
+- **`@property`:** You can specify an accepted value type, inheritance behavior, and an initial value.

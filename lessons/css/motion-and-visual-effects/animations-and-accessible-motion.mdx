@@ -1,0 +1,506 @@
+---
+title: "Animations and Accessible Motion"
+---
+
+{/* Topics to cover: CSS Animations; Animation Performance; Reduced Motion. */}
+
+## CSS Animations
+
+A **keyframe animation** describes how styles change at points in time. It can start as soon as the animation rule applies; it does not need a separate state change like a transition does.
+
+### Define a named sequence
+
+```css
+/* [!code word:@keyframes] */
+/* [!code word:from] */
+/* [!code word:to] */
+@keyframes card-arrival {
+  from {
+    opacity: 0.6;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+```
+
+`card-arrival` names the sequence. `from` means `0%` and `to` means `100%`. You can add percentage keyframes, such as `50%`, to specify intermediate values. Defining the sequence does not run it; an element must reference its name.
+
+### Run an entrance once
+
+Use this HTML and CSS with the keyframes above:
+
+```html
+<div class="animation-demo">
+  <input id="pause-arrival" type="checkbox" checked>
+  <label for="pause-arrival">Pause entrance</label>
+  <article class="arrival-card">
+    <h2>File uploaded</h2>
+    <p>Your file is ready to view.</p>
+  </article>
+</div>
+```
+
+```css
+.arrival-card {
+  margin-block-start: 1rem;
+  padding: 1.25rem;
+  color: #17352a;
+  background: #e7f3ec;
+  border: 1px solid #17352a;
+  border-radius: 0.75rem;
+  opacity: 1;
+  transform: none;
+}
+
+/* [!code word:animation] */
+@media (prefers-reduced-motion: no-preference) {
+  .arrival-card {
+    animation: card-arrival 400ms ease-out 150ms 1 normal both running;
+  }
+}
+
+/* [!code word:animation-play-state] */
+#pause-arrival:checked ~ .arrival-card {
+  animation-play-state: paused;
+}
+```
+
+The `animation` shorthand combines the name and playback settings. Here, the entrance runs once for 400 milliseconds after a 150-millisecond delay. The checkbox starts checked, pausing playback; uncheck it to begin. Without animation, or with reduced motion, the card stays visible.
+
+The example starts with an upload confirmation already in the HTML. Application code handles the upload and adds the real confirmation.
+
+### Control repetition and direction
+
+`animation-iteration-count: 2` repeats a sequence twice; the duration applies to each iteration. `infinite` repeats without an automatic end, so choose it deliberately rather than adding a loop to a one-time confirmation.
+
+| Direction | Playback |
+| --- | --- |
+| `normal` | From the starting keyframe to the ending keyframe. |
+| `reverse` | From the ending keyframe to the starting keyframe. |
+| `alternate` | Forward, then backward on successive iterations. |
+| `alternate-reverse` | Backward first, then forward. |
+
+### Predict playback
+
+If `animation-duration` is `400ms` and `animation-iteration-count` is `2`, how long do the two iterations take, excluding any delay? Does the second iteration run backward by default?
+
+<details>
+<summary>Check your reasoning</summary>
+
+They take 800ms in total. The default direction is `normal`, so both run forward. `alternate` would make the second iteration run backward.
+
+</details>
+
+A sequence named `fade-in` is already defined. Complete this rule so it runs once for 500ms with linear timing:
+
+```css
+.notice {
+  /* Add the animation. */
+}
+```
+
+<details>
+<summary>Check your answer</summary>
+
+`animation: fade-in 500ms linear;` references the sequence. The default iteration count is one. Defining `@keyframes` alone does not apply it to an element.
+
+</details>
+
+### Understand fill and pause
+
+**Fill mode** chooses which styles apply during the delay and after the animation finishes:
+
+- `none` leaves ordinary styles in effect outside that interval.
+- `backwards` applies the first relevant keyframe during the delay.
+- `forwards` retains the last relevant keyframe after completion.
+- `both` combines backwards and forwards behavior.
+
+“First” and “last” depend on playback direction. Here, `both` applies the starting appearance during the delay and retains the ending appearance afterward. It does not permanently rewrite the base CSS.
+
+Checking the pause control freezes playback; unchecking resumes from the paused position. It does not restart a completed animation. Reload the example to run its entrance again.
+
+### Key Takeaways
+
+- **Keyframes:** Name a sequence, then reference it with `animation`.
+- **Playback:** Duration, count, and direction determine how the sequence runs.
+- **Fill:** Control keyframe effects during delays and after completion.
+- **Pause:** Pausing preserves progress; resuming continues from that point.
+
+
+### Try it yourself
+
+Create a local HTML file with the following notice and styles. The notice must remain visible without animation. Inside the existing preference query, make the supplied `notice-arrival` sequence run once for 600ms with `ease-out` and no delay. Keep the base styles and keyframes.
+
+```html
+<p class="notice">Your changes are ready to review.</p>
+```
+
+```css
+.notice {
+  padding: 1rem;
+  color: #17352a;
+  background: #e7f3ec;
+  opacity: 1;
+  transform: none;
+}
+@keyframes notice-arrival {
+  from { opacity: 0.6; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .notice { /* Apply the animation. */ }
+}
+```
+
+Open the file in a browser with no reduced-motion preference and reload to observe the one-time entrance. Then enable or emulate reduced motion and reload: the notice should remain visible without this entrance. Explain why the keyframe definition by itself does not run and why the base styles matter. Consider what happens if the animation is removed after it finishes.
+
+<details>
+<summary>Hint 1</summary>
+
+The element needs an `animation` value naming the sequence and giving a duration.
+
+</details>
+
+<details>
+<summary>Hint 2</summary>
+
+Use the query already provided. The default iteration count is one, and the ending keyframe matches the visible base state.
+
+</details>
+
+<details>
+<summary>Check your work and reasoning</summary>
+
+Add `animation: notice-arrival 600ms ease-out;` to the `.notice` rule inside the query. The keyframes only define a named sequence; the animation property connects it to the element. The base styles make the notice visible when the query does not match and after the animation stops applying. This example's final keyframe and base appearance agree, so it does not need a fill mode to stay visible.
+
+</details>
+
+## Animation Performance
+
+An animation can stutter if the browser has too much to do between frames. The properties you animate affect that work.
+
+### Recognize the rendering work
+
+Three useful terms describe much of that work:
+
+| Step | What the browser does |
+| --- | --- |
+| Layout | Calculates element sizes and positions. |
+| Paint | Draws visual details such as text, borders, and backgrounds. |
+| Composite | Combines rendered layers into the displayed frame. |
+
+Changing `width` or `height` can make the browser recalculate layout, including nearby elements. A background-color change usually triggers painting. `transform` and `opacity` can often use compositing to avoid repeating those steps.
+
+These are useful starting points, but performance also depends on element size, effects, layers, and the rest of the page. Measure the animation in the browser.
+
+### Move a card without moving its neighbors
+
+If a card should lift slightly without moving its neighbors, animate its transform:
+
+```html
+<a class="article-card" href="/articles/css-layout">
+  <h2>CSS layout guide</h2>
+  <p>Read the article.</p>
+</a>
+```
+
+```css
+.article-card {
+  display: block;
+  max-width: 24rem;
+  padding: 1.25rem;
+  color: #17352a;
+  background: #e7f3ec;
+  border: 1px solid #17352a;
+  border-radius: 0.75rem;
+  text-decoration: none;
+}
+
+.article-card:focus-visible {
+  outline: 3px solid #1d4ed8;
+  outline-offset: 3px;
+}
+
+/* [!code word:transition\: transform] */
+@media (prefers-reduced-motion: no-preference) and (hover: hover) {
+  .article-card {
+    transition: transform 180ms ease-out;
+  }
+
+  .article-card:hover {
+    transform: translateY(-4px);
+  }
+}
+```
+
+Where both queries match, hovering lifts the card by four pixels. Moving the pointer away returns it. The link still works without motion; replace its example destination with your page URL.
+
+Animating margins to create this lift could change layout on each frame. A transform preserves the card's layout space, so leave room around it for the visual movement.
+
+Scaling is also a visual transformation: it scales text and borders along with the box. It does not replace a real layout change when neighboring content needs to reflow.
+
+### Choose an effect to investigate
+
+A card lifts without moving its neighbors. Which change is a better starting point: animating its margin or its transform? Why is this not a performance guarantee?
+
+<details>
+<summary>Check your reasoning</summary>
+
+A transform matches the requested visual movement without changing the space reserved by layout. It can often be composited, but the actual rendering work depends on the page and browser, so inspect a recording.
+
+</details>
+
+Now suppose expanding the card must push the next item down. Would a visual scale alone meet that requirement?
+
+<details>
+<summary>Check your reasoning</summary>
+
+No. Scaling changes the drawing but does not make neighboring items reflow. A layout change may be needed; measure its cost instead of choosing a transform solely for performance.
+
+</details>
+
+### Measure before adding optimization hints
+
+`will-change` tells the browser which properties may change soon. It does not animate anything or guarantee a faster result. Applying it to every element can consume resources and make performance worse.
+
+Use it only to address a measured problem. If a temporary hint is needed, give the browser time to prepare and remove the hint when it is no longer useful. Leave it out of this card example unless measurement shows a reason to add it.
+
+### Inspect the actual interaction
+
+In browser DevTools, record the interaction in the Performance panel and look for repeated layout or paint work during movement. Compare before and after changing the animated property.
+
+Chrome's Rendering panel includes **Paint flashing**, which highlights repainted areas. If a small effect repeatedly repaints a large region, investigate that work. Check on a slower device as well as your development machine; a smooth local preview is only one observation. See the [rendering diagnostics guide](https://developer.chrome.com/docs/devtools/rendering/performance).
+
+### Key Takeaways
+
+- **Rendering:** Layout, paint, and compositing have different costs.
+- **Properties:** Prefer transforms and opacity when they produce the intended effect.
+- **Hints:** Add `will-change` only for a measured need.
+- **Verification:** Inspect real rendering work and test on representative devices.
+
+
+### Try it yourself
+
+Compare two ways to lift a card in a local browser file. The first version moves it by changing its top margin; the second should move it visually without changing the space reserved for it. The longer duration makes the effect easier to inspect; it is not a recommended duration for every interface.
+
+```html
+<div class="stack">
+  <button class="card" type="button">Inspect this card</button>
+  <p class="neighbor">Neighboring content</p>
+</div>
+```
+
+```css
+.stack { padding: 2rem; }
+.card { display: block; margin-top: 0; padding: 1rem; font: inherit; }
+.card:focus-visible { outline: 3px solid #1d4ed8; outline-offset: 3px; }
+.neighbor { margin: 0; padding: 1rem; background: #e7f3ec; }
+@media (prefers-reduced-motion: no-preference) and (hover: hover) {
+  .card { transition: margin-top 1s ease; }
+  .card:hover { margin-top: -8px; }
+}
+```
+
+1. With a hover-capable pointer and no reduced-motion preference, record the hover and return in browser DevTools. Watch the neighboring content and inspect layout work during the change.
+2. Replace the two margin declarations inside the query with a transition of `transform` and `transform: translateY(-8px)` on hover. Keep the base margin, focus style, and HTML. Record the same interaction again.
+3. Compare the neighbor's movement and the recorded work. Report what you observed, the browser/device used, and why the result does not guarantee the same cost on every page. Do not add `will-change` without a measured reason.
+
+If a reduced-motion preference is active, the query intentionally prevents the movement. You can still reason through both versions; change the preference only if you are comfortable observing the effect.
+
+<details>
+<summary>Hint 1</summary>
+
+Replace both the property named by `transition` and the changed value in `:hover`.
+
+</details>
+
+<details>
+<summary>Hint 2</summary>
+
+A negative Y translation draws the card upward while keeping its layout position. Inspect the timeline rather than assuming compositing from the property name alone.
+
+</details>
+
+<details>
+<summary>Check your work and reasoning</summary>
+
+Use `transition: transform 1s ease;` on `.card` and `transform: translateY(-8px);` on `.card:hover` within the query. The margin version changes layout, so the neighbor can move; the transform version leaves the card's layout space in place. Transform can avoid repeated layout and paint, but a profile is needed to establish what happened in this particular browser and page. The static button and focus indicator remain outside the query.
+
+</details>
+
+## Reduced Motion
+
+Movement can help explain an interface, but it can also distract users or cause discomfort. A reduced-motion version should communicate the same information with less movement.
+
+CSS can read the device's motion preference with the `prefers-reduced-motion` media feature. This preference is separate from screen size and input method.
+
+### Understand the two values
+
+| Value | Meaning |
+| --- | --- |
+| `reduce` | The user has requested reduced motion. |
+| `no-preference` | No reduced-motion preference has been reported. |
+
+With either setting, use motion only when it helps. `no-preference` simply means no reduced-motion preference was reported.
+
+### Start with complete static content
+
+```html
+<section class="saved-message" aria-labelledby="saved-title">
+  <h2 id="saved-title">Changes saved</h2>
+  <p>Your changes are available to your team.</p>
+</section>
+```
+
+```css
+.saved-message {
+  padding: 1.25rem;
+  color: #17352a;
+  background: #e7f3ec;
+  border: 1px solid #17352a;
+  border-radius: 0.75rem;
+  opacity: 1;
+  transform: none;
+}
+
+@keyframes saved-arrival {
+  from {
+    opacity: 0.6;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* [!code word:prefers-reduced-motion\: no-preference] */
+@media (prefers-reduced-motion: no-preference) {
+  .saved-message {
+    animation: saved-arrival 300ms ease-out;
+  }
+}
+```
+
+The message is visible by default. The query adds an entrance only when it matches. With reduced motion enabled, or without support for the query, the confirmation appears immediately.
+
+The example shows a confirmation that has already been established. CSS does not save the changes or decide when the message should be inserted.
+
+### Override an existing effect deliberately
+
+If motion is already defined outside a preference query, add a targeted override after it:
+
+```css
+/* [!code word:prefers-reduced-motion\: reduce] */
+@media (prefers-reduced-motion: reduce) {
+  .saved-message {
+    animation: none;
+    transition: none;
+    opacity: 1;
+    transform: none;
+  }
+}
+```
+
+Use this approach for an existing animation. If the base style has `opacity: 0`, turning off the animation will leave the content invisible, so restore its visible state too. Remove the entrance rather than pausing it halfway through.
+
+### Trace the fallback
+
+An existing notice has `opacity: 0` in its base rule and uses an animation to reach `opacity: 1`. What happens if a reduced-motion rule only sets `animation: none`?
+
+<details>
+<summary>Check your reasoning</summary>
+
+The animation no longer supplies the visible value, so the base `opacity: 0` remains and the notice is invisible. The override must restore the intended visible state too.
+
+</details>
+
+Now a button changes color on hover and has a visible focus outline. Which feedback should remain if its color transition is removed?
+
+<details>
+<summary>Check your reasoning</summary>
+
+Keep the hover color and focus outline. The color can change immediately, and keyboard focus still needs to be visible.
+
+</details>
+
+### Preserve feedback and user control
+
+Keep labels, focus indicators, error explanations, and success text. Remove or simplify the movement that decorates those states. Making a large slide extremely fast still moves the element; showing the final state immediately is often clearer.
+
+For ongoing movement, consider whether it is needed and provide usable pause or stop controls when it remains. A preference query does not make an otherwise distracting loop useful.
+
+### Check the reduced-motion version
+
+Enable the operating system's reduced-motion preference or emulate it in browser DevTools. Confirm that content appears, controls work, and results remain understandable. Test the ordinary version too; both should communicate the same outcome.
+
+### Key Takeaways
+
+- **Preference:** Use `prefers-reduced-motion` to adapt movement to the reported setting.
+- **Baseline:** Keep content visible and useful before adding animation.
+- **Overrides:** Remove movement and restore the intended final appearance together.
+- **Meaning:** Preserve feedback and verify both motion settings.
+
+
+### Try it yourself
+
+This notice represents a save that the application has already confirmed. Its animation reveals it, but its base opacity hides it. Add a targeted rule after the existing CSS so that, when reduced motion is requested, the notice appears immediately without moving. Keep the confirmation text and button focus indicator.
+
+```html
+<section class="notice">
+  <p>Changes saved.</p>
+  <button type="button">Continue</button>
+</section>
+```
+
+```css
+.notice {
+  padding: 1rem;
+  background: #e7f3ec;
+  opacity: 0;
+  animation: reveal 800ms ease-out forwards;
+}
+.notice button:focus-visible { outline: 3px solid #1d4ed8; outline-offset: 3px; }
+@keyframes reveal {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+```
+
+Open a local copy in a browser. With reduced motion enabled or emulated, reload and check that the message is immediately visible, stationary, and that the button keeps a visible keyboard focus indicator. If you are comfortable observing the entrance, also check the ordinary preference setting. Explain why removing the animation alone is insufficient and why the confirmation is still meaningful without it.
+
+<details>
+<summary>Hint 1</summary>
+
+Use `@media (prefers-reduced-motion: reduce)` and target `.notice` after its existing rule.
+
+</details>
+
+<details>
+<summary>Hint 2</summary>
+
+Remove the animation and replace the hidden base opacity with the visible final value. The transform should also be reset to its static state.
+
+</details>
+
+<details>
+<summary>Check your work and reasoning</summary>
+
+```css
+@media (prefers-reduced-motion: reduce) {
+  .notice {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}
+```
+
+Without the opacity override, the base value of zero would hide the message once the animation stops supplying its filled value. The message itself communicates the already confirmed result; the movement is optional. The focus rule remains unchanged. Check the real application's timing and status logic as well: CSS alone cannot confirm a save.
+
+</details>

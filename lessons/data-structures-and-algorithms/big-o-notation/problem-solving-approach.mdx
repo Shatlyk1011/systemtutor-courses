@@ -1,0 +1,271 @@
+---
+title: "Problem Solving Approach"
+description: "Master a structured 5-step framework for algorithmic problem solving: understand the problem, explore concrete examples, break it down, solve or simplify, and look back to refactor."
+---
+
+## Algorithms and the Problem-Solving Mindset
+
+An **algorithm** is a step-by-step set of instructions designed to accomplish a specific task or solve a computational problem. It describes a predictable process: what operations to perform, and in what exact order, to reach the desired output from a given input.
+
+Thinking algorithmically means transforming an ambiguous or complex problem into a sequence of clear, manageable actions. The goal is not only to arrive at an answer, but to design a reproducible, verifiable process that can be translated into code.
+
+<Callout title="Core Idea" type="info">
+An **algorithm** is a repeatable sequence of defined steps used to transform a set of inputs into an expected output.
+</Callout>
+
+### Why Algorithmic Problem Solving Matters
+
+Developing a structured approach to problem solving is crucial across two major software engineering environments:
+
+- **Day-to-Day Programming:** Real-world software systems require translating complex business requirements into robust, bug-free instructions. Breaking tasks down methodically prevents edge-case oversights and leads to maintainable code.
+- **Technical Interviews:** Interviewers rarely evaluate candidates solely on whether they memorize a final answer. Instead, they assess your communication, how you clarify ambiguous constraints, how you handle roadblocks, and how you evaluate trade-offs.
+
+A disciplined mindset bridges both scenarios: **understand the problem**, **plan the architecture**, and **verify the execution**.
+
+---
+
+## The 5-Step Problem Solving Framework
+
+When faced with a novel coding challenge, jumping immediately into typing code often leads to confusion, messy logic, and missed edge cases. Instead, follow this battle-tested 5-step framework:
+
+![](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/c0ab0cf8-4187-4c52-ab56-365cfea2c013/gallery/9ebc5067-2a07-41c1-9a8c-f94e9054e9f4)
+
+## Step 1: Understand the Problem
+
+Before writing a single line of code, you must be 100% certain about what the problem is actually asking. Making assumptions too early is the most common reason for submitting incorrect solutions.
+
+### The 5-Point Understanding Checklist
+
+1. **Restate the problem:** Can you explain the challenge in your own words?
+2. **Identify the inputs:** What data types and values will the function receive? What is their expected size or range?
+3. **Identify the outputs:** What should the function return? What data type and format is expected?
+4. **Check sufficiency:** Do the provided inputs contain enough information to produce the required output?
+5. **Label important data:** What variable names, labels, and state trackers will be essential?
+
+<Callout title="Golden Rule of Problem Solving" type="info">
+Do not start coding until you can clearly explain the problem, its inputs, and its expected outputs to someone else without hesitation.
+</Callout>
+
+### Problem-Understanding Template
+
+| Question | What to Clarify | Example: Two-Sum Problem |
+| :--- | :--- | :--- |
+| **What is the task?** | Restate the problem simply. | Find two numbers in an array that add up to a target sum. |
+| **What are the inputs?** | Data types, sizes, ranges. | An array of integers (`nums`) and an integer (`target`). |
+| **What is the output?** | Return value and structure. | An array of indices `[index1, index2]` or boolean. |
+| **Is information sufficient?** | Missing parameters or edge scenarios. | What if no pair adds up to the target? Can elements be reused? |
+| **What data matters?** | Key labels and data structures. | Current number, target complement (`target - num`), index lookup map. |
+
+---
+
+## Step 2: Explore Concrete Examples
+
+Concrete examples ground abstract problem descriptions into tangible test cases. They help uncover unspoken requirements, expose edge cases early, and serve as automated sanity checks once you finish coding.
+
+### The 4 Essential Example Types
+
+| Example Category | Purpose | What It Exposes |
+| :--- | :--- | :--- |
+| **1. Simple Examples** | Establish baseline behavior | Validates the standard, happy-path input. |
+| **2. Complex Examples** | Test multi-rule interactions | Validates combinations of special characters, large inputs, or unordered data. |
+| **3. Empty / Zero Inputs** | Test boundary conditions | Clarifies whether empty strings, `[]`, `0`, or `null` return `null`, `0`, or empty collections. |
+| **4. Invalid Inputs** | Test error handling | Defines what happens when arguments are wrong types, negative, or undefined. |
+
+### Case Study: Character Count Function
+
+Consider the challenge: *"Write a function that takes a string and returns a count of each alphanumeric character in the string."*
+
+Let us construct the 4 test cases before writing any implementation:
+
+![](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/c0ab0cf8-4187-4c52-ab56-365cfea2c013/gallery/f2e5fa3a-5768-4a88-8138-0fffab1a6916)
+
+<Callout title="Practical Check" type="success">
+Always write down at least one simple, one complex, and one boundary/empty test case. Use them as manual walkthrough traces while developing your algorithm.
+</Callout>
+
+---
+
+## Step 3: Break the Problem Down
+
+Once you understand the requirements and edge cases, formulate a step-by-step roadmap. Translating the solution into **pseudocode** or structured comments bridges the gap between mental concepts and syntax.
+
+### Why Pseudocode is Essential
+
+- **Prevents Mental Overload:** Separates algorithmic logic from language-specific syntax errors.
+- **Identifies Blind Spots:** Shows precisely where your logic is vague or incomplete before you spend time debugging code.
+- **Demonstrates Structured Thinking:** In an interview setting, writing pseudocode first communicates your approach clearly to the interviewer.
+
+### Pseudocode Template for `charCount`
+
+![](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/c0ab0cf8-4187-4c52-ab56-365cfea2c013/gallery/43b7ccd5-6852-4f20-b656-9d4f4b911042)
+
+---
+
+## Step 4: Solve or Simplify
+
+When dealing with challenging problems, you may know how to solve 80% of the problem, but feel stuck on a difficult 20% (for instance, complex string parsing or regex).
+
+**Do not let the hardest part freeze your progress.** Follow the 5-stage simplifying workflow:
+
+| Stage | Action |
+| :--- | :--- |
+| **1. Understand** | Identify the parts you know how to build immediately. |
+| **2. Implement** | Code the parts you are confident in first. |
+| **3. Set Aside** | Temporarily bypass the complex obstacle with a placeholder or simple fallback. |
+| **4. Simplify** | Verify that the partial solution functions correctly on basic inputs. |
+| **5. Complete** | Return to the bypassed obstacle with fresh focus and implement the final piece. |
+
+<Callout title="Partial Solutions are Valuable" type="info">
+Building a working partial solution establishes momentum and creates a concrete foundation to test the remaining challenging edge cases.
+</Callout>
+
+### Initial Working Implementation
+
+Here is our first working draft of `charCount`, solving the core counting logic with standard language tools:
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```js
+    function charCount(str) {
+      // 1. Create an object to store counts
+      const result = {};
+
+      // 2. Loop over every character
+      for (let i = 0; i < str.length; i++) {
+        const char = str[i].toLowerCase();
+
+        // Check if character is alphanumeric using regex
+        if (/[a-z0-9]/.test(char)) {
+          if (result[char] > 0) {
+            result[char]++;
+          } else {
+            result[char] = 1;
+          }
+        }
+      }
+
+      // 3. Return final counts
+      return result;
+    }
+
+    // Verification
+    console.log(charCount("Hello World 123!"));
+    // { h: 1, e: 1, l: 3, o: 2, w: 1, r: 1, d: 1, '1': 1, '2': 1, '3': 1 }
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    def char_count(text: str) -> dict:
+        # 1. Create a dictionary to store counts
+        result = {}
+
+        # 2. Loop over every character
+        for char in text.lower():
+            # Check if character is alphanumeric
+            if char.isalnum():
+                if char in result:
+                    result[char] += 1
+                else:
+                    result[char] = 1
+
+        # 3. Return final counts
+        return result
+
+    # Verification
+    print(char_count("Hello World 123!"))
+    # {'h': 1, 'e': 1, 'l': 3, 'o': 2, 'w': 1, 'r': 1, 'd': 1, '1': 1, '2': 1, '3': 1}
+    ```
+  </Tab>
+</Tabs>
+
+---
+
+## Step 5: Look Back and Refactor
+
+Getting a working solution is a huge milestone, but it is not the final step. Great engineers review their working code to improve performance, readability, style, and maintainability.
+
+### The 6 Questions of Refactoring
+
+![](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/c0ab0cf8-4187-4c52-ab56-365cfea2c013/gallery/8d092498-479c-488c-b0a7-e914831e3c32)
+
+| Review Dimension | Questions to Ask Yourself |
+| :--- | :--- |
+| **Correctness** | Does the code handle all edge cases identified in Step 2 (empty inputs, mixed casings)? |
+| **Clarity** | Are variable names intuitive? Is the structure easy to follow at a glance? |
+| **Performance** | Are we performing redundant operations (e.g., regex inside tight loops)? What is the Big O? |
+| **Style & Idioms** | Does it follow modern conventions (e.g., `for...of`, nullish coalescing, helper methods)? |
+| **Reusability** | Would an extracted helper function make other parts of the system cleaner? |
+| **Alternatives** | Would a hash map, two pointers, or built-in utilities be cleaner or faster? |
+
+### Refactoring in Action: Optimizing `charCount`
+
+In JavaScript, executing a regular expression test (`/[a-z0-9]/.test(char)`) on every character in a long string introduces significant overhead compared to direct character code arithmetic.
+
+Let us refactor both implementations for maximum speed, readability, and idiomatic style:
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```js
+    /**
+     * Efficient helper checking if a character is alphanumeric via ASCII codes.
+     * Significantly faster than evaluating a regular expression in a loop.
+     */
+    function isAlphanumeric(code) {
+      return (
+        (code > 47 && code < 58) || // numeric (0-9)
+        (code > 64 && code < 91) || // upper alpha (A-Z)
+        (code > 96 && code < 123)   // lower alpha (a-z)
+      );
+    }
+
+    /**
+     * Refactored charCount:
+     * - Time Complexity: O(n) linear scan
+     * - Space Complexity: O(k) where k is the character set size (O(1) auxiliary fixed space)
+     */
+    function charCount(str) {
+      if (typeof str !== "string") return {};
+
+      const result = {};
+
+      for (let i = 0; i < str.length; i++) {
+        const code = str.charCodeAt(i);
+        if (isAlphanumeric(code)) {
+          const char = str[i].toLowerCase();
+          result[char] = (result[char] || 0) + 1;
+        }
+      }
+
+      return result;
+    }
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    from collections import Counter
+
+    def char_count_idiomatic(text: str) -> dict:
+        """
+        Idiomatic Python implementation using generator expressions
+        and collections.Counter for maximum performance and conciseness.
+        - Time Complexity: O(n)
+        - Space Complexity: O(k) auxiliary space
+        """
+        if not isinstance(text, str):
+            return {}
+
+        # Filter lowercase alphanumeric characters and count in O(n)
+        return dict(Counter(char for char in text.lower() if char.isalnum()))
+    ```
+  </Tab>
+</Tabs>
+
+---
+
+## Key Takeaways
+
+- **Don't Jump to Code:** Always spend the first minutes understanding requirements, inputs, outputs, and constraints.
+- **Test Early with Concrete Cases:** Write out simple, complex, empty, and invalid inputs to serve as test cases before you begin implementation.
+- **Pseudocode First:** Blueprint your logic into simple steps. This clarifies uncertain spots before coding.
+- **Simplify When Stuck:** Solve the sub-problems you know how to do. Build momentum and isolate the hard parts.
+- **Refactor with Purpose:** Evaluate your working solution for **Time Complexity**, **Space Complexity**, **Clarity**, and **Idiomatic Style**.

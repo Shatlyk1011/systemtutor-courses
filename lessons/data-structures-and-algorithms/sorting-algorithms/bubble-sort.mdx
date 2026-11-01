@@ -1,0 +1,169 @@
+---
+title: "Bubble Sort"
+description: "Understand the mechanics of bubble sort, how to implement it with nested loops and swaps, and how to optimize it with an early-stop check."
+---
+
+Bubble sort is a comparison-based sorting algorithm where adjacent elements are repeatedly compared and swapped if they are out of order.
+
+![](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/55e77424-3054-409c-a931-e158d18008d8/gallery/2486842a-f5cf-438f-b1ab-93fa16facbb2)
+
+
+## Bubble Sort Mechanics
+
+Bubble sort repeatedly examines **adjacent values** and swaps them when they are out of order. These swaps move the **largest unsorted value toward the end** of the array.
+
+| Step | Action | Result |
+|---|---|---|
+| 1 | Compare adjacent values | Identify their order |
+| 2 | Swap if the left value is larger | Move the larger value right |
+| 3 | Continue to the next pair | Keep moving the largest unsorted value |
+
+## Implementing Bubble Sort
+
+### Overview
+
+Bubble sort repeatedly compares **adjacent elements** in an array. If they are in the wrong order, it swaps them. After each pass, the unsorted region becomes smaller.
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```javascript
+    function bubbleSort(array) {
+      for (let end = array.length - 1; end > 0; end--) {
+        for (let index = 0; index < end; index++) {
+          const nextIndex = index + 1;
+
+          if (array[index] > array[nextIndex]) {
+            const temporary = array[index];
+            array[index] = array[nextIndex];
+            array[nextIndex] = temporary;
+          }
+        }
+      }
+
+      return array;
+    }
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    def bubble_sort(array):
+        for end in range(len(array) - 1, 0, -1):
+            for index in range(end):
+                next_index = index + 1
+
+                if array[index] > array[next_index]:
+                    temporary = array[index]
+                    array[index] = array[next_index]
+                    array[next_index] = temporary
+
+        return array
+    ```
+  </Tab>
+</Tabs>
+
+### How the loops work
+
+- The **outer loop** controls the end of the unsorted region. It starts at the last array index and moves left after each pass.
+- The **inner loop** visits adjacent pairs from the beginning of the array up to that boundary.
+- When the left value is greater than the right value, the values are swapped.
+- As the outer loop moves left, the inner loop processes a progressively smaller unsorted region.
+
+For example, the comparison `array[index] > array[nextIndex]` checks whether two adjacent values are out of order. The temporary variable preserves one value while the two array positions exchange values.
+
+<Callout title="Core pattern" type="info">
+Bubble sort depends on three parts: nested loops, adjacent comparisons, and swaps. The shrinking outer-loop boundary prevents the inner loop from processing the already handled end of the array.
+</Callout>
+
+### Swap logic
+
+A swap exchanges the value at the current position with the smallest value found by the inner loop.
+
+![](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/55e77424-3054-409c-a931-e158d18008d8/gallery/c10f62d2-0e8d-40fe-baf3-a6276ccc2b28)
+
+
+If `smallestIndex` is already `i`, the current value is already the smallest remaining value, so no meaningful move is needed (avoiding a redundant self-swap).
+
+---
+
+## Optimizing Bubble Sort
+
+### The optimization
+
+Bubble sort repeatedly makes passes through the data and swaps items when needed. A simple optimization is to track whether each pass made any swaps.
+
+- If the pass made at least one swap, continue.
+- If a complete pass made no swaps, stop immediately.
+
+A pass with no swaps means the optimization has found that no changes were needed during that pass.
+
+### Optimized Implementation
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```javascript
+    function bubbleSort(array) {
+      for (let end = array.length - 1; end > 0; end--) {
+        let hasSwapped = false;
+
+        for (let index = 0; index < end; index++) {
+          const nextIndex = index + 1;
+
+          if (array[index] > array[nextIndex]) {
+            const temporary = array[index];
+            array[index] = array[nextIndex];
+            array[nextIndex] = temporary;
+            hasSwapped = true;
+          }
+        }
+
+        // If no swaps occurred in this pass, the array is already sorted
+        if (!hasSwapped) break;
+      }
+
+      return array;
+    }
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    def bubble_sort(array):
+        for end in range(len(array) - 1, 0, -1):
+            has_swapped = False
+
+            for index in range(end):
+                next_index = index + 1
+
+                if array[index] > array[next_index]:
+                    temporary = array[index]
+                    array[index] = array[next_index]
+                    array[next_index] = temporary
+                    has_swapped = True
+
+            # If no swaps occurred in this pass, the array is already sorted
+            if not has_swapped:
+                break
+
+        return array
+    ```
+  </Tab>
+</Tabs>
+
+### Performance comparison
+
+| Input condition | Performance |
+|---|---:|
+| General case | Quadratic, **O(n²)** |
+| Already or nearly sorted data | Linear best case, **O(n)** |
+
+Without the early-stop check, bubble sort continues through its passes even when the data is already ordered. With the check, already sorted data can finish after a single pass, making the work linear in the amount of data.
+
+The same optimization is useful when data is nearly sorted, because bubble sort can stop as soon as a complete pass makes no swaps.
+
+
+## Key Takeaways
+
+- **Adjacent Comparisons & Swaps:** Bubble sort repeatedly examines adjacent pairs and swaps them if they are in the wrong order.
+- **Bubbling to the End:** Each pass guarantees that the largest unsorted element moves to its correct sorted position at the end of the array.
+- **Shrinking Unsorted Boundary:** An outer loop tracks the decreasing unsorted region, preventing redundant comparisons on already sorted elements.
+- **Early-Stop Optimization:** By checking whether any swaps occurred during a pass, the algorithm can terminate early when the array is already sorted.
+- **Complexity Profile:** General and worst-case time complexity is $O(n^2)$, best-case time complexity with optimization is $O(n)$, and auxiliary space complexity is $O(1)$ (in-place).

@@ -1,0 +1,52 @@
+---
+title: Scaling and Traffic Distribution
+description: Handle growing traffic with load balancing, horizontal scaling, and caching.
+---
+
+When a system grows, the question is never **if** you will need to scale — it is **which part** will need to scale first. This lesson covers the core patterns.
+
+Scaling helps a system handle changing demands. Two common approaches are **vertical scaling** and **horizontal scaling**.
+
+## Vertical vs. horizontal scaling
+
+![](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/ba63474e-1b92-4442-ad73-e67e7b1b8070/gallery/86f5ac9b-f7cf-4865-be4a-24f9dbe33465)
+
+**Vertical scaling** means giving a single server more resources: more CPU, more RAM, faster disks. It is simple but has hard limits — there is only so large a machine you can buy, and a single machine is a single point of failure.
+
+**Horizontal scaling** means adding more servers and distributing load across them. It can increase capacity and provide redundancy, but it has practical limits: shared state, coordination, and uneven traffic can become bottlenecks. You need a way to decide which server handles each request.
+
+## Load balancers
+
+A **load balancer** sits in front of your application servers and distributes incoming requests. Common strategies include:
+
+- **Round robin** — requests are distributed to each server in turn.
+- **Least connections** — the request goes to the server with the fewest active connections.
+- **IP hash** — the client's IP address determines which server handles its requests, enabling session affinity.
+
+The load balancer also performs health checks and stops sending traffic to servers that fail.
+
+![](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/ba63474e-1b92-4442-ad73-e67e7b1b8070/gallery/01b2cedc-8c3f-4d25-b4cd-f289e3997f5f-vertical-horizontal-scaling.webp)
+
+## Caching
+
+A **cache** stores a reusable result close to the requester so later requests can avoid slower work, such as a database query or computation. Many caches are in memory, but a cache is defined by this reuse, not by a particular product or location.
+
+![](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/ba63474e-1b92-4442-ad73-e67e7b1b8070/gallery/7d7f68c3-ddf7-47f6-8212-d5b663dfa7cb)
+
+
+Key caching concepts:
+
+| Concept | What it means |
+|---|---|
+| **Cache hit** | The requested data is found in the cache and can be returned without the usual source lookup. |
+| **Cache miss** | The data is not in the cache, so the system retrieves or computes it from its source and may populate the cache. |
+| **TTL (time to live)** | How long a cached value is considered valid before it must be refreshed. |
+| **Cache invalidation** | The process of removing stale data from the cache when the underlying data changes. |
+
+Caches can sit beside the application (for example, Redis or Memcached) or at the network edge through a CDN. Caching improves speed only when a suitable, fresh value is available, so a design must define what happens when data changes.
+
+## Key takeaways
+
+- Prefer **horizontal scaling** for flexibility.
+- A **load balancer** distributes traffic and routes around failures.
+- **Caching** reduces load on your database and improves response times — but cache invalidation is hard, so be deliberate about what you cache.

@@ -1,0 +1,148 @@
+---
+title: "Debugging Flexbox"
+description: "Inspect and troubleshoot flex layouts in browser tools."
+---
+
+When Flexbox does not behave as expected, check the container, its axes, and the available space. A valid property may have no visible effect if it is on the wrong element or has no space to work with.
+
+## Inspect the container first
+
+In Chrome DevTools:
+
+1. Inspect the wrapper that should arrange the items.
+2. Confirm its applied `display` value is `flex` or `inline-flex`.
+3. Use the **flex** badge in the Elements panel to toggle the layout overlay.
+4. Inspect direction, wrapping, gaps, and the actual container dimensions.
+5. Select a direct child to inspect its item sizing and minimum sizes.
+
+The flex editor can also change alignment visually. An overlay makes it easier to distinguish flex lines from the boxes inside them. See the [Chrome Flexbox debugging guide](https://developer.chrome.com/docs/devtools/css/flexbox).
+
+## Match a symptom to a question
+
+| Symptom | Check first |
+| --- | --- |
+| Items remain in normal block flow. | Is the intended wrapper actually a flex container? |
+| `justify-content` seems ineffective. | Is there positive main-axis space after item growth and auto margins? |
+| Vertical centering changes nothing. | Which axis is vertical, and does the container have spare space? |
+| `align-content` does nothing. | Is wrapping enabled, and is there cross-axis space for the lines? |
+| A long title pushes a sibling outside the container. | Is an automatic minimum preventing the text item from shrinking? |
+
+## Reproduce a content-size problem
+
+```html
+<!-- [!code word:class="result-copy"] -->
+<div class="result">
+  <div class="result-copy">
+    <p>averylongproductidentifierwithoutanyspaces</p>
+  </div>
+  <button type="button">Save</button>
+</div>
+```
+
+```css
+/* [!code word:1 1 0] */
+/* [!code word:flex\: none] */
+.result {
+  display: flex;
+  width: 16rem;
+  gap: 1rem;
+}
+
+.result-copy {
+  flex: 1 1 0;
+}
+
+.result > button {
+  flex: none;
+}
+```
+
+The copy can grow and shrink, but its automatic minimum can still protect the width of an unbroken word. Setting a shrink factor alone does not remove that minimum.
+
+Add these two declarations:
+
+```css
+/* [!code word:min-width] */
+/* [!code word:overflow-wrap] */
+.result-copy {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+```
+
+- **`min-width: 0`:** Permits the row item to become narrower than its automatic minimum.
+- **`overflow-wrap: anywhere`:** Lets an otherwise unbreakable string break when necessary.
+
+`min-width` lets the item shrink; `overflow-wrap` lets its text break across lines. In a column with limited height, check `min-height` for a similar size limit.
+
+## Verify the fix
+
+Resize the component and try longer content. Keep the button readable and ensure the title remains available. Inspect any crossed-out declaration to find the rule that overrides it, then change the stylesheet itself after confirming the experiment in DevTools.
+
+Avoid applying `overflow: hidden` merely to conceal the symptom. Clipping may remove visible text without correcting the sizing decision.
+
+## Trace before changing a rule
+
+In the result example, the copy has `flex: 1 1 0` but still overflows. What should you inspect before increasing its shrink factor?
+
+<details>
+<summary>Check your reasoning</summary>
+
+Inspect the copy item's minimum size and the unbroken text. The automatic minimum can stop the item shrinking even though its shrink factor permits it.
+
+</details>
+
+If you set `min-width: 0` but the long word still paints outside its narrower box, what separate change helps the text fit?
+
+<details>
+<summary>Check your reasoning</summary>
+
+Add `overflow-wrap: anywhere` to permit breaks within the long word. The minimum controls the box; wrapping controls the text inside it.
+
+</details>
+
+## Key Takeaways
+
+- **Structure:** Inspect the correct container and its direct children.
+- **Axes and space:** Check what the alignment property is trying to distribute.
+- **Minimums:** A shrink factor does not override every size constraint.
+- **Verification:** Retest the actual content and save the confirmed stylesheet change.
+
+## Try it yourself
+
+Reproduce this problem in a local HTML file and open it in a browser. The flex row should fit within 240px while the identifier remains readable and the button stays visible. Inspect the row and its direct children in DevTools, then change the CSS and retest at 240px and 180px. Explain what each change fixes.
+
+```html
+<div class="result">
+  <div class="copy">averylongproductidentifierwithoutanyspaces</div>
+  <button type="button">Save</button>
+</div>
+<style>
+  .result { display: flex; width: 240px; gap: 16px; }
+  .copy { flex: 1 1 0; }
+  .result > button { flex: none; }
+</style>
+```
+
+Success means the row stays within its stated width at both sizes, the text wraps without being clipped, and the button remains readable. Inspect the item's box and the text separately. In DevTools, temporarily edit the row width to test the second size; then put the fixes in the stylesheet.
+
+<details>
+<summary>Hint 1</summary>
+
+Which direct child contains the long word? Inspect its minimum size before changing the parent.
+
+</details>
+
+<details>
+<summary>Hint 2</summary>
+
+One declaration permits the item to shrink; another permits the word to break.
+
+</details>
+
+<details>
+<summary>Check your reasoning</summary>
+
+Add `min-width: 0` and `overflow-wrap: anywhere` to `.copy`. The first removes the automatic minimum constraint on the item; the second allows the word to wrap inside it. Verify both widths and the button after applying them. A clipped result would not meet the text-readability criterion.
+
+</details>

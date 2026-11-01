@@ -1,0 +1,83 @@
+---
+title: "Merge Two Sorted Lists"
+description: "Merge two sorted linked lists by reconnecting their existing nodes."
+slug: "practice-merge-two-sorted-lists"
+---
+
+## Try It Yourself
+
+Use the editor below to combine two sorted linked lists. Compare their current nodes and attach the smaller one to the merged tail.
+
+Submit your implementation when it passes the examples. Either list may be empty, and equal or negative values may appear.
+
+<PracticeExercise problemId="merge-two-sorted-lists" />
+
+## Solution
+
+![Merging sorted linked lists](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/03ce588b-f581-46ee-b98b-277331400e55/gallery/7bf58be6-cae4-446f-8fbe-f5b3c7004be4)
+
+A dummy node gives the merged list a stable starting point. Repeatedly connect the tail to the smaller current node and advance only that list.
+
+When one list ends, connect the remaining part of the other list because it is already sorted.
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```js
+    function mergeTwoLists(list1, list2) {
+      const dummy = { val: 0, next: null };
+      let tail = dummy;
+      let first = list1;
+      let second = list2;
+    
+      while (first !== null && second !== null) {
+        if (first.val <= second.val) {
+          tail.next = first;
+          first = first.next;
+        } else {
+          tail.next = second;
+          second = second.next;
+        }
+    
+        tail = tail.next;
+      }
+    
+      tail.next = first ?? second;
+      return dummy.next;
+    }
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    def merge_two_lists(list1, list2):
+        class Dummy:
+            def __init__(self):
+                self.val = 0
+                self.next = None
+    
+        dummy = Dummy()
+        tail = dummy
+        first = list1
+        second = list2
+    
+        while first is not None and second is not None:
+            if first.val <= second.val:
+                tail.next = first
+                first = first.next
+            else:
+                tail.next = second
+                second = second.next
+    
+            tail = tail.next
+    
+        tail.next = first if first is not None else second
+        return dummy.next
+    ```
+  </Tab>
+</Tabs>
+
+### Big O notation
+
+| Measure | Complexity | Explanation |
+|---|---:|---|
+| Time | `O(n + m)` | Every node from both lists is attached once. |
+| Auxiliary space | `O(1)` | Only a dummy node and a fixed number of references are added. |

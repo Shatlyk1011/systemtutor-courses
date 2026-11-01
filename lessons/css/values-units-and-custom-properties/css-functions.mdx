@@ -1,0 +1,127 @@
+---
+title: "CSS Functions"
+description: "Understand CSS functions and computed values."
+---
+
+A **CSS function** has a name followed immediately by parentheses. Its inputs let CSS produce a value, such as a color or a calculated size, that a declaration can use.
+
+The math functions from the previous lesson are CSS functions. This lesson helps you read that notation, use a function where its result is accepted, and follow a value as the browser resolves it.
+
+## Read a function call
+
+```css
+/* [!code word:rgb] */
+/* [!code word:0 128 0] */
+.title {
+  color: rgb(0 128 0);
+}
+```
+
+Read this function call in three parts:
+
+- **Name:** `rgb` identifies the color function.
+- **Parentheses:** `(` and `)` enclose its inputs.
+- **Arguments:** `0 128 0` supplies the red, green, and blue channel values.
+
+The result is green. The function describes a color; it does not select an element or create a CSS rule.
+
+Separators depend on the function's syntax. This form of `rgb()` uses spaces between channels, while `min(90%, 40rem)` uses commas between its alternatives. Do not assume that every function takes the same kinds of inputs.
+
+## Use the result in the right place
+
+A function's result still needs to be valid for the property using it. Start with the property, then ask what type of value it accepts:
+
+- **`color: rgb(0 128 0)`:** A color function supplies a color.
+- **`width: calc(100% - 2rem)`:** The calculation produces a length-percentage value that `width` can use.
+- **`font-size: clamp(1rem, 3vw, 2rem)`:** The function produces a text size between two limits.
+
+Keep the parentheses: `color: rgb` is not a function call. The property must accept the function's result, and the function must accept the inputs you give it.
+
+## Combine functions
+
+![Nested function resolution]()
+{/*
+IMAGE PROMPT — Nested function resolution
+Trace `min(calc(100% - 2rem), 40rem)` from the inner `calc()` result to the outer comparison, showing the 800px-container example and why the final width is 640px.
+*/}
+
+One function can be an argument to another when the value types are compatible:
+
+```css
+/* [!code word:min] */
+/* [!code word:calc(100% - 2rem)] */
+.card {
+  width: min(calc(100% - 2rem), 40rem);
+}
+```
+
+Here, `calc()` describes the available width minus `2rem`. `min()` then chooses the smaller of that result and `40rem`.
+
+Read nested functions from the inside out. If the containing block is `800px` wide and the root font size is `16px`:
+
+1. `calc(100% - 2rem)` becomes `800px - 32px`, or `768px`.
+2. `40rem` becomes `640px`.
+3. `min()` compares `768px` and `640px`, so the card's width is `640px`.
+
+The closing parenthesis after `2rem` ends `calc()`; the final one ends `min()`. If the containing block were `500px` wide instead, the inner calculation would be `468px`, so `min()` would choose `468px`.
+
+### Explain the choice
+
+Why does the 500-pixel container produce `468px` instead of `640px`? Explain which function resolves first and why `min()` chooses that result. Do not just name the smaller number; connect it to the two candidate values.
+
+## Follow a value from CSS to the screen
+
+The value in your stylesheet is not always the final numeric value used to draw the page. First, the cascade chooses a declaration. The browser then resolves that value in stages:
+
+```html
+<!-- [!code word:class="theme"] -->
+<!-- [!code word:class="note"] -->
+<section class="theme">
+  <p class="note">Your account is up to date.</p>
+</section>
+```
+
+```css
+/* [!code word:1.5em] */
+/* [!code word:50%] */
+.theme {
+  width: 400px;
+  font-size: 20px;
+}
+
+.note {
+  font-size: 1.5em;
+  width: 50%;
+}
+```
+
+For this paragraph:
+
+1. **Specified value:** After the cascade selects the `.note` declaration, `1.5em` is the specified `font-size` value.
+2. **Computed value:** The browser resolves `1.5em` against the parent’s `20px` font size, giving `30px`.
+3. **Used value:** The paragraph's `width: 50%` needs layout to know the section is `400px` wide. Its used width is therefore `200px`.
+
+The browser can resolve this font size before layout. A percentage width can remain unresolved until layout supplies its containing block's width. If a property is inherited, the child receives the parent's computed value. Each property has its own value-processing rules, so do not assume that every relative value resolves at the same stage.
+
+## Check your understanding
+
+Use the ideas from this lesson and the previous fluid-sizing lesson to reason through this declaration:
+
+```css
+.panel {
+  width: min(calc(100% - 2rem), 24rem);
+}
+```
+
+Assume the panel's containing block is `400px` wide and the root font size is `16px`.
+
+1. What are the two values that `min()` compares? Show how you obtained each one.
+2. Which function closes first, and why does that matter when you read the value?
+3. Is the final width a specified, computed, or used value when the browser has laid out this panel? Explain what information the browser needed.
+
+## Key Takeaways
+
+- **Functions:** A name and parentheses describe an operation with particular inputs.
+- **Types:** Function results must be valid for the property using them.
+- **Nesting:** Compatible functions can be combined as inputs to other functions.
+- **Value processing:** CSS resolves some references before layout and others when layout provides the needed size.

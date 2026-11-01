@@ -1,0 +1,129 @@
+---
+title: "CSS Build Tools"
+description: "Understand PostCSS, Autoprefixer, and minification."
+---
+
+A **CSS build pipeline** runs tools on your source files to produce the CSS a browser loads. Tools can compile Sass, change CSS, add browser prefixes, or reduce file size.
+
+## Separate the jobs
+
+| Tool | Responsibility |
+| --- | --- |
+| Sass | Compiles Sass or SCSS source into CSS. |
+| PostCSS | Parses CSS and runs configured transformation plugins. |
+| Autoprefixer | Adds or removes vendor prefixes based on browser targets. |
+| cssnano | Minifies CSS through an optimization plugin preset. |
+
+PostCSS runs the plugins you choose. Those plugins decide how the CSS changes. See the [PostCSS architecture documentation](https://postcss.org/docs/postcss-architecture).
+
+A possible sequence is Sass → CSS → PostCSS plugins → output CSS. If you write ordinary CSS, the Sass step is unnecessary. Frameworks may already supply parts of this pipeline.
+
+## Configure a standalone example
+
+For a separate Node.js practice project with a `package.json`, install the tools:
+
+```bash
+npm install --save-dev postcss postcss-cli autoprefixer cssnano
+```
+
+Create `postcss.config.mjs` in that project's root:
+
+```js
+// [!code word:plugins]
+import autoprefixer from "autoprefixer";
+import cssnano from "cssnano";
+
+export default {
+  plugins: [autoprefixer(), cssnano()],
+};
+```
+
+This list adds prefixes first, then minifies the result. Order matters because each plugin receives the previous plugin’s output. `.mjs` marks the configuration as an ES module. See the [configuration loader documentation](https://github.com/postcss/postcss-load-config).
+
+Create `src/styles.css`:
+
+```css
+.status-label {
+  user-select: none;
+  padding: 0.5rem 1rem;
+  color: #17352a;
+}
+```
+
+Then build it:
+
+```bash
+npx postcss src/styles.css --output dist/styles.css
+```
+
+The command reads your source and configuration, then writes the output stylesheet. Load `dist/styles.css` in the practice page; continue editing the source file. See the [PostCSS CLI documentation](https://github.com/postcss/postcss-cli).
+
+## Understand browser targets
+
+Autoprefixer uses Browserslist configuration, commonly in `.browserslistrc` or a `browserslist` field in `package.json`. With no project configuration, Browserslist supplies its defaults.
+
+The prefixes emitted for `user-select` depend on those targets and the installed compatibility data. Do not assume every build must add the same prefixed declarations. Prefixing also does not implement every unsupported CSS feature; it cannot guarantee that a modern layout works in any old browser. See the [Autoprefixer documentation](https://github.com/postcss/autoprefixer).
+
+## Inspect the output
+
+Minification can remove whitespace, shorten equivalent values, and combine rules. It aims to preserve behavior while reducing file size. It is different from transfer compression such as gzip, and it does not automatically identify every unused component rule. See the [cssnano introduction](https://cssnano.github.io/cssnano/docs/introduction/).
+
+Compare the source and generated file, then check the page. A successful build confirms that tools ran; visual and interaction checks confirm that the output still behaves as intended. Avoid manually patching generated CSS, since the next build can replace it.
+
+## Follow a build from source to output
+
+In the example pipeline, which tool runs the configured plugins, and which plugin minifies the CSS?
+
+<details>
+<summary>Check your reasoning</summary>
+
+PostCSS runs the plugins; cssnano performs the minification.
+
+</details>
+
+Now take the next decision yourself: A team changes `dist/styles.css` by hand and then rebuilds. Why might the change disappear?
+
+<details>
+<summary>Check your reasoning</summary>
+
+The build writes the generated output again, so the source should be edited instead.
+
+</details>
+
+## Key Takeaways
+
+- **Pipeline:** Assign each tool a specific compilation or transformation job.
+- **Plugins:** PostCSS changes CSS according to its configured plugin list.
+- **Targets:** Autoprefixer output depends on the project's browser support settings.
+- **Output:** Edit source, rebuild, and verify the generated stylesheet.
+
+## Try it yourself
+
+A project writes `src/site.css` and loads `dist/site.css`. It uses PostCSS with Autoprefixer and cssnano. Describe where to make a color change, what to rebuild, and two checks after the build. Explain why a missing prefix alone does not prove the build failed.
+
+Check your work against these criteria:
+
+- Address each part of the scenario using the mechanism taught in this lesson.
+- Explain the decision and its effect, rather than only naming a tool or selector.
+- Compare your answer with the reasoning below; equivalent correct solutions are welcome.
+
+<details>
+<summary>Hint 1</summary>
+
+Start with the source file, not the generated file.
+
+</details>
+
+<details>
+<summary>Hint 2</summary>
+
+Check the output and the actual page; prefix output depends on browser targets.
+
+</details>
+
+<details>
+<summary>Check your reasoning</summary>
+
+Change `src/site.css`, rerun the project’s build, inspect `dist/site.css`, and check the page behavior. Autoprefixer only adds prefixes needed for configured targets and its compatibility data.
+
+</details>

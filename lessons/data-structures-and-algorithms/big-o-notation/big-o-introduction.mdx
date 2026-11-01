@@ -1,0 +1,315 @@
+---
+title: "Big O & Time Complexity"
+description: "Understand how Big O notation describes algorithmic growth rates, compare constant, logarithmic, linear, linearithmic, quadratic, exponential, and factorial complexities, and learn how to simplify Big O expressions."
+---
+
+## Big(O)
+
+**Big O notation is a mathematical way to describe how the running time or memory usage of an algorithm grows as the size of its input increases.**
+
+Instead of measuring execution time in seconds—which changes depending on hardware, processor speed, or programming language—we analyze **time complexity**: the number of basic operations or computational steps an algorithm performs as the input size (`n`) scales up.
+
+<Callout title="What is Time Complexity?" type="info">
+**Time complexity** quantifies the amount of operational time an algorithm takes to run as a function of the input length $n$. Big O notation is the standard tool used to categorize and compare this time complexity.
+</Callout>
+
+![](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/18ada0b2-6e63-4158-a51d-f5d75673751a/gallery/404b7288-1158-4a6d-90e6-13ee0568efdf)
+
+The table below summarizes the most common time complexity classes:
+
+| Growth | Meaning | Example pattern |
+| --- | --- | --- |
+| Constant O(1) | Runtime does not grow with **input size**. | One operation |
+| Logarithmic O(log n) | Runtime grows slowly as the **input is halved** repeatedly. | Binary search |
+| Linear O(n) | Runtime grows with the number of **input items**. | One loop |
+| Linearithmic O(n log n) | Runtime grows in proportion to **n × log n**. | Merge sort |
+| Quadratic O(n²) | Runtime grows with the square of the **input size**. | Nested loops |
+| Exponential O(2ⁿ) | Runtime doubles with each **additional input item**. | Recursive branching |
+| Factorial O(n!) | Runtime grows factorially with each **additional item**. | Generating all permutations |
+
+### Constant growth: `O(1)`
+
+An operation with constant growth takes the same amount of work regardless of input size.
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```js
+    function getFirstItem(items) {
+      return items[0]; // Always performs a single operation
+    }
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    def get_first_item(items):
+        return items[0]  # Always performs a single operation
+    ```
+  </Tab>
+</Tabs>
+
+Whether the input has a few items or many items, this pattern still performs one operation.
+
+### Logarithmic growth: `O(log n)`
+
+Logarithmic algorithms cut the problem size down (usually in half) with every step.
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```js
+    function binarySearch(sortedItems, target) {
+      let left = 0;
+      let right = sortedItems.length - 1;
+
+      while (left <= right) {
+        const mid = Math.floor((left + right) / 2);
+        if (sortedItems[mid] === target) return mid;
+
+        if (sortedItems[mid] < target) {
+          left = mid + 1; // Halves the search space
+        } else {
+          right = mid - 1; // Halves the search space
+        }
+      }
+      return -1;
+    }
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    def binary_search(sorted_items, target):
+        left = 0
+        right = len(sorted_items) - 1
+
+        while left <= right:
+            mid = (left + right) // 2
+            if sorted_items[mid] == target:
+                return mid
+
+            if sorted_items[mid] < target:
+                left = mid + 1  # Halves the search space
+            else:
+                right = mid - 1  # Halves the search space
+        return -1
+    ```
+  </Tab>
+</Tabs>
+
+Each step cuts the remaining search space in half. Doubling the size of the input only adds a single extra step.
+
+### Linear growth: `O(n)`
+
+A single loop that processes each input item has linear growth.
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```js
+    function printAllItems(items) {
+      for (const item of items) {
+        console.log(item); // Runs once for each item: n times
+      }
+    }
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    def print_all_items(items):
+        for item in items:
+            print(item)  # Runs once for each item: n times
+    ```
+  </Tab>
+</Tabs>
+
+If the input contains `n` items, the loop performs work `n` times.
+
+### Linearithmic growth: `O(n log n)`
+
+Linearithmic algorithms split the problem into smaller subproblems logarithmically (`log n` levels) while performing linear work (`n`) across each level.
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```js
+    function mergeSort(items) {
+      if (items.length <= 1) return items;
+
+      const mid = Math.floor(items.length / 2);
+      const left = mergeSort(items.slice(0, mid));
+      const right = mergeSort(items.slice(mid));
+
+      return merge(left, right); // O(n) merge work across O(log n) division levels
+    }
+
+    function merge(left, right) {
+      const result = [];
+      let i = 0, j = 0;
+      while (i < left.length && j < right.length) {
+        if (left[i] < right[j]) result.push(left[i++]);
+        else result.push(right[j++]);
+      }
+      return [...result, ...left.slice(i), ...right.slice(j)];
+    }
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    def merge_sort(items):
+        if len(items) <= 1:
+            return items
+
+        mid = len(items) // 2
+        left = merge_sort(items[:mid])
+        right = merge_sort(items[mid:])
+
+        return merge(left, right)  # O(n) merge work across O(log n) division levels
+
+    def merge(left, right):
+        result = []
+        i = j = 0
+        while i < len(left) and j < len(right):
+            if left[i] < right[j]:
+                result.append(left[i])
+                i += 1
+            else:
+                result.append(right[j])
+                j += 1
+        result.extend(left[i:])
+        result.extend(right[j:])
+        return result
+    ```
+  </Tab>
+</Tabs>
+
+Algorithms like Merge Sort and Quick Sort scale efficiently because `n log n` grows only slightly faster than linear `O(n)`.
+
+### Quadratic growth: `O(n²)`
+
+Nested loops can create quadratic growth when each loop goes through the input.
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```js
+    function printAllPairs(items) {
+      for (const first of items) {
+        for (const second of items) {
+          console.log(first, second); // Runs n * n times
+        }
+      }
+    }
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    def print_all_pairs(items):
+        for first in items:
+            for second in items:
+                print(first, second)  # Runs n * n times
+    ```
+  </Tab>
+</Tabs>
+
+If the input contains `n` items, the inner operation is performed `n × n` times. As the input grows, quadratic runtime grows much faster than linear runtime.
+
+### Exponential growth: `O(2ⁿ)`
+
+Exponential algorithms double their execution time with each additional item added to the input. This pattern often appears when exploring all subsets or branching recursively.
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```js
+    function fibonacci(n) {
+      if (n <= 1) return n;
+      return fibonacci(n - 1) + fibonacci(n - 2); // Recursively branches twice per call
+    }
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    def fibonacci(n):
+        if n <= 1:
+            return n
+        return fibonacci(n - 1) + fibonacci(n - 2)  # Recursively branches twice per call
+    ```
+  </Tab>
+</Tabs>
+
+Each function call spawns two additional recursive calls. The number of operations grows rapidly and quickly becomes impractical for larger inputs.
+
+### Factorial growth: `O(n!)`
+
+Factorial growth is the steepest and slowest complexity class. It typically occurs in brute-force algorithms that generate all possible permutations or combinations.
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```js
+    function printAllPermutations(items, prefix = []) {
+      if (items.length === 0) {
+        console.log(prefix);
+        return;
+      }
+
+      for (let i = 0; i < items.length; i++) {
+        const remaining = items.slice(0, i).concat(items.slice(i + 1));
+        printAllPermutations(remaining, prefix.concat(items[i])); // Runs n! times
+      }
+    }
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    def print_all_permutations(items, prefix=None):
+        if prefix is None:
+            prefix = []
+        if len(items) == 0:
+            print(prefix)
+            return
+
+        for i in range(len(items)):
+            remaining = items[:i] + items[i + 1:]
+            print_all_permutations(remaining, prefix + [items[i]])  # Runs n! times
+    ```
+  </Tab>
+</Tabs>
+
+An input of size `n` produces `n!` (n factorial) arrangements. For example, `n = 10` requires over 3.6 million operations, making factorial algorithms usable only for tiny datasets.
+
+<Callout title="Comparing growth rates" type="info">
+From most efficient to least efficient:
+
+`O(1)` < `O(log n)` < `O(n)` < `O(n log n)` < `O(n²)` < `O(2ⁿ)` < `O(n!)`
+</Callout>
+
+## Simplifying Big O Expressions
+
+Big O focuses on how running time grows as input size increases. To simplify an expression:
+
+1. **Remove constant factors.**
+2. **Remove lower-order terms.**
+3. Keep the term with the greatest growth.
+
+For example:
+
+```text
+O(3n² + 5n + 7) → O(n²)
+```
+
+The constant `3` is removed, and the lower-order terms `5n` and `7` are ignored. The big is equal to O(n²).
+
+## Estimating Complexity
+
+Use the operations and loops in an algorithm to form a Big O expression, then simplify it using the same rules:
+
+- Constant factors do not change the final Big O class.
+- Lower-order work does not determine the final growth rate.
+- Focus on the part of the algorithm that grows the fastest as the input grows.
+
+<Callout title="Simplification rule" type="info">
+When several terms appear, retain the dominant term and omit constants and lower-order terms.
+</Callout>
+
+---
+
+## Key Takeaways
+
+- **Big O Notation:** A mathematical model that describes how execution time or memory consumption grows as input size (`n`) increases.
+- **Time Complexity:** Measures the growth in the number of basic operations an algorithm performs as input size scales, independent of hardware or environment.
+- **Drop Constant Factors:** Multipliers and constants are removed because Big O focuses on asymptotic growth trends rather than exact hardware execution time (`O(3n) → O(n)`).
+- **Drop Lower-Order Terms:** Only the fastest-growing (dominant) term is kept when evaluating combined operations (`O(n² + 5n) → O(n²)`).

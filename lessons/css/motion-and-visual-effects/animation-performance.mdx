@@ -1,0 +1,155 @@
+---
+title: "Animation Performance"
+description: "Understand rendering costs and efficient animation properties."
+---
+
+An animation can stutter if the browser has too much to do between frames. The properties you animate affect that work.
+
+## Recognize the rendering work
+
+Three useful terms describe much of that work:
+
+| Step | What the browser does |
+| --- | --- |
+| Layout | Calculates element sizes and positions. |
+| Paint | Draws visual details such as text, borders, and backgrounds. |
+| Composite | Combines rendered layers into the displayed frame. |
+
+Changing `width` or `height` can make the browser recalculate layout, including nearby elements. A background-color change usually triggers painting. `transform` and `opacity` can often use compositing to avoid repeating those steps.
+
+These are useful starting points, but performance also depends on element size, effects, layers, and the rest of the page. Measure the animation in the browser.
+
+## Move a card without moving its neighbors
+
+If a card should lift slightly without moving its neighbors, animate its transform:
+
+```html
+<a class="article-card" href="/articles/css-layout">
+  <h2>CSS layout guide</h2>
+  <p>Read the article.</p>
+</a>
+```
+
+```css
+.article-card {
+  display: block;
+  max-width: 24rem;
+  padding: 1.25rem;
+  color: #17352a;
+  background: #e7f3ec;
+  border: 1px solid #17352a;
+  border-radius: 0.75rem;
+  text-decoration: none;
+}
+
+.article-card:focus-visible {
+  outline: 3px solid #1d4ed8;
+  outline-offset: 3px;
+}
+
+/* [!code word:transition\: transform] */
+@media (prefers-reduced-motion: no-preference) and (hover: hover) {
+  .article-card {
+    transition: transform 180ms ease-out;
+  }
+
+  .article-card:hover {
+    transform: translateY(-4px);
+  }
+}
+```
+
+Where both queries match, hovering lifts the card by four pixels. Moving the pointer away returns it. The link still works without motion; replace its example destination with your page URL.
+
+Animating margins to create this lift could change layout on each frame. A transform preserves the card's layout space, so leave room around it for the visual movement.
+
+Scaling is also a visual transformation: it scales text and borders along with the box. It does not replace a real layout change when neighboring content needs to reflow.
+
+## Choose an effect to investigate
+
+A card lifts without moving its neighbors. Which change is a better starting point: animating its margin or its transform? Why is this not a performance guarantee?
+
+<details>
+<summary>Check your reasoning</summary>
+
+A transform matches the requested visual movement without changing the space reserved by layout. It can often be composited, but the actual rendering work depends on the page and browser, so inspect a recording.
+
+</details>
+
+Now suppose expanding the card must push the next item down. Would a visual scale alone meet that requirement?
+
+<details>
+<summary>Check your reasoning</summary>
+
+No. Scaling changes the drawing but does not make neighboring items reflow. A layout change may be needed; measure its cost instead of choosing a transform solely for performance.
+
+</details>
+
+## Measure before adding optimization hints
+
+`will-change` tells the browser which properties may change soon. It does not animate anything or guarantee a faster result. Applying it to every element can consume resources and make performance worse.
+
+Use it only to address a measured problem. If a temporary hint is needed, give the browser time to prepare and remove the hint when it is no longer useful. Leave it out of this card example unless measurement shows a reason to add it.
+
+## Inspect the actual interaction
+
+In browser DevTools, record the interaction in the Performance panel and look for repeated layout or paint work during movement. Compare before and after changing the animated property.
+
+Chrome's Rendering panel includes **Paint flashing**, which highlights repainted areas. If a small effect repeatedly repaints a large region, investigate that work. Check on a slower device as well as your development machine; a smooth local preview is only one observation. See the [rendering diagnostics guide](https://developer.chrome.com/docs/devtools/rendering/performance).
+
+## Key Takeaways
+
+- **Rendering:** Layout, paint, and compositing have different costs.
+- **Properties:** Prefer transforms and opacity when they produce the intended effect.
+- **Hints:** Add `will-change` only for a measured need.
+- **Verification:** Inspect real rendering work and test on representative devices.
+
+
+## Try it yourself
+
+Compare two ways to lift a card in a local browser file. The first version moves it by changing its top margin; the second should move it visually without changing the space reserved for it. The longer duration makes the effect easier to inspect; it is not a recommended duration for every interface.
+
+```html
+<div class="stack">
+  <button class="card" type="button">Inspect this card</button>
+  <p class="neighbor">Neighboring content</p>
+</div>
+```
+
+```css
+.stack { padding: 2rem; }
+.card { display: block; margin-top: 0; padding: 1rem; font: inherit; }
+.card:focus-visible { outline: 3px solid #1d4ed8; outline-offset: 3px; }
+.neighbor { margin: 0; padding: 1rem; background: #e7f3ec; }
+@media (prefers-reduced-motion: no-preference) and (hover: hover) {
+  .card { transition: margin-top 1s ease; }
+  .card:hover { margin-top: -8px; }
+}
+```
+
+1. With a hover-capable pointer and no reduced-motion preference, record the hover and return in browser DevTools. Watch the neighboring content and inspect layout work during the change.
+2. Replace the two margin declarations inside the query with a transition of `transform` and `transform: translateY(-8px)` on hover. Keep the base margin, focus style, and HTML. Record the same interaction again.
+3. Compare the neighbor's movement and the recorded work. Report what you observed, the browser/device used, and why the result does not guarantee the same cost on every page. Do not add `will-change` without a measured reason.
+
+If a reduced-motion preference is active, the query intentionally prevents the movement. You can still reason through both versions; change the preference only if you are comfortable observing the effect.
+
+<details>
+<summary>Hint 1</summary>
+
+Replace both the property named by `transition` and the changed value in `:hover`.
+
+</details>
+
+<details>
+<summary>Hint 2</summary>
+
+A negative Y translation draws the card upward while keeping its layout position. Inspect the timeline rather than assuming compositing from the property name alone.
+
+</details>
+
+<details>
+<summary>Check your work and reasoning</summary>
+
+Use `transition: transform 1s ease;` on `.card` and `transform: translateY(-8px);` on `.card:hover` within the query. The margin version changes layout, so the neighbor can move; the transform version leaves the card's layout space in place. Transform can avoid repeated layout and paint, but a profile is needed to establish what happened in this particular browser and page. The static button and focus indicator remain outside the query.
+
+</details>

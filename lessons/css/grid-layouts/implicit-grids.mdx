@@ -1,0 +1,138 @@
+---
+title: "Implicit Grids"
+description: "Understand automatic placement and implicit tracks."
+---
+
+Grid can add rows or columns when more items need space. These are **implicit tracks**, and they let your layout grow without a set row count.
+
+## Let automatic placement add rows
+
+```html
+<!-- [!code word:class="list"] -->
+<div class="list">
+  <article>Overview</article>
+  <article>Analytics</article>
+  <article>Projects</article>
+  <article>Reports</article>
+  <article>Settings</article>
+</div>
+```
+
+```css
+/* [!code word:grid-template-rows] */
+/* [!code word:grid-auto-rows] */
+/* [!code word:minmax(6rem, auto)] */
+.list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: 4rem;
+  grid-auto-rows: minmax(6rem, auto);
+  gap: 1rem;
+}
+```
+
+For these items, default row-wise placement fills two cells in the first row, two in the next, then one in a third row.
+
+- The first row is explicit and uses `4rem`.
+- The second and third rows are implicit and use `minmax(6rem, auto)`.
+- Additional items can create more implicit rows.
+
+`grid-auto-rows` sizes automatically created rows; it does not replace the explicit row template. An `auto` maximum lets these implicit rows grow when their content needs more than the minimum.
+
+## Predict the added rows
+
+In the example above, a sixth article is added. Does it need a fourth row, and what sizes its row?
+
+<details>
+<summary>Check your reasoning</summary>
+
+It fills the second cell of the existing third row. That row is implicit and uses `grid-auto-rows: minmax(6rem, auto)`.
+
+</details>
+
+If a seventh article is added, identify the new row and the property that sizes it.
+
+<details>
+<summary>Check your reasoning</summary>
+
+It creates a fourth row, also sized by `grid-auto-rows`. The first row alone uses the explicit template.
+
+</details>
+
+## Understand the placement direction
+
+The initial `grid-auto-flow` value is `row`. It fills rows in turn and creates more rows as needed. For ordinary items without placement or `order` overrides, the sequence follows source order.
+
+You can instead fill columns:
+
+```css
+/* [!code word:column] */
+/* [!code word:grid-auto-columns] */
+.columns {
+  display: grid;
+  grid-template-rows: repeat(2, 5rem);
+  grid-auto-flow: column;
+  grid-auto-columns: 10rem;
+  gap: 1rem;
+}
+```
+
+Two items occupy the first column before placement advances to the next. `grid-auto-columns` gives the implicit columns a `10rem` size. A long collection can therefore become wider than its container; column flow is not automatic horizontal scrolling.
+
+## Recognize gaps left by spans
+
+If a later item needs two columns but only one cell remains on the current row, default placement moves forward until it finds enough room. A smaller item appearing after it may leave the earlier hole unfilled.
+
+```css
+/* [!code word:row dense] */
+.packed {
+  grid-auto-flow: row dense;
+}
+```
+
+`dense` lets the browser fill earlier gaps with later items that fit. This can change their visual order while leaving the HTML and usual Tab order unchanged. Check that the result still makes sense.
+
+## Inspect unexpected implicit tracks
+
+An item placed beyond the rows or columns you defined can create implicit tracks too. When extra columns appear unexpectedly, inspect item line numbers and spans as well as the template.
+
+Use a grid overlay to distinguish explicit boundaries from added tracks.
+
+## Key Takeaways
+
+- **Implicit tracks:** Appear when placement needs tracks beyond the explicit grid.
+- **Automatic sizing:** `grid-auto-rows` and `grid-auto-columns` size those added tracks.
+- **Flow:** Row flow adds rows; column flow adds columns.
+- **Dense packing:** Can fill earlier holes while changing visual order.
+
+
+## Try it yourself
+
+The editor has five tiles and two columns. Keep the explicit first row at 40px, and size all added rows to at least 60px while allowing them to grow with content. Keep the HTML and gap. Check the first row and both added rows.
+
+<LessonPractice />
+
+Inspect the CSS: which declaration sizes only the added rows? Why is the third row present?
+
+<details>
+<summary>Hint</summary>
+
+Use the automatic row sizing property with a minimum and an automatic maximum.
+
+</details>
+
+<details>
+<summary>Check your reasoning</summary>
+
+`grid-auto-rows: minmax(60px, auto);` sizes the implicit rows. Five items need three rows when each row has two cells; the explicit template defines only the first.
+
+</details>
+
+Suppose a later small item fills an earlier hole under `grid-auto-flow: row dense`. Does that change source order? Explain one reason to check the result.
+
+<details>
+<summary>Check your reasoning</summary>
+
+The HTML order remains the same, but the visual order can differ. Check that the visual sequence and the usual keyboard order still make sense together.
+
+</details>

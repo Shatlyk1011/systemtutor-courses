@@ -1,0 +1,139 @@
+---
+title: "Container Queries"
+description: "Adapt components to the space available to them."
+---
+
+A **container size query** changes a component’s styles based on the size of a container around it. The same card can be compact in a sidebar and wider in the main content on the same page.
+
+## Separate the container from the card
+
+```html
+<!-- [!code word:class="slot"] -->
+<!-- [!code word:class="card"] -->
+<div class="slot">
+  <article class="card">
+    <span class="card-visual" aria-hidden="true">📦</span>
+    <div class="card-copy">
+      <h2>Project status</h2>
+      <p>Review milestones and upcoming deadlines.</p>
+    </div>
+  </article>
+</div>
+```
+
+The outer wrapper receives its width from the surrounding layout. The card inside it responds to that width.
+
+```css
+/* [!code word:container-type] */
+/* [!code word:inline-size] */
+/* [!code word:container-name] */
+.slot {
+  container-type: inline-size;
+  container-name: card;
+}
+
+.card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1rem;
+}
+
+.card-copy {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.card-visual {
+  font-size: 3rem;
+}
+```
+
+`inline-size` lets queries check the wrapper’s inline size: its width in these horizontal-writing examples. Its height can still grow with the content.
+
+The wrapper’s width should come from the surrounding layout, rather than the card’s contents. A normal block inside a column works for this example.
+
+## Query the named ancestor
+
+```css
+/* [!code word:@container] */
+/* [!code word:card (width >= 30rem)] */
+@container card (width >= 30rem) {
+  .card {
+    grid-template-columns: 6rem minmax(0, 1fr);
+    align-items: center;
+  }
+}
+```
+
+Place this after the base styles. The query finds a surrounding size-query container named `card`. At a content width of `30rem` or more, the image and text sit in separate columns.
+
+The container name and class name can differ. This query styles elements inside the wrapper, not the wrapper itself.
+
+## Compare with a media query
+
+With a 16-pixel root font size:
+
+| Situation in one 1200px viewport | Card layout |
+| --- | --- |
+| A slot with 256px of content width. | One column. |
+| A slot with 800px of content width. | Two columns, because it exceeds 480px. |
+
+A viewport media query would see the same viewport width for both cards. This container query sees the space assigned to each copy. Without a name, a size query uses the nearest ancestor set up to answer that size query.
+
+## Scale a detail with container units
+
+```css
+/* [!code word:4cqi] */
+.card h2 {
+  font-size: clamp(1.25rem, 4cqi, 2rem);
+}
+```
+
+`1cqi` is 1% of the query container’s inline size, or width here. The heading scales with the slot, within the `rem` limits. Keep the wrapper in place: without a suitable container, these units use the small viewport size instead.
+
+The base single-column card remains usable if the size query does not apply.
+
+## Key Takeaways
+
+- **Setup:** Add `container-type` to a wrapper around the component.
+- **Names:** Identify which ancestor a query should inspect.
+- **Scope:** Size queries style descendants based on their allocated space.
+- **Units:** `cqi` follows a query container's inline size.
+
+## Try it yourself
+
+A `.panel` sits inside a `.panel-slot`. Make the slot a named inline-size container called `panel-space`. The panel starts in one column and should have two equal columns when its slot is at least `24rem` wide.
+
+```css
+.panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1rem;
+}
+```
+
+Assume the surrounding layout gives each slot a width. Explain what happens to two panels in differently sized slots in the same viewport.
+
+<details>
+<summary>Hints</summary>
+
+Put the container properties on the wrapper. Query `panel-space` and override the descendant panel's columns.
+
+</details>
+
+<details>
+<summary>Check your work and reasoning</summary>
+
+```css
+.panel-slot {
+  container-type: inline-size;
+  container-name: panel-space;
+}
+@container panel-space (width >= 24rem) {
+  .panel { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+```
+
+Each panel responds to its own named ancestor's width: one can match while the other does not. Test both instances; one static preview cannot demonstrate the comparison.
+
+</details>

@@ -1,0 +1,5 @@
+title: "CSS Grid"
+description: "Learn css grid through focused lessons."
+pages:
+  - grid-fundamentals
+  - grid-placement-and-layout-decisions

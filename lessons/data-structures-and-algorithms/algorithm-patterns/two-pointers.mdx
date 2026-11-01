@@ -1,0 +1,220 @@
+---
+title: "Two Pointers"
+description: "Learn how the two pointers pattern searches sorted arrays, finds pairs that meet a condition, and replaces nested loops with linear-time scans."
+---
+
+The **two pointers** pattern uses two variables to track positions in a linear structure such as an array, string, or linked list. The pointers move according to a condition until they meet, cross, or reach the end.
+
+In code, a pointer is usually just a number that stores an index:
+
+![](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/1e3e13b6-0db0-43d8-9eab-205bdcf6fa8f/gallery/1093e358-2ea2-4569-a409-f1ac5649fdd9)
+
+The pointers can move toward **each other from opposite ends**, move in the same direction, or move from the end toward the beginning. The important idea is that each pointer moves forward through the data instead of restarting a search for every item.
+
+<Callout title="Core idea" type="success">
+Use two references to narrow the search space. When the input is sorted or has a useful left-to-right structure, pointer movement can replace nested loops and reduce a quadratic scan to linear time.
+</Callout>
+
+## When this pattern fits
+
+Two pointers are especially useful when:
+
+- The input is sorted, or the order gives you information about how to move.
+- You are looking for a pair of values that meets a condition.
+- You are comparing values from opposite ends of a structure.
+- You need to read a sequence while keeping track of a second position.
+
+If the input is unsorted, moving a pointer may not tell you anything useful. In that case, a hash map, sorting step, or another pattern may be a better choice.
+
+## Example: find a pair whose sum is zero
+
+Write a function called `sumZero` that accepts a sorted array of integers. Return the first pair whose sum is zero. If no pair exists, return `undefined`.
+
+```text
+sumZero([-4, -3, -2, -1, 0, 1, 2, 5]) → [-2, 2]
+sumZero([-4, -3, -2, 0, 1, 5]) → undefined
+```
+
+The array must be sorted from the smallest value to the largest value. That ordering lets us decide which pointer to move after each comparison.
+
+### The naive approach
+
+The direct solution checks every possible pair with nested loops:
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```js
+    function sumZeroNaive(numbers) {
+      for (let i = 0; i < numbers.length; i++) {
+        for (let j = i + 1; j < numbers.length; j++) {
+          if (numbers[i] + numbers[j] === 0) {
+            return [numbers[i], numbers[j]];
+          }
+        }
+      }
+
+      return undefined;
+    }
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    def sum_zero_naive(numbers):
+        for i in range(len(numbers)):
+            for j in range(i + 1, len(numbers)):
+                if numbers[i] + numbers[j] == 0:
+                    return [numbers[i], numbers[j]]
+
+        return None
+    ```
+  </Tab>
+</Tabs>
+
+For each value, the inner loop scans the remaining values. With `n` items, this can perform about `n × n` comparisons, giving `O(n²)` time.
+
+### The two-pointer approach
+
+Place one pointer at the smallest value and one at the largest value:
+
+```text
+left  = 0
+right = numbers.length - 1
+```
+
+Then compare the values at those positions:
+
+| Sum | Meaning | Move |
+| --- | --- | --- |
+| `0` | The pair matches | Return both values |
+| Greater than `0` | The sum is too large | Move `right` left to a smaller value |
+| Less than `0` | The sum is too small | Move `left` right to a larger value |
+
+Because the array is sorted, these moves never skip a possible answer. If the sum is too large, keeping the current right value cannot help: every value to its right is even larger. The same reasoning applies when the sum is too small.
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```js
+    function sumZero(numbers) {
+      let left = 0;
+      let right = numbers.length - 1;
+
+      while (left < right) {
+        const sum = numbers[left] + numbers[right];
+
+        if (sum === 0) {
+          return [numbers[left], numbers[right]];
+        }
+
+        if (sum > 0) {
+          right--;
+        } else {
+          left++;
+        }
+      }
+
+      return undefined;
+    }
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    def sum_zero(numbers):
+        left = 0
+        right = len(numbers) - 1
+
+        while left < right:
+            total = numbers[left] + numbers[right]
+
+            if total == 0:
+                return [numbers[left], numbers[right]]
+
+            if total > 0:
+                right -= 1
+            else:
+                left += 1
+
+        return None
+    ```
+  </Tab>
+</Tabs>
+
+### Trace the pointers
+
+For `[-4, -3, -2, -1, 0, 1, 2, 5]`:
+
+| `left` value | `right` value | Sum | Decision |
+| ---: | ---: | ---: | --- |
+| `-4` | `5` | `1` | Too large, move `right` left |
+| `-4` | `2` | `-2` | Too small, move `left` right |
+| `-3` | `2` | `-1` | Too small, move `left` right |
+| `-2` | `2` | `0` | Return `[-2, 2]` |
+
+The optimized solution checks each position at most once from each direction. Its time complexity is `O(n)` and its extra space complexity is `O(1)`.
+
+## Variations of two pointers
+
+The pointers do not always start at opposite ends.
+
+### Comparing from opposite ends
+
+To check whether a string is a palindrome, compare the first and last characters, then move inward:
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```js
+    function isPalindrome(text) {
+      let left = 0;
+      let right = text.length - 1;
+
+      while (left < right) {
+        if (text[left] !== text[right]) return false;
+        left++;
+        right--;
+      }
+
+      return true;
+    }
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    def is_palindrome(text):
+        left = 0
+        right = len(text) - 1
+
+        while left < right:
+            if text[left] != text[right]:
+                return False
+            left += 1
+            right -= 1
+
+        return True
+    ```
+  </Tab>
+</Tabs>
+
+This scan also takes `O(n)` time and `O(1)` extra space when the input can be indexed directly.
+
+## Two pointers vs. nested loops
+
+| Approach | Main method | Typical time | Extra space |
+| --- | --- | ---: | ---: |
+| Nested loops | Compare each item with many other items | `O(n²)` | `O(1)` |
+| Two pointers | Move two positions based on a condition | `O(n)` | `O(1)` |
+
+The linear solution depends on a property such as sorted order. Without that property, moving a pointer may discard a valid pair, so the optimization is not automatically safe.
+
+<Callout title="Pattern checklist" type="info">
+Before using two pointers, ask: What does the order of the input tell me? Which pointer can move without skipping a valid answer? When should the pointers stop? Answering these questions makes the loop condition and pointer movement precise.
+</Callout>
+
+---
+
+## Key Takeaways
+
+- **Linear Scan:** Uses two index positions to scan data from opposite ends or at different speeds, replacing slow `O(n²)` nested loops with fast `O(n)` single passes.
+- **Opposite Ends:** Move pointers toward each other to find pairs (like two numbers that add up to zero) or check for palindromes.
+- **Requires Order:** Works best on sorted data because the order tells you which pointer to move without missing any answers.
+- **Constant Space:** Uses `O(1)` extra memory because it only tracks two index numbers without creating new arrays or maps.
+- **When to Choose:** Use Two Pointers when working with sorted arrays or strings. If the data is unsorted and you need to count items, use a **Frequency Counter** instead.
+

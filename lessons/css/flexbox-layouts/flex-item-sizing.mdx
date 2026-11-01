@@ -1,0 +1,134 @@
+---
+title: "Flex Item Sizing"
+description: "Control flex growth, shrinking, basis, and order."
+---
+
+Flexbox starts each item at a **basis**, or starting size. It then lets items grow to fill space or shrink to fit. The `flex` shorthand sets grow, shrink, and basis together.
+
+## Read the three values
+
+```css
+/* [!code word:1 1 8rem] */
+/* [!code word:3 1 8rem] */
+.sizes {
+  display: flex;
+  width: 32rem;
+}
+
+.sizes > article {
+  flex: 1 1 8rem;
+  min-width: 0;
+}
+
+.sizes > .featured {
+  flex: 3 1 8rem;
+}
+```
+
+Assume two articles, with the second using `class="featured"`:
+
+| Part | Meaning in `1 1 8rem` |
+| --- | --- |
+| `flex-grow: 1` | Receives a share of positive free space. |
+| `flex-shrink: 1` | Can give up space when the items do not fit. |
+| `flex-basis: 8rem` | Starts main-axis sizing from this basis. |
+
+The basis is not the final size. In a row, a basis such as `8rem` supplies the starting size instead of `width`. With `auto`, Flexbox starts from the set width or the content.
+
+## Distribute growth
+
+With a 16-pixel root font size and no gaps, padding, borders, or margins:
+
+1. The container is 512 pixels wide.
+2. Both bases are 128 pixels, leaving 256 pixels to share.
+3. Grow factors 1 and 3 divide that extra space into four shares of 64 pixels.
+4. The final widths are 192 pixels and 320 pixels.
+
+The featured item gets three times the **extra space**, not three times the final width. Equal grow factors also do not guarantee equal widths when starting bases differ. Size limits can constrain distribution.
+
+## Understand shrinking
+
+```css
+/* [!code word:0 1 200px] */
+/* [!code word:400px] */
+.shrink {
+  display: flex;
+  width: 300px;
+}
+
+.shrink > article {
+  flex: 0 1 200px;
+  min-width: 0;
+}
+
+.shrink > .wide {
+  flex-basis: 400px;
+}
+```
+
+For two short articles, the bases total 600 pixels, creating a 300-pixel shortage. Both shrink factors are 1, but each factor is multiplied by that item's base size. The 200-pixel item loses 100 pixels; the 400-pixel item loses 200 pixels. Their final widths are 100 and 200 pixels, assuming no other size constraints.
+
+`min-width: 0` lets these row items shrink below the size their content would normally allow. Check that the text can still wrap or scroll.
+
+## Recognize useful combinations
+
+- **`flex: 0 1 auto`:** The initial combination; can shrink but does not grow.
+- **`flex: 1 1 auto`:** Can grow and shrink from an automatic basis.
+- **`flex: 1 1 0`:** Shares space from a zero basis, subject to minimum and maximum sizes.
+- **`flex: none`:** Expands to `0 0 auto`; disables growing and shrinking.
+
+Using all three values makes the intended basis explicit.
+
+## Treat visual order separately
+
+```css
+/* [!code word:order] */
+/* [!code word:-1] */
+.sizes > .featured {
+  order: -1;
+}
+```
+
+Lower `order` values appear earlier; the initial value is 0. Equal values follow source order. This changes visual order, not document order or the usual tab sequence. Keep meaningful reading and interaction order in HTML.
+
+## Check a growth calculation
+
+Two items each start at 100px in a 400px row with no gaps. Their grow factors are 1 and 1. How much free space remains, and what is each final size?
+
+<details>
+<summary>Check your reasoning</summary>
+
+The bases use 200px, leaving 200px. Each item receives 100px, so each finishes at 200px, assuming no size constraints.
+
+</details>
+
+If the second grow factor becomes 3, which size changes: its basis or its share of the extra space?
+
+<details>
+<summary>Check your reasoning</summary>
+
+Its basis remains 100px. It receives three of the four shares of free space, giving final sizes of 150px and 250px.
+
+</details>
+
+## Key Takeaways
+
+- **Basis:** Establishes the starting main size.
+- **Growth:** Shares extra space according to grow factors.
+- **Shrinking:** Uses shrink factors multiplied by base sizes.
+- **Order:** Changes visual placement while the source sequence stays meaningful.
+
+## Try it yourself
+
+In the editor, give both panels a `100px` basis and permission to shrink. Give the first a grow factor of 1 and the second a grow factor of 3. Keep the 400px row and supplied styles. Check that the panels finish at 150px and 250px. Explain why the second panel is not three times as wide as the first.
+
+<LessonPractice />
+
+Use the editor hints if needed. The picture is feedback at one size; check the three values in your CSS as well.
+
+<details>
+<summary>Check your reasoning</summary>
+
+Set `flex: 1 1 100px` on both panels and `flex: 3 1 100px` on the second. The factors divide the 200px of extra space, not the total final width.
+
+</details>

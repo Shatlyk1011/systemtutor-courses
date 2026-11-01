@@ -1,0 +1,173 @@
+---
+title: "Flexible Grids"
+description: "Create flexible tracks with fr, repeat, minmax, and auto sizing."
+---
+
+A flexible grid adjusts its column widths and column count to the available space. Use `fr` to share space, `minmax()` to set limits, and `repeat()` to create columns.
+
+## Share leftover space with `fr`
+
+```css
+/* [!code word:minmax(0, 1fr)] */
+/* [!code word:minmax(0, 2fr)] */
+.ratio {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+  gap: 1rem;
+}
+```
+
+At a 616-pixel content width with a 16-pixel gap, 600 pixels remain for the tracks. They receive 200 and 400 pixels: one share and two shares.
+
+`minmax(0, 1fr)` sets a zero track minimum instead of the automatic minimum of a bare `1fr`. This allows the track to shrink, but the content inside it still needs to wrap or handle overflow.
+
+## Repeat equal tracks
+
+```css
+/* [!code word:repeat(3, minmax(0, 1fr))] */
+.equal {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+```
+
+This always defines three columns. They become narrower together as the container narrows; repetition with a numeric count does not change that count.
+
+`minmax()` takes a minimum followed by a maximum. A flexible `fr` value is valid in the maximum position, but not the minimum position.
+
+## Let the number of columns adapt
+
+```css
+/* [!code word:auto-fit] */
+/* [!code word:minmax(14rem, 1fr)] */
+.catalog {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: 1rem;
+}
+
+.catalog > article {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+```
+
+The browser creates as many `14rem` minimum columns as fit, accounting for gaps, then distributes extra width through the `1fr` maximum. Empty repeated tracks collapse with `auto-fit`.
+
+With a 16-pixel root font size and enough items:
+
+| Container width | Columns that fit |
+| --- | --- |
+| 1000px | Four: the minimum widths plus three gaps take 944px. |
+| 700px | Two: three columns and their gaps would take 704px. |
+| 300px | One. |
+
+The count depends on container space, not the number of items on just the final row.
+
+## Predict a flexible grid
+
+At 616px with a 16px gap, the earlier `1fr 2fr` example has 600px to share. What happens if the second track changes to `1fr` while both minimums remain zero?
+
+<details>
+<summary>Check your reasoning</summary>
+
+Each track gets one of two equal shares: 300px. The gap is subtracted before the shares are divided.
+
+</details>
+
+Now consider `repeat(3, minmax(0, 1fr))` at a narrower width. Does it change the number of columns?
+
+<details>
+<summary>Check your reasoning</summary>
+
+No. The numeric repeat count stays at three; the tracks shrink. Automatic repetition is needed for the count to change.
+
+</details>
+
+## Compare `auto-fit` and `auto-fill`
+
+```css
+/* [!code word:auto-fill] */
+.reserved {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+  gap: 1rem;
+}
+```
+
+Both initially create tracks that fit. The difference appears when whole repeated tracks are empty:
+
+- **`auto-fill`:** Keeps those empty tracks, reserving space for them.
+- **`auto-fit`:** Collapses them so occupied flexible tracks can expand.
+
+`auto-fit` collapses a column only if the whole column is empty. An empty cell in the last row is not enough.
+
+## Allow a smaller container
+
+A strict `14rem` minimum overflows a container narrower than that value. To allow one track to become as narrow as its container, replace the catalog's template with:
+
+```css
+/* [!code word:min(100%, 14rem)] */
+.catalog {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+}
+```
+
+The `min()` function lowers the minimum when the container is narrower than `14rem`. Keep the content wrapping rules as well.
+
+## Key Takeaways
+
+- **`fr`:** Shares leftover track space after gaps.
+- **`minmax()`:** Sets track limits; `fr` belongs in the maximum position.
+- **Automatic repetition:** Changes the number of columns that fit.
+- **Empty tracks:** `auto-fit` collapses them; `auto-fill` retains them.
+
+
+## Try it yourself
+
+Use the following HTML and CSS in a browser. Create a grid whose columns are at least 14rem when space permits, grow to share extra space, and collapse empty repeated tracks. Include the smaller-container safeguard from this lesson. Keep all four articles in source order.
+
+```html
+<div class="catalog">
+  <article>One</article><article>Two</article>
+  <article>Three</article><article>Four</article>
+</div>
+```
+
+```css
+.catalog {
+  display: grid;
+  gap: 1rem;
+  /* Add the column template. */
+}
+.catalog > article {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  padding: 1rem;
+  background: lightgreen;
+}
+```
+
+Resize the container to 700px, then 300px, then narrower than 14rem. With a 16px root font size, expect two columns at 700px and one at 300px; check that the narrow container does not overflow because of the track minimum. Remove three articles and compare `auto-fit` with `auto-fill` at 700px. Explain why the occupied track can expand in one case.
+
+<details>
+<summary>Hint 1</summary>
+
+Use automatic repetition with `minmax()` and a flexible maximum. Which keyword collapses empty tracks?
+
+</details>
+
+<details>
+<summary>Hint 2</summary>
+
+Use `min(100%, 14rem)` as the minimum so it can decrease with the container.
+
+</details>
+
+<details>
+<summary>Check your reasoning</summary>
+
+Use `grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));`. At 700px, two 224px minimum tracks plus one 16px gap fit, but three tracks and two gaps need 704px. With one item, `auto-fit` collapses empty tracks so the occupied track can grow; `auto-fill` retains them. Check content overflow separately.
+
+</details>

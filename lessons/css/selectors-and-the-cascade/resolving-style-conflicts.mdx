@@ -1,0 +1,130 @@
+---
+title: "Resolving Style Conflicts"
+---
+
+When more than one CSS declaration sets the same property on an element, the browser uses the **cascade** to decide which value applies. Understanding that decision helps you explain why a style appears and how to change it.
+
+## Where styles come from
+
+![Style origins](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/914fae1e-548e-4a8a-9359-e743c6896679/gallery/ad8c9cd9-623d-4521-8f4b-e01335f015b8)
+
+A browser starts with its own **user-agent stylesheet**: default styles for HTML elements. For example, headings may appear bold and links may be blue and underlined. An **author stylesheet** contains styles written by the page's developers and can override browser defaults. Users can also supply styles to adjust a page's appearance, such as its font size or colors.
+
+The cascade considers the origin and importance of declarations before comparing selector specificity. A declaration marked `!important` has priority over a conflicting normal declaration. Among declarations that remain tied, other factors such as layers, specificity, and source order help determine the winner.
+
+## Compare competing rules
+
+![Specificity comparison](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/914fae1e-548e-4a8a-9359-e743c6896679/gallery/58413e50-cda4-4038-9a76-a3f95d54d516)
+
+Consider a paragraph matched by three author rules:
+
+```html
+<header id="header" class="header">Welcome</header>
+```
+
+```css
+#header { color: blue; }
+.header { color: red; }
+header { color: green; }
+```
+
+All three selectors match the same element and set `color`. The declarations are normal author styles in the same layer, so compare their **specificity**, a measure based on selector types. An ID selector is more specific than a class selector, which is more specific than an element selector. Therefore `#header` wins and the text is blue, even though the `header` rule appears later.
+
+For these selector types, specificity can be written as three counts: IDs, classes, and elements. For example, `#header` is `1,0,0`, `.header` is `0,1,0`, and `header` is `0,0,1`. Compare the counts from left to right; the first difference decides the result. Attribute selectors and pseudo-classes count in the class column, while pseudo-elements count in the element column. Inline styles have higher priority than these normal selector rules.
+
+The table compares selectors using the same three counts. A selector can include more than one type, so `header .nav` has one class count and one element count.
+
+| Selector | ID, class, element counts | Relative specificity |
+| --- | --- | --- |
+| `#header` | `1,0,0` | Highest |
+| `header .nav` | `0,1,1` | Higher than `.nav` |
+| `.nav` | `0,1,0` | Higher than `div` |
+| `div` | `0,0,1` | Lowest |
+
+The class counts for `header .nav` and `.nav` tie, so the element count makes `header .nav` more specific. The ID count makes `#header` more specific than either of them.
+
+If importance, layer, and specificity are tied, **source order** decides. Here both selectors have the same specificity, so the later declaration makes the text green:
+
+```css
+.example { color: red; }
+.example { color: green; }
+```
+
+## Use importance carefully
+
+Adding `!important` to a declaration raises its priority over conflicting normal declarations:
+
+```html
+<span style="color: blue;" class="element">Text</span>
+```
+
+```css
+.element {
+  color: green !important;
+}
+```
+
+The text is green: the important declaration wins over the normal inline color. Use `!important` sparingly; frequent use makes conflicts harder to debug and styles harder to maintain. When important declarations compete, the cascade still has to resolve the conflict.
+
+## Organize rules with layers
+
+![Cascade layers](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/914fae1e-548e-4a8a-9359-e743c6896679/gallery/16e25679-29e7-405c-8597-99c6aaa6512c)
+
+Cascade layers group styles and give you another way to control their priority within the same origin. For example:
+
+```css
+@layer main, components;
+
+@layer main {
+  body { font-size: 16px; }
+}
+
+@layer components {
+  .button { font-size: 14px; }
+}
+```
+
+The layer order places `components` after `main`. Layers can help organize related styles and control overrides without increasing selector specificity.
+
+## Cascade cheat sheet
+
+The examples below assume both selectors match the same element and set the same property. Except where `!important` is shown, assume normal author declarations in the same layer. Specificity is shown as **ID, class, element** counts; combinators such as the space and `>` do not add a count.
+
+| Scenario | Competing declarations | Winner and reason |
+| --- | --- | --- |
+| Class and element | `p` (`0,0,1`) vs. `.note` (`0,1,0`) | `.note`: the class count is higher. |
+| Pseudo-class | `.button` (`0,1,0`) vs. `.button:hover` (`0,2,0`) | `.button:hover` when the button is hovered: the pseudo-class adds a class count. |
+| Pseudo-element | `.note::after` (`0,1,1`) vs. `p::after` (`0,0,2`) | `.note::after`: the class count decides before the element count. Both rules target the same `::after` pseudo-element. |
+| Descendant combinator | `button` (`0,0,1`) vs. `.component button` (`0,1,1`) | `.component button`: the class count is higher. |
+| Child combinator | `.panel p` (`0,1,1`) vs. `.panel > p` (`0,1,1`) | If both match, the later declaration wins; the combinators add no specificity. |
+| Media query | `.note` (`0,1,0`) vs. `.note` (`0,1,0`) inside a later matching media query | The later declaration wins while the media condition matches. The media query itself does not increase specificity. |
+| Important declaration | `#header` (`1,0,0`) vs. `.header` (`0,1,0`) with `!important` | The important `.header` declaration wins over the normal ID declaration. |
+| Inline style | `#header` (`1,0,0`) vs. a normal inline style | The inline style wins over the normal ID rule. |
+
+For the media-query example, the second rule only competes when its condition matches:
+
+```css
+.note { color: red; }
+
+@media (min-width: 600px) {
+  .note { color: green; }
+}
+```
+
+At widths of at least `600px`, both declarations match, and the later one sets the color to green. Otherwise, the first rule sets it to red.
+
+## Trace a conflict
+
+![Conflict investigation](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/914fae1e-548e-4a8a-9359-e743c6896679/gallery/659db15f-95f5-482d-b366-c2a13b8b7245)
+
+When a style is unexpected, inspect the element in browser developer tools and identify the declarations that set the property. Check their origin and importance, then consider layer priority and specificity. If those checks tie, look at source order. Some properties can also inherit a value from a parent when the child has no value of its own.
+
+For example, if both `button` and `.component button` set a normal color in the same layer, `.component button` wins because it is more specific. If a conflicting normal `button` declaration is marked `!important`, that important color wins instead. This sequence lets you identify the cause before changing the stylesheet.
+
+## Key Takeaways
+
+- **Cascade:** The browser resolves competing declarations using their priority, specificity, and order.
+- **Origins and importance:** Styles can come from the browser, the author, or the user; `!important` raises a declaration's priority over normal declarations.
+- **Specificity:** Compare selector types after earlier cascade checks are tied; source order resolves a remaining tie.
+- **Layers:** Group styles into layers to organize and control their priority.
+- **Debugging:** Inspect the matching declarations and trace the cascade before changing a rule.

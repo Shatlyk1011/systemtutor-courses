@@ -1,0 +1,158 @@
+---
+title: "CSS Syntax"
+description: "Read and write selectors, declarations, properties, and values."
+---
+
+A CSS rule chooses elements and sets their styles. In this lesson, you will connect an HTML class to a CSS selector, then add declarations that tell the browser what to change.
+
+## Read a style rule
+
+![Parts of a CSS rule](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/e14888a7-fc1d-46bc-8752-868336e60891/gallery/2ff9b36f-316d-4a69-8c04-454e8940390d)
+
+Start with this heading:
+
+```html
+<!-- [!code word:class="highlight"] -->
+<h1 class="highlight">Account settings</h1>
+```
+
+Its `class` value is `highlight`. A class selector starts with a dot, so `.highlight` matches this heading. The rule below makes its text green and sets its size to 18 pixels:
+
+```css
+/* [!code word:.highlight] */
+/* [!code word:color\: green;] */
+.highlight {
+  color: green;
+  font-size: 18px;
+}
+```
+
+Read the rule as: “Find elements with the class `highlight`, then apply these declarations.” A **declaration** sets a CSS property to a value. Here, `color: green` and `font-size: 18px` are two declarations.
+
+| Part | Example | Purpose |
+| --- | --- | --- |
+| Selector | `.highlight` | Chooses the elements to style. |
+| Property | `color` | Names the feature to change. |
+| Value | `green` | Specifies the setting for that feature. |
+| Declaration block | Everything between `{` and `}` | Groups the declarations for the selector. |
+
+The selector and its declaration block form the complete style rule.
+
+## Build a rule step by step
+
+Use the HTML hook first, then add the changes inside the block:
+
+1. Write `.highlight` because the heading has `class="highlight"`. The dot means “match this class,” rather than every heading.
+2. Add `{` and `}` to make a declaration block.
+3. Add `color: green;`. `color` is the property to change; `green` is its value.
+4. Add `font-size: 18px;`. `font-size` expects a size, and `18px` means 18 pixels.
+
+Each declaration changes one feature. That is why changing `green` changes the color without changing the text size, and changing `18px` changes the size without changing the selector.
+
+Before moving on, check your reasoning: if the HTML were `<p class="note">`, which selector would match it? The answer is `.note`, because the class name stays the same and the dot still marks a class selector.
+
+Now complete this rule in your head. The selector and first declaration are already provided; add a declaration that makes the text 18 pixels:
+
+```css
+.note {
+  color: purple;
+  __________________
+}
+```
+
+The missing declaration is `font-size: 18px;`. It goes inside the same braces because it changes another feature of the same matching elements.
+
+## Complete a rule
+
+Now use the same process with a new class. The HTML gives the heading a class named `notice`:
+
+```html
+<h2 class="notice">Account settings</h2>
+```
+
+The selector and braces are ready. Add the two declarations that make the text green and 18 pixels:
+
+```css
+.notice {
+  __________________
+  __________________
+}
+```
+
+The completed rule is:
+
+```css
+.notice {
+  color: green;
+  font-size: 18px;
+}
+```
+
+The tag changed from `h1` to `h2`, but the reasoning did not: `.notice` matches because the class value is `notice`. The declarations go inside the braces because both changes apply to the same matching elements.
+
+## Use the punctuation correctly
+
+Each symbol has a job:
+
+- `{` starts the declaration block, and `}` ends it.
+- `:` separates a property from its value.
+- `;` separates one declaration from the next.
+
+For example, `color = green` uses the wrong separator. The declaration must use a colon: `color: green;`. When a block has more than one declaration, the semicolon keeps the declarations separate. The final semicolon before `}` is optional, but keeping it makes adding another declaration less error-prone. A line break does not replace a semicolon.
+
+## Format rules for reading
+
+These two rules have the same effect:
+
+```css
+/* [!code word:font-size] */
+/* [!code word:18px] */
+.highlight{color:green;font-size:18px;}
+```
+
+```css
+/* [!code word:\:] */
+/* [!code word:;] */
+.highlight {
+  color: green;
+  font-size: 18px;
+}
+```
+
+Use these formatting habits to make rules easier to scan:
+
+- Put each declaration on its own line and indent the block.
+- Use consistent spacing around colons; those spaces are optional.
+- Keep property names such as `font-size` together.
+- Write `18px` without a space between the number and its unit.
+
+Some spaces change the meaning of CSS. For example, `18px` is valid, but `18 px` is not: the number and unit must stay together.
+
+## Write another rule
+
+A stylesheet can contain several style rules, each with its own selector and block:
+
+```css
+h1 { /* [!code word:h1:1] */
+  color: green;
+}
+
+p { /* [!code word:p:1] */
+  color: purple;
+}
+```
+
+The first rule selects headings; the second selects paragraphs. Their declarations change the text colors of the matching elements.
+
+## Try it yourself
+
+Write the complete `.alert` rule. First use the class name to choose the heading, then add the two declarations inside the braces. The editor below contains CSS only; you will learn where CSS can be placed in an HTML document in the next lesson.
+
+<LessonPractice />
+
+## Key Takeaways
+
+- **Style rule:** A selector connects matching elements to a declaration block.
+- **Declaration:** A property names what to change, and its value supplies the setting.
+- **Punctuation:** Braces enclose the block, a colon separates property and value, and semicolons separate declarations.
+- **Formatting:** One declaration per line makes rules easier to read without changing their meaning.

@@ -1,0 +1,446 @@
+---
+title: "Transforms and Transitions"
+---
+
+{/* Topics to cover: Interaction and Motion; Transforms; Transitions. */}
+
+## Interaction and Motion
+
+Motion can help show a change: a button responds to a press, or a new item enters a list. First decide what the user needs to know, then choose an effect that helps show it.
+
+### Define the state before the movement
+
+For a save button, separate these questions:
+
+| Question | Feedback |
+| --- | --- |
+| Can I interact with this? | A recognizable button and hover treatment. |
+| Where is keyboard input going? | A visible focus indicator. |
+| Am I pressing it? | An active state. |
+| Did saving finish? | A confirmed result such as “Changes saved.” |
+
+A moving button cannot prove that a save succeeded. That result must come from the application. CSS presents states; it does not perform the save.
+
+Build useful feedback without animation first:
+
+```html
+<button class="save-changes" type="button">Save changes</button>
+```
+
+```css
+.save-changes {
+  padding: 0.75rem 1rem;
+  font: inherit;
+  color: #ffffff;
+  background: #17352a;
+  border: 2px solid #17352a;
+  border-radius: 0.5rem;
+}
+
+@media (hover: hover) {
+  .save-changes:hover {
+    background: #285b46;
+  }
+}
+
+/* [!code word:focus-visible] */
+.save-changes:focus-visible {
+  outline: 3px solid #1d4ed8;
+  outline-offset: 3px;
+}
+
+.save-changes:active {
+  background: #0d241b;
+  border-style: inset;
+}
+```
+
+Hover, focus, and activation describe different moments. The active treatment is temporary, while the focus ring helps a keyboard user keep track of the control.
+
+### Choose a purpose for each effect
+
+Ask what would become harder to understand if the motion disappeared. A brief transition can soften the change between resting and hover colors. A short entrance can draw attention to a newly inserted card. Repeatedly bouncing every card competes with the content instead of explaining a change.
+
+**Transitions** animate a change between states. **Keyframe animations** follow a named sequence of styles. The next lessons show how to build both.
+
+### Decide what a movement communicates
+
+A button darkens while pressed, then a message appears only after the application reports a successful save. Which feedback tells you the save finished?
+
+<details>
+<summary>Check your reasoning</summary>
+
+The confirmation message reports the result. The pressed color only reports the current interaction; it can appear even if the save later fails.
+
+</details>
+
+Now imagine the color change is immediate rather than animated. Which information remains, and what would a transition add?
+
+<details>
+<summary>Check your reasoning</summary>
+
+The different color still indicates the pressed state. A transition can soften a change in appearance, but it does not add evidence of a successful save.
+
+</details>
+
+### Account for different input methods
+
+Screen width does not tell you the input method. Large screens can support touch, and small devices can have keyboards. The `hover` query checks whether the primary input can hover. Keep the button and its label usable either way.
+
+### Keep the meaning when movement stops
+
+Some users find movement distracting or uncomfortable. Plan a static version alongside the animated one: keep the button's color change, focus ring, and result message even when movement is removed. Avoid making an animation the only way to notice important information.
+
+### Key Takeaways
+
+- **Purpose:** Use motion to explain a state change or direct attention.
+- **Feedback:** Establish clear resting, focus, and active states first.
+- **Input methods:** Keep essential interactions available without hover.
+- **Static behavior:** Preserve information when motion is removed.
+
+
+### Try it yourself
+
+A profile form has a **Save changes** button. The team proposes making the button bounce on hover as the only sign that the form was saved. Describe a better feedback plan for a person using a keyboard and for someone who prefers reduced motion.
+
+Your plan should identify the resting control, focus and activation feedback, and the result shown after a successful save. Name one optional motion and explain what remains when it is removed. Include a failure result as well: a press alone does not tell you whether the save worked.
+
+<details>
+<summary>Hint 1</summary>
+
+Separate the user's action from the application's result. Which of those can CSS establish by itself?
+
+</details>
+
+<details>
+<summary>Hint 2</summary>
+
+Use a visible focus indicator and a clear result message that do not depend on hovering or movement.
+
+</details>
+
+<details>
+<summary>Check your reasoning</summary>
+
+Keep a labeled button, a visible keyboard focus indicator, and a distinct pressed state. After the application reports success, show “Changes saved”; on failure, explain that saving failed and how to retry. A short color transition can be optional, while the state colors, focus indicator, messages, and action remain without motion. Hover alone cannot serve keyboard or touch users, and a bounce cannot confirm a save.
+
+</details>
+
+## Transforms
+
+A **transform** changes how an element is drawn: it can move, turn, grow, shrink, or slant. A transform alone is immediate. A transition or animation can make that transformation change over time.
+
+### Learn the main 2D operations
+
+| Function | Example | Visual result |
+| --- | --- | --- |
+| `translate()` | `translate(12px, -4px)` | Moves right 12 pixels and up 4 pixels. |
+| `rotate()` | `rotate(8deg)` | Turns the element by an angle. |
+| `scale()` | `scale(1.1)` | Draws it at 110% of its size. |
+| `skewX()` | `skewX(10deg)` | Slants it along the horizontal axis. |
+
+`translateX()` and `translateY()` change one axis. `scaleX()` and `scaleY()` scale one axis. A scale of `1` preserves size; `0.8` draws at 80%.
+
+### See how transforms affect layout
+
+![Transform and original layout box]()
+{/*
+IMAGE PROMPT — Transform and original layout box
+Show three neighboring tags in a row. Mark the middle tag’s original layout box and its visible position after it moves upward and rotates; show that the neighboring boxes stay in place.
+*/}
+
+```html
+<div class="tag-row">
+  <span class="status-tag">New</span>
+  <span class="status-tag status-tag--raised">Popular</span>
+  <span class="status-tag">Sale</span>
+</div>
+```
+
+```css
+.tag-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  padding: 1.5rem;
+}
+
+.status-tag {
+  display: inline-block;
+  padding: 0.75rem 1rem;
+  color: #17352a;
+  background: #e7f3ec;
+  border: 1px solid #17352a;
+  border-radius: 0.5rem;
+}
+
+/* [!code word:transform] */
+.status-tag--raised {
+  transform: translateY(-8px) rotate(-4deg);
+}
+```
+
+The Popular tag appears raised and tilted, but neighboring tags are laid out using its original box. A transform does not make siblings rearrange around the transformed shape. Leave enough space to prevent overlap or clipping.
+
+`inline-block` lets these text spans use transforms. An ordinary inline text box cannot be transformed.
+
+### Predict the change
+
+The raised tag uses `translateY(-8px)`. What visual direction does the negative value choose, and do the neighboring tags move to fill the gap?
+
+<details>
+<summary>Check your reasoning</summary>
+
+It draws the tag 8px upward. The neighboring tags remain laid out around its original box, so they do not move to fill the visual gap.
+
+</details>
+
+Complete the rule below so the tag is drawn at 80% of its original size. Leave the other tags unchanged.
+
+```css
+.status-tag--small {
+  /* Add the transform. */
+}
+```
+
+<details>
+<summary>Check your answer</summary>
+
+Use `transform: scale(0.8);`. This changes the drawn size, not the space reserved by layout.
+
+</details>
+
+### Choose the pivot point
+
+For these HTML elements, the default transform origin is the center. Changing it alters the pivot used by rotation and scaling:
+
+```css
+/* [!code word:transform-origin] */
+.status-tag--raised {
+  transform-origin: left center;
+  transform: rotate(-8deg);
+}
+```
+
+Use this rule instead of the earlier raised-tag rule. The tag now pivots around the middle of its left edge. `transform-origin` does not add another movement; it changes the reference point for the transformation.
+
+### Keep function order intentional
+
+These declarations produce different positions:
+
+```css
+.first {
+  transform: translateX(40px) rotate(90deg);
+}
+
+.second {
+  transform: rotate(90deg) translateX(40px);
+}
+```
+
+In the first, the shift follows the original horizontal direction. In the second, it follows the rotated direction. Changing the function order changes the result.
+
+A new `transform` value replaces the old list of functions. To scale an already rotated element on hover, include both `rotate()` and `scale()` in the hover rule.
+
+These examples are static transformations, so they introduce no movement over time. When animating them, use the reduced-motion handling taught later in this chapter.
+
+### Key Takeaways
+
+- **Operations:** Translate, rotate, scale, and skew change the rendered shape or position.
+- **Layout:** A transformed element keeps its original place in normal layout.
+- **Origin:** Choose the pivot for rotation and scaling with `transform-origin`.
+- **Composition:** Function order matters, and a new transform declaration replaces the old list.
+
+
+### Try it yourself
+
+In the editor, move the middle tile 10px upward and rotate it by -5 degrees. Use a single `transform` declaration with `translateY()` followed by `rotate()`. Keep the other tiles and the supplied HTML unchanged. Check that the middle tile appears raised and tilted while the other tiles stay in their original positions.
+
+<LessonPractice courseSlugId="css/docs/motion-and-visual-effects/transforms" />
+
+Inspect the CSS as well as the preview. Why does the middle tile's original space remain? If a later rule sets `transform: scale(0.8)` on the same tile, what happens to the translation and rotation?
+
+<details>
+<summary>Hint 1</summary>
+
+A negative Y translation moves upward. Put both functions in one value, separated by a space.
+
+</details>
+
+<details>
+<summary>Hint 2</summary>
+
+A later winning `transform` declaration replaces the whole earlier value; it does not append a function to it.
+
+</details>
+
+<details>
+<summary>Check your work and reasoning</summary>
+
+Use `transform: translateY(-10px) rotate(-5deg);` on `.raised`. Layout still reserves the original box because the transform changes the drawing after layout. If the later `scale(0.8)` declaration wins, it replaces both functions. To keep all three, include them together in the later value, in the desired order. Check for overlap and clipping in the actual layout.
+
+</details>
+
+## Transitions
+
+A **transition** makes a property change gradually. For example, a button’s background can fade from one color to another.
+
+The transition describes how a change happens. Another rule, such as `:hover`, supplies the new value.
+
+### Transition a button between states
+
+```html
+<button class="save-button" type="button">Save item</button>
+```
+
+```css
+.save-button {
+  padding: 0.75rem 1rem;
+  font: inherit;
+  color: #ffffff;
+  background-color: #17352a;
+  border: 2px solid #17352a;
+  border-radius: 0.5rem;
+}
+
+.save-button:focus-visible {
+  outline: 3px solid #1d4ed8;
+  outline-offset: 3px;
+}
+
+@media (hover: hover) {
+  .save-button:hover {
+    background-color: #285b46;
+  }
+}
+
+/* [!code word:transition] */
+@media (prefers-reduced-motion: no-preference) {
+  .save-button {
+    transition: background-color 180ms ease-out;
+  }
+}
+```
+
+The hover rule changes the target color. The transition makes that change take 180 milliseconds when no reduced-motion preference is reported. Without the transition, the same feedback appears immediately.
+
+Put the transition on the base selector rather than only on `:hover`. It then remains defined when the pointer leaves, allowing the return to the resting color to animate too. The focus outline appears immediately because it is not a transitioned property.
+
+### Read the shorthand
+
+```css
+/* [!code word:250ms] */
+/* [!code word:100ms] */
+.sample {
+  transition: transform 250ms ease-out 100ms;
+}
+```
+
+This separate declaration can be read as four settings:
+
+| Part | Setting | Meaning |
+| --- | --- | --- |
+| Property | `transform` | Which property can transition. |
+| Duration | `250ms` | How long the change takes. |
+| Timing function | `ease-out` | How progress varies during the change. |
+| Delay | `100ms` | How long to wait before starting. |
+
+The first time value is the duration; the second is the delay. With this positive delay, an uninterrupted transition reaches the target 350 milliseconds after the change. The default duration is zero, so declaring only a property does not create a visible transition.
+
+`linear` keeps a steady pace. `ease-in` starts slowly, `ease-out` slows at the end, and `ease-in-out` does both. Easing changes the pace, not the total duration.
+
+### Read and complete a transition
+
+In `transition: background-color 200ms linear 50ms`, which value is the delay, and when does an uninterrupted change reach its target?
+
+<details>
+<summary>Check your reasoning</summary>
+
+The second time, `50ms`, is the delay. After that wait, the 200ms transition runs, reaching the target 250ms after the change if it is not interrupted.
+
+</details>
+
+A button has a hover color and a base rule. Add a 200ms `ease-out` transition for `background-color` to the base rule. Why is a hover color still necessary?
+
+```css
+.button { background-color: #17352a; /* Add the transition. */ }
+.button:hover { background-color: #285b46; }
+```
+
+<details>
+<summary>Check your reasoning</summary>
+
+Add `transition: background-color 200ms ease-out;` to `.button`. The hover rule supplies a different target value; a transition declaration does not itself change the color.
+
+</details>
+
+### Choose properties deliberately
+
+Separate multiple transitions with commas:
+
+```css
+.sample {
+  transition:
+    transform 250ms ease-out,
+    opacity 150ms linear;
+}
+```
+
+These declarations set the timing. To see a transition, change `transform` or `opacity`, for example in a hover rule.
+
+Name the properties you intend to animate instead of using `transition: all`. That keeps future changes from unexpectedly acquiring motion. Properties also have different animation behavior; do not assume every pair of CSS values has smooth intermediate steps.
+
+### Key Takeaways
+
+- **Trigger:** Another style change supplies the transition's target value.
+- **Timing:** Duration, easing, and delay control different parts of the change.
+- **Placement:** A base transition can animate both entering and leaving a state.
+- **Scope:** List the intended properties and preserve immediate feedback without motion.
+
+
+### Try it yourself
+
+In a local HTML file, use the button and styles below. Add a transition only for `background-color`, lasting 300ms with `ease-out` and no delay. Put it inside the existing preference query on the base button selector. The hover color and keyboard focus indicator must remain available even when there is no transition.
+
+```html
+<button class="action" type="button">Save item</button>
+```
+
+```css
+.action {
+  padding: 0.75rem 1rem;
+  color: white;
+  background-color: #17352a;
+  border: 2px solid #17352a;
+}
+.action:focus-visible { outline: 3px solid #1d4ed8; outline-offset: 3px; }
+@media (hover: hover) {
+  .action:hover { background-color: #285b46; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .action { /* Add the transition. */ }
+}
+```
+
+Open the file in a browser with a hover-capable pointer. Move the pointer onto and off the button, allowing each change to finish. Check that both directions change gradually. Tab to the button and check the focus indicator. With reduced motion enabled or emulated, check that the hover color still changes immediately. Explain why the transition belongs on the base selector and why the focus outline is not animated.
+
+<details>
+<summary>Hint 1</summary>
+
+The first part of the shorthand names the property; the next time value sets its duration.
+
+</details>
+
+<details>
+<summary>Hint 2</summary>
+
+The preference query already limits when the transition is applied. Leave the hover and focus rules outside it.
+
+</details>
+
+<details>
+<summary>Check your work and reasoning</summary>
+
+Add `transition: background-color 300ms ease-out;` inside the `.action` rule in the query. The base selector still matches when hover ends, so its transition can describe the return as well. Only `background-color` is listed, so the outline is not transitioned. The reduced-motion version retains the state change but does not apply this optional transition.
+
+</details>

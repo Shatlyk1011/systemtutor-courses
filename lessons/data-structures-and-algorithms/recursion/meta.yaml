@@ -1,0 +1,7 @@
+title: "Recursion"
+description: "Learn recursive problem solving, then apply base cases and divide-and-conquer recursion in guided practice."
+pages:
+  - introduction
+  - practice-fibonacci-number
+  - practice-medium-pow-x-n
+  - quiz-recursive-problem-solving

@@ -1,0 +1,157 @@
+---
+title: "Transforms"
+description: "Move, rotate, scale, and transform elements."
+---
+
+A **transform** changes how an element is drawn: it can move, turn, grow, shrink, or slant. A transform alone is immediate. A transition or animation can make that transformation change over time.
+
+## Learn the main 2D operations
+
+| Function | Example | Visual result |
+| --- | --- | --- |
+| `translate()` | `translate(12px, -4px)` | Moves right 12 pixels and up 4 pixels. |
+| `rotate()` | `rotate(8deg)` | Turns the element by an angle. |
+| `scale()` | `scale(1.1)` | Draws it at 110% of its size. |
+| `skewX()` | `skewX(10deg)` | Slants it along the horizontal axis. |
+
+`translateX()` and `translateY()` change one axis. `scaleX()` and `scaleY()` scale one axis. A scale of `1` preserves size; `0.8` draws at 80%.
+
+## See how transforms affect layout
+
+![Transform and original layout box]()
+{/*
+IMAGE PROMPT — Transform and original layout box
+Show three neighboring tags in a row. Mark the middle tag’s original layout box and its visible position after it moves upward and rotates; show that the neighboring boxes stay in place.
+*/}
+
+```html
+<div class="tag-row">
+  <span class="status-tag">New</span>
+  <span class="status-tag status-tag--raised">Popular</span>
+  <span class="status-tag">Sale</span>
+</div>
+```
+
+```css
+.tag-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  padding: 1.5rem;
+}
+
+.status-tag {
+  display: inline-block;
+  padding: 0.75rem 1rem;
+  color: #17352a;
+  background: #e7f3ec;
+  border: 1px solid #17352a;
+  border-radius: 0.5rem;
+}
+
+/* [!code word:transform] */
+.status-tag--raised {
+  transform: translateY(-8px) rotate(-4deg);
+}
+```
+
+The Popular tag appears raised and tilted, but neighboring tags are laid out using its original box. A transform does not make siblings rearrange around the transformed shape. Leave enough space to prevent overlap or clipping.
+
+`inline-block` lets these text spans use transforms. An ordinary inline text box cannot be transformed.
+
+## Predict the change
+
+The raised tag uses `translateY(-8px)`. What visual direction does the negative value choose, and do the neighboring tags move to fill the gap?
+
+<details>
+<summary>Check your reasoning</summary>
+
+It draws the tag 8px upward. The neighboring tags remain laid out around its original box, so they do not move to fill the visual gap.
+
+</details>
+
+Complete the rule below so the tag is drawn at 80% of its original size. Leave the other tags unchanged.
+
+```css
+.status-tag--small {
+  /* Add the transform. */
+}
+```
+
+<details>
+<summary>Check your answer</summary>
+
+Use `transform: scale(0.8);`. This changes the drawn size, not the space reserved by layout.
+
+</details>
+
+## Choose the pivot point
+
+For these HTML elements, the default transform origin is the center. Changing it alters the pivot used by rotation and scaling:
+
+```css
+/* [!code word:transform-origin] */
+.status-tag--raised {
+  transform-origin: left center;
+  transform: rotate(-8deg);
+}
+```
+
+Use this rule instead of the earlier raised-tag rule. The tag now pivots around the middle of its left edge. `transform-origin` does not add another movement; it changes the reference point for the transformation.
+
+## Keep function order intentional
+
+These declarations produce different positions:
+
+```css
+.first {
+  transform: translateX(40px) rotate(90deg);
+}
+
+.second {
+  transform: rotate(90deg) translateX(40px);
+}
+```
+
+In the first, the shift follows the original horizontal direction. In the second, it follows the rotated direction. Changing the function order changes the result.
+
+A new `transform` value replaces the old list of functions. To scale an already rotated element on hover, include both `rotate()` and `scale()` in the hover rule.
+
+These examples are static transformations, so they introduce no movement over time. When animating them, use the reduced-motion handling taught later in this chapter.
+
+## Key Takeaways
+
+- **Operations:** Translate, rotate, scale, and skew change the rendered shape or position.
+- **Layout:** A transformed element keeps its original place in normal layout.
+- **Origin:** Choose the pivot for rotation and scaling with `transform-origin`.
+- **Composition:** Function order matters, and a new transform declaration replaces the old list.
+
+
+## Try it yourself
+
+In the editor, move the middle tile 10px upward and rotate it by -5 degrees. Use a single `transform` declaration with `translateY()` followed by `rotate()`. Keep the other tiles and the supplied HTML unchanged. Check that the middle tile appears raised and tilted while the other tiles stay in their original positions.
+
+<LessonPractice />
+
+Inspect the CSS as well as the preview. Why does the middle tile's original space remain? If a later rule sets `transform: scale(0.8)` on the same tile, what happens to the translation and rotation?
+
+<details>
+<summary>Hint 1</summary>
+
+A negative Y translation moves upward. Put both functions in one value, separated by a space.
+
+</details>
+
+<details>
+<summary>Hint 2</summary>
+
+A later winning `transform` declaration replaces the whole earlier value; it does not append a function to it.
+
+</details>
+
+<details>
+<summary>Check your work and reasoning</summary>
+
+Use `transform: translateY(-10px) rotate(-5deg);` on `.raised`. Layout still reserves the original box because the transform changes the drawing after layout. If the later `scale(0.8)` declaration wins, it replaces both functions. To keep all three, include them together in the later value, in the desired order. Check for overlap and clipping in the actual layout.
+
+</details>

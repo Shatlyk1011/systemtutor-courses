@@ -1,0 +1,159 @@
+---
+title: "Specificity and Inheritance"
+description: "Resolve competing rules and understand inherited values."
+---
+
+When a style surprises you, first decide which question you are answering:
+
+- **Specificity:** Which competing declaration wins for the **same property on the same element**, after the earlier cascade checks are tied?
+- **Inheritance:** When a child has no value of its own, does that property take its value from the parent?
+
+This distinction matters. Do not compare the weight of a selector on a parent with a selector on its child: those declarations apply to different elements.
+
+## Compare selector weights
+
+![Specificity counts](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/e14888a7-fc1d-46bc-8752-868336e60891/gallery/5d9f87a9-47c1-43b4-8f27-9668e048a7bc)
+
+For the selectors covered so far, write specificity as three counts: **ID – CLASS – TYPE**. Count the selector parts that match one element.
+
+- **ID:** Count ID selectors such as `#note`.
+- **CLASS:** Count class selectors, attribute selectors, and ordinary pseudo-classes such as `:hover`.
+- **TYPE:** Count element types and pseudo-elements such as `p` and `::before`.
+
+| Selector | Specificity |
+| --- | --- |
+| `p` | `0-0-1` |
+| `.note` | `0-1-0` |
+| `p.note` | `0-1-1` |
+| `#note` | `1-0-0` |
+
+Compare from left to right. The first unequal column decides the winner; these are separate counts, not a single decimal score. The universal selector `*` and combinators add no weight.
+
+Once the three counts are secure, these special cases are useful reference points. Some pseudo-classes take selectors inside parentheses:
+
+- **`:is()`, `:not()`, and `:has()`:** Use the highest specificity among the selectors in their argument list, without adding a CLASS count for the function itself. For example, `:is(.note, #note)` has specificity `1-0-0`, even when an element matches only `.note`.
+- **`:where()`:** Adds no specificity, including for its arguments. For example, `:where(#note) p` has specificity `0-0-1`, contributed only by `p`.
+
+## Trace a competing declaration
+
+```html
+<!-- [!code word:class="note"] -->
+<p class="note">Check the notification.</p>
+```
+
+```css
+/* [!code word:p.note] */
+p.note {
+  color: purple;
+}
+
+.note { /* [!code word:.note:1] */
+  color: green;
+}
+```
+
+Both rules match the same paragraph and set its `color`. Assume they are normal author rules in the same layer, so the earlier cascade checks are tied. Now trace the decision:
+
+1. `.note` has `0-1-0`: one CLASS count.
+2. `p.note` has `0-1-1`: one CLASS count and one TYPE count.
+3. The ID and CLASS counts tie. The TYPE counts do not, so `p.note` wins and the paragraph is purple.
+
+The later `.note` rule cannot overturn that specificity difference. If both selectors were `.note`, their weights would tie and source order would decide instead. This is why you check the cascade before adding a stronger selector.
+
+Complete this shorter trace before reading on: if the second selector were `p`, which rule would win? `.note` wins because its CLASS count is compared before `p`'s TYPE count.
+
+## Follow inherited values
+
+![Inheritance and direct values](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/e14888a7-fc1d-46bc-8752-868336e60891/gallery/ae42d287-4335-45fa-9fe6-79bf437b735e)
+
+Consider a section containing text:
+
+```html
+<!-- [!code word:class="article"] -->
+<!-- [!code word:<em>] -->
+<!-- [!code word:</em>] -->
+<section class="article">
+  <p>Review the <em>details</em>.</p>
+</section>
+```
+
+```css
+/* [!code word:color] */
+/* [!code word:border] */
+.article {
+  color: green;
+  border: 2px solid green;
+}
+```
+
+The section has a direct `color` and `border`. With no `color` declarations on the paragraph or `em`:
+
+- **Text color:** `color` is inherited, so green passes from the section to the paragraph `p` and then to the emphasized `em` text.
+- **Border:** `border` is not inherited, so it stays on the section rather than creating borders around the descendants.
+
+Inheritance follows each property's rules; it does not copy every declaration from the parent. The inherited value is only the fallback when the child has no winning value of its own.
+
+## Set a value directly
+
+Add this rule:
+
+```css
+/* [!code word:em] */
+/* [!code word:purple] */
+em {
+  color: purple;
+}
+```
+
+The emphasized text becomes purple while the rest stays green. The `em` rule supplies a direct value for `em`, so `em` does not need to inherit `color` from the paragraph. The parent's selector weight is not compared against the child's selector weight: the declarations target different elements.
+
+If you remove the `em` rule, `details` becomes green again. That change is explained by inheritance, not by `.article` somehow having more specificity than `em`.
+
+## Choose where a value comes from
+
+These keywords work with any CSS property. They are useful reference tools after you can already trace ordinary declarations and inheritance:
+
+- **`inherit`:** Use the parent's computed value, even for a property that does not normally inherit.
+- **`initial`:** Use the property's initial value defined by CSS, rather than the parent's value or a browser's element-specific style.
+- **`unset`:** Behave as `inherit` for an inherited property and `initial` for a non-inherited property.
+- **`revert`:** Roll back the current cascade origin for the property so a lower-priority origin can supply the value.
+- **`revert-layer`:** Roll back the current cascade layer for that property; a lower-priority layer, or then a lower-priority origin, can supply the value.
+
+For example, replace the direct purple color with:
+
+```css
+/* [!code word:inherit] */
+em {
+  color: inherit;
+}
+```
+
+The emphasized text uses its parent's green color again. The [CSS cascade specification](https://www.w3.org/TR/css-cascade-5/#defaulting-keywords) defines these defaulting keywords.
+
+## Check each decision
+
+Use the same short routine each time:
+
+1. Are competing declarations setting the same property on the same element? If so, use the cascade decision order; compare specificity only after the earlier checks tie.
+2. Does the child have a winning value for that property? If not, check whether the property inherits from its parent.
+
+Try these predictions:
+
+- Between `.note` (`0-1-0`) and `p.note` (`0-1-1`), `p.note` wins because the first unequal count is the TYPE count.
+- If both selectors are `.note`, their weights tie, so source order decides instead.
+- If a section sets `color: green` and its child has no color of its own, the child inherits green. If the child sets `color: purple`, its direct value applies without comparing the parent's selector weight.
+- A border on the section does not create borders on its children because `border` does not inherit by default.
+
+## Try it yourself
+
+In the practice task, build the rules in order, then use the result to explain three separate decisions: a specificity comparison on one paragraph, an inherited value on another paragraph, and a direct value on `em`.
+
+<LessonPractice />
+
+## Key Takeaways
+
+- **Specificity:** Compare selector counts from ID to CLASS to TYPE after earlier cascade checks are tied.
+- **Source order:** A later declaration wins only when the relevant priorities and selector weights are tied.
+- **Inheritance:** Some properties pass a parent's value to children; others do not.
+- **Direct values:** A declaration on a child takes precedence over a value it would otherwise inherit.
+- **Value keywords:** `inherit`, `initial`, `unset`, `revert`, and `revert-layer` let you choose where a value comes from.

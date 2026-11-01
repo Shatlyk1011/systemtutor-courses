@@ -1,0 +1,65 @@
+---
+title: "Maximum Average Subarray I"
+description: "Apply a fixed-size sliding window to find the greatest average."
+slug: "practice-maximum-average-subarray"
+ 
+---
+
+## Try It Yourself
+
+Use the editor below to find the best average among all contiguous windows of exactly k values. Reuse the current window sum instead of adding every window again.
+
+Submit your implementation when it passes the examples. Initialize the maximum from a real window so arrays containing negative values work correctly.
+
+<PracticeExercise problemId="maximum-average-subarray" />
+
+## Solution
+
+![Fixed window update](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/1e3e13b6-0db0-43d8-9eab-205bdcf6fa8f/gallery/0c059045-2c9f-4191-8081-705d0ec413c3)
+
+Sum the first k values to create the initial window. For every later position, add the value entering on the right and subtract the value leaving on the left.
+
+Track the greatest window sum and divide it by k once at the end.
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```js
+    function findMaxAverage(nums, k) {
+      let windowSum = 0;
+    
+      for (let index = 0; index < k; index++) {
+        windowSum += nums[index];
+      }
+    
+      let maximumSum = windowSum;
+    
+      for (let right = k; right < nums.length; right++) {
+        windowSum += nums[right] - nums[right - k];
+        maximumSum = Math.max(maximumSum, windowSum);
+      }
+    
+      return maximumSum / k;
+    }
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    def find_max_average(nums, k):
+        window_sum = sum(nums[:k])
+        maximum_sum = window_sum
+    
+        for right in range(k, len(nums)):
+            window_sum += nums[right] - nums[right - k]
+            maximum_sum = max(maximum_sum, window_sum)
+    
+        return maximum_sum / k
+    ```
+  </Tab>
+</Tabs>
+
+### Big O notation
+
+| Measure | Complexity | Explanation |
+|---|---:|---|
+| Time | `O(n)` | The first window is built once and every remaining value enters and leaves once. |
+| Auxiliary space | `O(1)` | Only the running and maximum sums are stored. |

@@ -1,0 +1,63 @@
+---
+title: "Pow(x, n)"
+description: "Use recursive divide and conquer to calculate integer powers efficiently."
+slug: "practice-medium-pow-x-n"
+ 
+---
+
+## Try It Yourself
+
+Use the editor below to calculate x raised to an integer power without built-in exponentiation. Reduce the exponent toward zero on every recursive call.
+
+Submit your implementation when it passes the examples. Handle negative exponents, zero, and negative base values.
+
+<PracticeExercise problemId="pow-x-n" />
+
+## Solution
+
+![Exponentiation by halving](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/03ce588b-f581-46ee-b98b-277331400e55/gallery/fb200407-c90a-4748-8a6e-edb827643c4a)
+
+A zero exponent is the base case and returns 1. For larger exponents, recursively calculate the result for half the exponent and square that result.
+
+An odd exponent needs one additional multiplication by the base. A negative exponent is handled by calculating the positive power and taking its reciprocal.
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```js
+    function myPow(x, n) {
+      function power(exponent) {
+        if (exponent === 0) return 1;
+    
+        const half = power(Math.floor(exponent / 2));
+        const squared = half * half;
+    
+        return exponent % 2 === 0 ? squared : squared * x;
+      }
+    
+      return n < 0 ? 1 / power(-n) : power(n);
+    }
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    def my_pow(x, n):
+        def power(exponent):
+            if exponent == 0:
+                return 1
+    
+            half = power(exponent // 2)
+            squared = half * half
+    
+            return squared if exponent % 2 == 0 else squared * x
+    
+        return 1 / power(-n) if n < 0 else power(n)
+    ```
+  </Tab>
+</Tabs>
+
+### Big O notation
+
+| Measure | Complexity | Explanation |
+|---|---:|---|
+| Time | `O(log n)` | Each recursive call halves the absolute exponent. |
+| Auxiliary space | `O(log n)` | The recursive call stack has one frame per halving step. |

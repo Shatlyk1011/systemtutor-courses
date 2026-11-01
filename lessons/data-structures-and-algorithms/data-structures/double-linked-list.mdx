@@ -1,0 +1,456 @@
+---
+title: "Doubly Linked List"
+description: "Understand the structure of doubly linked lists, implement core operations, and compare their performance with singly linked lists."
+---
+
+A **doubly linked list** is a sequence of nodes connected in both directions. Each node stores a value and two references:
+
+- `next` points to the following node.
+- `prev` points to the preceding node.
+
+The list keeps a `head` reference to its first node and a `tail` reference to its last node. The head's `prev` and the tail's `next` both point to `null`.
+
+![](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/b120617b-c1d8-4054-8f2c-d3bb3bd49713/gallery/9b4462a8-f5ac-4bec-969c-a5a47bdd90c7)
+
+
+<Callout title="Key Property: Bidirectional" type="info">
+Unlike a singly linked list, a doubly linked list can be traversed from the head to the tail or from the tail to the head. The extra link also makes removing a known node easier because its previous neighbor is immediately available.
+</Callout>
+
+---
+
+## Anatomy of a Doubly Linked List
+
+| Component | Description |
+|---|---|
+| **Node** | Stores a value plus `next` and `prev` references. |
+| **Head** | References the first node. Its `prev` is `null`. |
+| **Tail** | References the last node. Its `next` is `null`. |
+| **Length** | Tracks the number of nodes for fast boundary checks. |
+
+The second pointer increases memory usage, but it enables backward traversal and constant-time updates at both ends.
+
+## Defining the Node and List
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```javascript
+    class Node {
+      constructor(val) {
+        this.val = val;
+        this.next = null;
+        this.prev = null;
+      }
+    }
+
+    class DoublyLinkedList {
+      constructor() {
+        this.head = null;
+        this.tail = null;
+        this.length = 0;
+      }
+    }
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    class Node:
+        def __init__(self, val):
+            self.val = val
+            self.next = None
+            self.prev = None
+
+
+    class DoublyLinkedList:
+        def __init__(self):
+            self.head = None
+            self.tail = None
+            self.length = 0
+    ```
+  </Tab>
+</Tabs>
+
+---
+
+## Core Operations
+
+### 1. Adding to the End (`push`)
+
+Create a node, connect the current tail to it, connect it back to the current tail, and then update `tail`. If the list is empty, the new node becomes both head and tail.
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```javascript
+    push(val) {
+      const newNode = new Node(val);
+      if (!this.head) {
+        this.head = newNode;
+        this.tail = newNode;
+      } else {
+        this.tail.next = newNode;
+        newNode.prev = this.tail;
+        this.tail = newNode;
+      }
+      this.length++;
+      return this;
+    }
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    def push(self, val):
+        new_node = Node(val)
+        if not self.head:
+            self.head = new_node
+            self.tail = new_node
+        else:
+            self.tail.next = new_node
+            new_node.prev = self.tail
+            self.tail = new_node
+        self.length += 1
+        return self
+    ```
+  </Tab>
+</Tabs>
+
+**Time Complexity:** $O(1)$
+
+### 2. Removing from the End (`pop`)
+
+Because the tail has a `prev` reference, the new tail is available without traversing the list.
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```javascript
+    pop() {
+      if (!this.tail) return null;
+      const removedNode = this.tail;
+
+      if (this.length === 1) {
+        this.head = null;
+        this.tail = null;
+      } else {
+        this.tail = removedNode.prev;
+        this.tail.next = null;
+        removedNode.prev = null;
+      }
+
+      this.length--;
+      return removedNode;
+    }
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    def pop(self):
+        if not self.tail:
+            return None
+        removed_node = self.tail
+
+        if self.length == 1:
+            self.head = None
+            self.tail = None
+        else:
+            self.tail = removed_node.prev
+            self.tail.next = None
+            removed_node.prev = None
+
+        self.length -= 1
+        return removed_node
+    ```
+  </Tab>
+</Tabs>
+
+**Time Complexity:** $O(1)$
+
+### 3. Adding to the Beginning (`unshift`)
+
+Connect the new node to the current head in both directions, then make it the new head.
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```javascript
+    unshift(val) {
+      const newNode = new Node(val);
+      if (!this.head) {
+        this.head = newNode;
+        this.tail = newNode;
+      } else {
+        newNode.next = this.head;
+        this.head.prev = newNode;
+        this.head = newNode;
+      }
+      this.length++;
+      return this;
+    }
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    def unshift(self, val):
+        new_node = Node(val)
+        if not self.head:
+            self.head = new_node
+            self.tail = new_node
+        else:
+            new_node.next = self.head
+            self.head.prev = new_node
+            self.head = new_node
+        self.length += 1
+        return self
+    ```
+  </Tab>
+</Tabs>
+
+**Time Complexity:** $O(1)$
+
+### 4. Removing from the Beginning (`shift`)
+
+Save the head, advance `head` to the next node, and clear the links that connected the removed node.
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```javascript
+    shift() {
+      if (!this.head) return null;
+      const removedNode = this.head;
+
+      if (this.length === 1) {
+        this.head = null;
+        this.tail = null;
+      } else {
+        this.head = removedNode.next;
+        this.head.prev = null;
+        removedNode.next = null;
+      }
+
+      this.length--;
+      return removedNode;
+    }
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    def shift(self):
+        if not self.head:
+            return None
+        removed_node = self.head
+
+        if self.length == 1:
+            self.head = None
+            self.tail = None
+        else:
+            self.head = removed_node.next
+            self.head.prev = None
+            removed_node.next = None
+
+        self.length -= 1
+        return removed_node
+    ```
+  </Tab>
+</Tabs>
+
+**Time Complexity:** $O(1)$
+
+### 5. Accessing and Updating by Index (`get` and `set`)
+
+An index in the first half is reached from the head. An index in the second half is reached from the tail. This does not change the $O(n)$ worst case, but it can reduce the number of nodes visited.
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```javascript
+    get(index) {
+      if (index < 0 || index >= this.length) return null;
+      let current;
+
+      if (index <= this.length / 2) {
+        current = this.head;
+        for (let i = 0; i < index; i++) current = current.next;
+      } else {
+        current = this.tail;
+        for (let i = this.length - 1; i > index; i--) current = current.prev;
+      }
+
+      return current;
+    }
+
+    set(index, val) {
+      const node = this.get(index);
+      if (!node) return false;
+      node.val = val;
+      return true;
+    }
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    def get(self, index):
+        if index < 0 or index >= self.length:
+            return None
+
+        if index <= self.length / 2:
+            current = self.head
+            for _ in range(index):
+                current = current.next
+        else:
+            current = self.tail
+            for _ in range(self.length - 1, index, -1):
+                current = current.prev
+
+        return current
+
+    def set(self, index, val):
+        node = self.get(index)
+        if not node:
+            return False
+        node.val = val
+        return True
+    ```
+  </Tab>
+</Tabs>
+
+**Time Complexity:** $O(n)$
+
+### 6. Inserting at Any Position (`insert`)
+
+For a middle insertion, find the node currently at the index and connect the new node between it and its previous neighbor. All four affected links must remain consistent.
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```javascript
+    insert(index, val) {
+      if (index < 0 || index > this.length) return false;
+      if (index === 0) return Boolean(this.unshift(val));
+      if (index === this.length) return Boolean(this.push(val));
+
+      const nextNode = this.get(index);
+      const prevNode = nextNode.prev;
+      const newNode = new Node(val);
+
+      prevNode.next = newNode;
+      newNode.prev = prevNode;
+      newNode.next = nextNode;
+      nextNode.prev = newNode;
+      this.length++;
+      return true;
+    }
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    def insert(self, index, val):
+        if index < 0 or index > self.length:
+            return False
+        if index == 0:
+            self.unshift(val)
+            return True
+        if index == self.length:
+            self.push(val)
+            return True
+
+        next_node = self.get(index)
+        prev_node = next_node.prev
+        new_node = Node(val)
+
+        prev_node.next = new_node
+        new_node.prev = prev_node
+        new_node.next = next_node
+        next_node.prev = new_node
+        self.length += 1
+        return True
+    ```
+  </Tab>
+</Tabs>
+
+**Time Complexity:** $O(n)$ to locate the position and $O(1)$ to reconnect the nodes.
+
+### 7. Removing from Any Position (`remove`)
+
+For a middle removal, connect the target node's previous neighbor directly to its next neighbor, update the reverse link, and detach the removed node.
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```javascript
+    remove(index) {
+      if (index < 0 || index >= this.length) return null;
+      if (index === 0) return this.shift();
+      if (index === this.length - 1) return this.pop();
+
+      const removedNode = this.get(index);
+      removedNode.prev.next = removedNode.next;
+      removedNode.next.prev = removedNode.prev;
+      removedNode.next = null;
+      removedNode.prev = null;
+      this.length--;
+      return removedNode;
+    }
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    def remove(self, index):
+        if index < 0 or index >= self.length:
+            return None
+        if index == 0:
+            return self.shift()
+        if index == self.length - 1:
+            return self.pop()
+
+        removed_node = self.get(index)
+        removed_node.prev.next = removed_node.next
+        removed_node.next.prev = removed_node.prev
+        removed_node.next = None
+        removed_node.prev = None
+        self.length -= 1
+        return removed_node
+    ```
+  </Tab>
+</Tabs>
+
+**Time Complexity:** $O(n)$ by index. If the node reference is already known, unlinking it is $O(1)$.
+
+---
+
+## Singly vs. Doubly Linked Lists
+
+| Feature | Singly Linked List | Doubly Linked List |
+|---|---|---|
+| Traversal | Forward only | Forward and backward |
+| Links per node | One: `next` | Two: `next` and `prev` |
+| Memory usage | Lower | Higher |
+| Remove tail | $O(n)$ | $O(1)$ |
+| Remove a known node | Previous node must be found | Adjacent nodes are directly available |
+| Implementation | Simpler | More pointer updates |
+
+<Callout title="Pointer Safety" type="warn">
+Every connection has two sides. When inserting or removing a node, update both the forward (`next`) and backward (`prev`) references so the list remains valid in either direction.
+</Callout>
+
+## Performance Summary
+
+| Operation | Time Complexity |
+|---|---|
+| Push at tail | $O(1)$ |
+| Pop from tail | $O(1)$ |
+| Unshift at head | $O(1)$ |
+| Shift from head | $O(1)$ |
+| Get or set by index | $O(n)$ |
+| Insert or remove by index | $O(n)$ |
+| Remove a known node | $O(1)$ |
+| Search | $O(n)$ |
+
+## Real-World Applications
+
+Doubly linked lists are useful when movement in both directions matters:
+
+- **Browser navigation:** move backward and forward through visited pages.
+- **Undo and redo history:** move between earlier and later application states.
+- **Dynamic collections:** add or remove items without reorganizing an entire array.
+
+## Key Takeaways
+
+- Every node stores a value, a `next` reference, and a `prev` reference.
+- Bidirectional links allow traversal from either end of the list.
+- Push, pop, shift, and unshift all run in $O(1)$ time.
+- Index-based access still takes $O(n)$ because linked lists do not provide random access.
+- The extra pointer improves navigation and deletion flexibility at the cost of additional memory and more careful pointer management.

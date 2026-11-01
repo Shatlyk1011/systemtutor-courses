@@ -1,0 +1,116 @@
+---
+title: "Cross-Axis Alignment"
+description: "Align flex items and lines on the cross axis."
+---
+
+The **cross axis** runs across the main axis. In a normal row, it runs vertically. Use `align-items` for all items, `align-self` for one item, and `align-content` for wrapped lines.
+
+## Align the items on a line
+
+```css
+/* [!code word:align-items] */
+/* [!code word:center] */
+.toolbar {
+  display: flex;
+  min-height: 6rem;
+  align-items: center;
+  gap: 1rem;
+}
+```
+
+In the initial row direction and a horizontal writing mode, this centers each item vertically within its flex line. A text label and a taller button can share a visual center without needing equal heights.
+
+| Value | Cross-axis effect |
+| --- | --- |
+| `stretch` | Fills the line’s cross size when the item’s size is automatic, within its size limits. |
+| `flex-start` | Aligns item margin boxes at cross-start. |
+| `flex-end` | Aligns them at cross-end. |
+| `center` | Centers them across the line. |
+| `baseline` | Aligns their text baselines. |
+
+The initial `normal` alignment behaves as `stretch` for flex items. An item with an explicit cross size does not become that line's full size simply because stretching is enabled.
+
+## Override one item
+
+```css
+/* [!code word:align-self] */
+/* [!code word:flex-end] */
+.toolbar > .help {
+  align-self: flex-end;
+}
+```
+
+Add this rule to the toolbar example. The help item aligns at cross-end while its siblings keep the container's centered alignment. Put `align-self` on the item; `align-items` belongs on the container.
+
+Set `align-self: auto` to follow the container’s `align-items` again. Here, that centers the help item alongside the others.
+
+## Distribute the flex lines
+
+```css
+/* [!code word:wrap] */
+/* [!code word:align-content] */
+/* [!code word:space-between] */
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  height: 12rem;
+  align-items: flex-start;
+  align-content: space-between;
+  gap: 1rem;
+}
+```
+
+With enough tags to form two lines, this separates the lines across the available height. `align-items` continues to align individual tags inside each line.
+
+Two conditions make the line distribution visible:
+
+- The container uses wrapping. `align-content` has no effect on a `nowrap` flex container.
+- There is spare space on the cross axis after the line sizes and gaps are accounted for.
+
+Wrapping must be enabled, even if the items happen to fit on one line. With just one line, `space-between` has no lines to move apart.
+
+## Recheck the axis in a column
+
+When `flex-direction` becomes `column` in a horizontal writing mode, the cross axis becomes horizontal. `align-items: center` then centers items horizontally, while `justify-content` controls the vertical main axis.
+
+## Choose the target of alignment
+
+In the toolbar, you want only `.help` at cross-end while its siblings stay centered. Which property belongs on `.help`?
+
+<details>
+<summary>Check your reasoning</summary>
+
+Use `align-self: flex-end` on `.help`. It overrides the container's `align-items` for that item.
+
+</details>
+
+Two wrapped tag lines need to be separated within a tall container. Would you change `align-items` or `align-content`? Why?
+
+<details>
+<summary>Check your reasoning</summary>
+
+Use `align-content` on the container: it distributes lines. `align-items` positions items within their lines.
+
+</details>
+
+## Key Takeaways
+
+- **`align-items`:** Sets cross-axis alignment for items on each line.
+- **`align-self`:** Overrides that alignment for one item.
+- **`align-content`:** Distributes lines in a wrapping flex container.
+- **Axes:** Cross-axis alignment changes orientation when flex direction changes.
+
+## Try it yourself
+
+In the editor, center both items across the row's 120px height, then align only the second item at the bottom. Keep the HTML, sizes, and row direction. Check the first item's center and the second item's bottom edge. Explain which declaration affects one item and which affects both.
+
+<LessonPractice />
+
+The preview checks appearance at one size; inspect the declarations too. The editor offers progressive hints.
+
+<details>
+<summary>Check your reasoning</summary>
+
+Add `align-items: center` to `.strip` and `align-self: flex-end` to `.last`. The container sets the default for both; the item's rule overrides it for the second item.
+
+</details>

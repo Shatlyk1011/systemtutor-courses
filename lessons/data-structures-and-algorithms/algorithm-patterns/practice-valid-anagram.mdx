@@ -1,0 +1,73 @@
+---
+title: "Valid Anagram"
+description: "Apply frequency counters to determine whether two strings are anagrams."
+slug: "practice-valid-anagram"
+ 
+---
+
+## Try It Yourself
+
+Use the editor below to decide whether both strings contain exactly the same characters with exactly the same frequencies. Character order does not matter.
+
+Submit your implementation when it passes the examples. Check different lengths early and make sure repeated letters are counted rather than merely detected.
+
+<PracticeExercise problemId="valid-anagram" />
+
+## Solution
+
+![Character count cancellation](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/1e3e13b6-0db0-43d8-9eab-205bdcf6fa8f/gallery/a72b9b62-e522-4470-87df-f3215ed1ef54)
+
+First reject strings with different lengths. Count every character in the first string, then scan the second string and consume one saved occurrence at a time.
+
+If a required character has no remaining count, the strings cannot be anagrams. Matching lengths and a successful second pass mean every character was paired.
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```js
+    function isAnagram(s, t) {
+      if (s.length !== t.length) return false;
+    
+      const counts = new Map();
+    
+      for (const character of s) {
+        counts.set(character, (counts.get(character) ?? 0) + 1);
+      }
+    
+      for (const character of t) {
+        const remaining = counts.get(character) ?? 0;
+        if (remaining === 0) return false;
+        counts.set(character, remaining - 1);
+      }
+    
+      return true;
+    }
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    def is_anagram(s, t):
+        if len(s) != len(t):
+            return False
+    
+        counts = {}
+    
+        for character in s:
+            counts[character] = counts.get(character, 0) + 1
+    
+        for character in t:
+            remaining = counts.get(character, 0)
+            if remaining == 0:
+                return False
+            counts[character] = remaining - 1
+    
+        return True
+    ```
+  </Tab>
+</Tabs>
+
+### Big O notation
+
+| Measure | Complexity | Explanation |
+|---|---:|---|
+| Time | `O(n)` | Each character in both equal-length strings is processed once. |
+| Auxiliary space | `O(k)` | The frequency map stores up to k distinct characters. |

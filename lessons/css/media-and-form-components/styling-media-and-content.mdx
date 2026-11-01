@@ -1,0 +1,471 @@
+---
+title: "Styling Media and Content"
+---
+
+{/* Topics to cover: Images and Backgrounds; Images and Icons; Lists and Tables. */}
+
+## Images and Backgrounds
+
+Ask what the image adds. A photograph that explains an article is content; a texture behind a heading is decoration. That helps you choose between an HTML image and a CSS background.
+
+### Keep meaningful images in HTML
+
+Use an `<img>` when removing the image would remove information the reader needs:
+
+```html
+<!-- [!code word:alt] -->
+<figure class="profile-photo">
+  <img
+    src="/images/profile.jpg"
+    width="1200"
+    height="800"
+    alt="A person speaking at a conference">
+  <figcaption>A speaker presenting at a conference.</figcaption>
+</figure>
+```
+
+Add a 1200-by-800-pixel photograph at the example path. Use `alt` to describe the information the image adds to this page. The caption gives visible context.
+
+```css
+/* [!code word:height\: auto] */
+.profile-photo {
+  margin: 0;
+}
+
+.profile-photo img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.75rem;
+}
+```
+
+The photograph can shrink to fit its container while keeping its proportions. Styling it with CSS does not change its role as content.
+
+For a decorative HTML image, use `alt=""`. This tells screen readers to skip it. Leaving out `alt` is different: a screen reader may announce the filename. For an informative image, describe what it adds in this context.
+
+### Put decoration behind the content
+
+A background is suitable when the message remains complete without it:
+
+```html
+<section class="banner">
+  <h2>Discover workspace essentials</h2>
+  <p>Find practical essentials for your workspace.</p>
+</section>
+```
+
+```css
+/* [!code word:background-color] */
+/* [!code word:background-size] */
+.banner {
+  padding: 3rem 1.5rem;
+  color: #ffffff;
+  background-color: #17352a;
+  background-image: url("/images/texture.png");
+  background-repeat: no-repeat;
+  background-position: right center;
+  background-size: cover;
+}
+```
+
+Supply a decorative texture at that path. `cover` scales it to fill the background area while preserving its proportions, which can crop its edges. The section's content and padding determine its height; the background image does not create its own content box.
+
+The background color remains if the image cannot load. Choose a texture that keeps the white text readable, and also check the solid-color fallback.
+
+CSS backgrounds have no `alt` attribute. Keep instructions, profile details, and other essential information in HTML instead of embedding them only in a background image.
+
+### Choose the image's role
+
+A map showing a meeting location adds information; a faint stripe behind the address does not. Which belongs in HTML?
+
+<details>
+<summary>Check your reasoning</summary>
+
+The map is content. Give it a text alternative that communicates the useful location information, or provide that information in nearby text. The stripe can be a background because the address remains available without it.
+
+</details>
+
+Now consider a decorative flourish added with an `img`. What should its `alt` be if nearby text already conveys its purpose?
+
+<details>
+<summary>Check your reasoning</summary>
+
+Use `alt=""` so the redundant decoration is skipped.
+
+</details>
+
+### Key Takeaways
+
+- **Purpose:** Decide whether an image conveys information or adds decoration.
+- **Content images:** Use HTML and a text alternative that fits the context.
+- **Decorative images:** Use a background or an HTML image with `alt=""`.
+- **Background sizing:** Decoration does not determine an element's content size.
+
+### Try it yourself
+
+A recipe page needs a photograph showing the finished dish and a subtle pattern behind its heading. Decide how to add each image. Write the photograph markup with an appropriate text alternative and a CSS rule for the heading background. The heading must remain readable if the pattern fails to load. Explain why the two images have different treatments.
+
+Check that the photograph is in HTML, its alternative describes the dish in context, and the background has a readable fallback color. Assume `/dish.jpg` and `/pattern.png` exist.
+
+<details>
+<summary>Hint 1</summary>
+
+Which image conveys information that would be lost if it disappeared?
+
+</details>
+
+<details>
+<summary>Hint 2</summary>
+
+Use an `img` with `alt` for that image. A background color can remain behind a CSS background image.
+
+</details>
+
+<details>
+<summary>Check your work and reasoning</summary>
+
+```html
+<img src="/dish.jpg" alt="Tomato soup topped with basil">
+<h2 class="recipe-heading">Tomato soup</h2>
+```
+
+```css
+.recipe-heading {
+  color: white;
+  background-color: #17352a;
+  background-image: url("/pattern.png");
+}
+```
+
+The photograph supplies information about the dish, so it belongs in HTML with an alternative appropriate to the actual photo. The pattern is decorative. Check text contrast against both the pattern and the fallback color. Other accurate alternatives and readable colors are valid.
+
+</details>
+
+## Images and Icons
+
+A photograph may fill a card and be cropped at the edges. An icon should stay clear beside its label. CSS controls their size and appearance, while HTML provides their meaning.
+
+### Shape an image without stretching it
+
+```html
+<img
+  class="profile-photo"
+  src="/images/profile.jpg"
+  width="900"
+  height="600"
+  alt="A person smiling outdoors">
+```
+
+Supply a 900-by-600-pixel photo at the example path.
+
+```css
+/* [!code word:object-fit] */
+/* [!code word:object-position] */
+.profile-photo {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  object-position: center;
+  border-radius: 0.75rem;
+}
+```
+
+The source has a 3:2 ratio, but the displayed box uses 4:3. `object-fit: cover` fills that box without stretching the photograph, so some content is cropped. `object-position` controls the crop's alignment.
+
+For a diagram or logo whose entire contents must remain visible, use `object-fit: contain` instead. It can leave unused space inside the box.
+
+### Add effects to the intended element
+
+```css
+/* [!code word:filter] */
+.profile-photo {
+  filter: grayscale(30%) brightness(95%);
+}
+```
+
+`grayscale(30%)` partially removes color; `brightness(95%)` slightly darkens the result. Multiple filters run in their written order. `filter: none` restores the unfiltered appearance.
+
+Put the filter on the image to change only the photo. A filter on the card affects its text and other content too. `drop-shadow()` follows an image's visible shape, including transparent edges; a box shadow follows the element's box.
+
+### Size icons relative to their labels
+
+An inline SVG contains drawing instructions and can scale without the pixelation associated with enlarging a small bitmap:
+
+```html
+<button class="add-contact" type="button">
+  <svg class="button-icon" viewBox="0 0 24 24" aria-hidden="true">
+    <path d="M12 5v14M5 12h14" />
+  </svg>
+  Add contact
+</button>
+```
+
+```css
+/* [!code word:1em] */
+.add-contact {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  padding: 0.75em 1em;
+  font: inherit;
+  color: #17352a;
+  background: #ffffff;
+  border: 1px solid;
+  border-radius: 0.5rem;
+}
+
+.button-icon {
+  width: 1em;
+  height: 1em;
+  flex-shrink: 0;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+}
+```
+
+The icon follows the button’s font size and text color. The label already names the action, so `aria-hidden="true"` hides the decorative SVG from screen readers. Application code handles the actual “add contact” action.
+
+### Predict a crop
+
+A wide photograph must fill a square card. Which fitting value keeps its proportions and fills the square? What might disappear?
+
+<details>
+<summary>Check your reasoning</summary>
+
+`cover` fills the box without stretching the image, but can crop the sides. Check the actual photograph at the intended size.
+
+</details>
+
+A logo must show every edge in the same square. Which value would you choose instead?
+
+<details>
+<summary>Check your reasoning</summary>
+
+`contain` shows the whole logo, potentially leaving space in the box.
+
+</details>
+
+### Key Takeaways
+
+- **Fitting:** Use `cover` for intentional crops and `contain` to preserve the whole image.
+- **Filters:** Effects apply to the rendered element, so target them carefully.
+- **Icons:** Relative sizing and `currentColor` help icons follow nearby text.
+- **Meaning:** Give actions clear labels and hide redundant decorative icons.
+
+### Try it yourself
+
+A directory card has a portrait in an `<img class="portrait">` and a decorative stroked SVG with `class="button-icon"` beside a button labeled “Message”. Write CSS for a square portrait that fills its box without distortion and an icon that follows the button's font size and text color. Explain one limitation of your crop and why the labeled button can hide the SVG from assistive technology.
+
+Check for a square box, proportion-preserving fill, relative icon dimensions and `currentColor`. Inspect the portrait at different card sizes.
+
+<details>
+<summary>Hint 1</summary>
+
+Use a square `aspect-ratio` and choose the fitting value that fills the box.
+
+</details>
+
+<details>
+<summary>Hint 2</summary>
+
+The inline SVG uses a stroke. Size it in `em` and set its stroke to the inherited color.
+
+</details>
+
+<details>
+<summary>Check your work and reasoning</summary>
+
+```css
+.portrait {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+}
+.button-icon {
+  width: 1em;
+  height: 1em;
+  stroke: currentColor;
+}
+```
+
+The portrait can lose content at its edges; `cover` does not guarantee the subject remains visible. If the SVG merely repeats the visible button label, `aria-hidden="true"` avoids a redundant announcement. A meaningful icon without a label needs an accessible name.
+
+</details>
+
+## Lists and Tables
+
+Lists group related items. Tables show relationships across rows and columns. Keep that structure in HTML, then use CSS to make the content easier to scan.
+
+### Give lists readable spacing
+
+Use an unordered list when item order does not matter and an ordered list when the sequence matters:
+
+```html
+<ul class="checkout-list">
+  <li>Review the order details.</li>
+  <li>Choose a delivery option.</li>
+  <li>Confirm the shipping address.</li>
+</ul>
+```
+
+```css
+/* [!code word:list-style-type] */
+/* [!code word:list-style-position] */
+.checkout-list {
+  padding-inline-start: 1.5rem;
+  line-height: 1.6;
+  list-style-type: square;
+  list-style-position: outside;
+}
+
+.checkout-list li + li {
+  margin-block-start: 0.5rem;
+}
+```
+
+`list-style-type` chooses the bullets or numbering. With `outside`, wrapped lines line up with the text rather than the marker. The start padding leaves room for the markers.
+
+The sibling selector adds spacing only between items. It avoids adding another margin before the first item. For an ordered list, changing the marker to `lower-alpha` would produce lettered items without replacing the `<ol>` structure.
+
+### Add a caption and headers
+
+Use a table when a reader needs to compare values by both row and column:
+
+```html
+<table class="schedule-table">
+  <caption>Project schedule</caption>
+  <thead>
+    <tr>
+      <th scope="col">Project</th>
+      <th scope="col">Status</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th scope="row">Website</th>
+      <td>In progress</td>
+    </tr>
+    <tr>
+      <th scope="row">Mobile app</th>
+      <td>Ready for review</td>
+    </tr>
+  </tbody>
+</table>
+```
+
+The caption names the table. Header cells label its rows and columns. Use real header cells in HTML; making an ordinary cell bold does not give it that role.
+
+### Separate rows without visual clutter
+
+```css
+/* [!code word:border-collapse] */
+/* [!code word:nth-child(even)] */
+.schedule-table {
+  width: 100%;
+  border-collapse: collapse;
+  line-height: 1.5;
+}
+
+.schedule-table caption {
+  text-align: start;
+  font-weight: 700;
+  margin-block-end: 0.75rem;
+}
+
+.schedule-table th,
+.schedule-table td {
+  padding: 0.75rem;
+  text-align: start;
+  vertical-align: top;
+  border-bottom: 1px solid #cbd5e1;
+}
+
+.schedule-table thead {
+  color: #ffffff;
+  background: #17352a;
+}
+
+.schedule-table tbody tr:nth-child(even) {
+  background: #f1f5f9;
+}
+```
+
+`border-collapse: collapse` makes neighboring cell borders share an edge. Padding separates text from cell boundaries. Alternating row backgrounds, called **zebra striping**, help the eye follow a row across the table.
+
+Restrict the stripe selector to `tbody` so the header keeps its own appearance. Keep long cell contents able to wrap, and check the table at narrow widths.
+
+### Trace a stripe
+
+In the schedule example, why does `tbody tr:nth-child(even)` leave the header row unchanged?
+
+<details>
+<summary>Check your reasoning</summary>
+
+The selector only matches rows inside `tbody`; the header row is inside `thead`.
+
+</details>
+
+Would bold text in a `td` replace a column header?
+
+<details>
+<summary>Check your reasoning</summary>
+
+No. Use a `th` with the appropriate scope so the header relationship exists in the markup, not just its appearance.
+
+</details>
+
+### Key Takeaways
+
+- **Structure:** Choose lists for grouped items and tables for tabular relationships.
+- **List markers:** Control their appearance and position while leaving space for them.
+- **Table headers:** Use captions and header cells to describe the data.
+- **Readability:** Cell padding, shared borders, and row stripes support scanning.
+
+### Try it yourself
+
+Create a two-column table comparing two workshops and their start times. Give it a caption, column headers, and a row header for each workshop. Add CSS that gives cells `0.75rem` padding, collapses borders, and stripes even body rows without changing the header. Explain why the caption and headers cannot be replaced by CSS alone.
+
+Check the relationships in the HTML, then inspect the table at a narrow width with long workshop names.
+
+<details>
+<summary>Hint 1</summary>
+
+Place column headers in `thead` and data rows in `tbody`. Use `scope` to identify each header's direction.
+
+</details>
+
+<details>
+<summary>Hint 2</summary>
+
+Target both `th` and `td` for padding; limit the even-row selector to `tbody`.
+
+</details>
+
+<details>
+<summary>Check your work and reasoning</summary>
+
+```html
+<table class="workshops">
+  <caption>Workshop start times</caption>
+  <thead><tr><th scope="col">Workshop</th><th scope="col">Time</th></tr></thead>
+  <tbody>
+    <tr><th scope="row">Drawing</th><td>10:00</td></tr>
+    <tr><th scope="row">Printing</th><td>11:00</td></tr>
+  </tbody>
+</table>
+```
+
+```css
+.workshops { border-collapse: collapse; }
+.workshops th, .workshops td { padding: 0.75rem; }
+.workshops tbody tr:nth-child(even) { background: #f1f5f9; }
+```
+
+The caption names the table and header cells express relationships in the HTML; visual styling alone does not supply those relationships. Equivalent valid markup and colors are fine.
+
+</details>

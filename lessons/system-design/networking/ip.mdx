@@ -1,0 +1,143 @@
+---
+title: "IP"
+description: Understand IP addressing and how packets reach their destination.
+---
+
+<Callout title="Lesson goal" type="info">
+  By the end of this lesson, you will understand how network endpoints are addressed, how IPv4 and IPv6 work, how IP packets carry routing metadata, and how protocol layers connect application data with HTTP.
+</Callout>
+
+## Why networks need addresses
+
+When machines communicate, the network needs a way to identify a destination at a particular point in the network. **IP addresses** provide that routing identity.
+
+### IP addresses identify endpoints
+
+An **IP address** identifies a network interface or endpoint for routing. It is not a permanent identity for a person or a physical machine: an address can be reassigned, and a private address can be reused in many separate local networks.
+
+<Callout title="Core idea" type="info">
+Routers need a destination address to forward traffic. IP addresses provide that routing information within the relevant network scope.
+</Callout>
+
+## IPv4 addressing
+
+An IPv4 address is a **32-bit address** used to represent a value in four parts.
+
+It is written as **four decimal octets**, separated into four sections. Each octet ranges from **0 to 255**.
+
+```text
+[octet] . [octet] . [octet] . [octet]
+```
+
+### Key IPv4 rules
+
+- IPv4 addresses are **32 bits** long.
+- They are written as **four decimal octets** (e.g., `192.168.1.1`).
+- Each octet must be between **0 and 255**.
+
+## IPv4 and IPv6
+
+IPv4 and IPv6 use fundamentally different address spaces to handle network connectivity.
+
+- **IPv4:** Has a limit of roughly **4 billion addresses** (2^32). This address exhaustion is the key constraint of IPv4.
+- **IPv6:** Uses a **128-bit address space** (2^128), providing a practically inexhaustible pool of unique addresses.
+
+| Version | Address Size | Address Space | Example Format |
+|---|---|---|---|
+| **IPv4** | 32 bits | ~4.3 billion ($2^{32}$) | `192.0.2.1` |
+| **IPv6** | 128 bits | ~$3.4 \times 10^{38}$ ($2^{128}$) | `2001:0db8:85a3::8a2e:0370:7334` |
+
+## Public and private IPs
+
+![](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/54de4736-cbfb-4ca3-add4-542a111f11df/gallery/8fb060a9-f6a4-42c6-b9f4-bf017cd77b6a)
+
+IP addresses serve two different roles depending on where they are used: **public addresses** enable internet access, while **private addresses** identify devices inside a local network.
+
+### Public IP addresses
+
+A public IP address is globally routable on the public internet. A network can expose services through one, although firewalls, routing rules, and address translation still control whether a particular service is reachable.
+
+### Private IP addresses
+
+A private IP address identifies a device within a local network. Private ranges are not routed on the public internet, so many networks can reuse the same private addresses; a gateway commonly translates outbound traffic to a public address.
+
+| Address type | Purpose | Scope |
+|---|---|---|
+| **Public** | Enables internet access | Global / Internet-wide |
+| **Private** | Identifies devices inside a local network | Local Area Network (LAN) |
+
+![Private IP addresses](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/e25a97c7-7bb0-4a6e-a419-05a6f6f3c1fa/gallery/3deb6b01-5261-46f5-9cb7-68140f5594eb)
+
+## Static and dynamic IPs
+
+An IP address can be either **static** or **dynamic**. The difference is whether the address stays fixed or changes over time.
+
+- **Static IP address:** Stays fixed and remains the same over time.
+- **Dynamic IP address:** Can change periodically, assigned dynamically by network controllers (such as DHCP).
+
+| Type | Behavior | Common Usage |
+|---|---|---|
+| **Static** | Stays fixed | Servers, DNS infrastructure, static gateways |
+| **Dynamic** | Changes over time | Client devices, home routers, mobile clients |
+
+## IP packets and headers
+
+An **IP packet** is a fundamental unit of IP data. Each packet consists of a payload and an **IP header**, which contains metadata required for routing.
+
+### Source and destination metadata
+
+| Metadata | Meaning |
+|---|---|
+| **Source IP** | The IP address associated with where the packet originates from |
+| **Destination IP** | The IP address associated with where the packet is destined |
+
+The header provides the source and destination IP metadata that routers inspect at each hop to choose the next hop toward the destination. The final delivery to a particular application also depends on the transport protocol and port.
+
+---
+
+## Protocol layers
+
+A single network communication typically involves multiple protocol layers:
+
+- **Network protocols** (e.g., IP)
+- **Transport protocols** (e.g., TCP, UDP - upcoming lessons)
+- **Application protocols** (e.g., HTTP, DNS - upcoming lessons)
+
+These layers divide responsibility within the communication. Instead of one monolithic protocol handling everything, each layer handles a specialized part of the overall process.
+
+| Layer | Role in Communication | Example Protocols |
+|---|---|---|
+| **Application** | Handles application data and user-facing protocols | HTTP, HTTPS, WebSockets |
+| **Transport** | Manages port-to-port connections and delivery | TCP, UDP |
+| **Network** | Manages host addressing and routing across networks | IPv4, IPv6 |
+
+<Callout title="Main takeaway" type="info">
+Protocol layers divide responsibility among network, transport, and application protocols while allowing them to work together in one communication.
+</Callout>
+
+![](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/e25a97c7-7bb0-4a6e-a419-05a6f6f3c1fa/gallery/3c1ff4c6-09d2-49f6-abf1-6437df9bc942)
+
+## Application data and HTTP
+
+### Application data
+
+**Application data** is the actual content accessed and manipulated by software (such as JSON payloads, HTML documents, or images).
+
+### HTTP
+
+**HTTP (Hypertext Transfer Protocol)** is a common protocol at the **application layer**. It provides a standardized format for application software to request and exchange application data between clients and servers.
+
+- **Application data** is the *content*.
+- **HTTP** is the *application-layer protocol* used to transfer that content.
+
+<Callout type="info">
+We will learn about each topic deeper in upcoming lessons
+</Callout>
+
+## Key takeaways
+
+- **Unique Endpoint Addressing:** IP addresses identify network endpoints so machines can be distinguished.
+- **IPv4 vs IPv6:** IPv4 uses 32-bit addresses (4 decimal octets, 0–255, ~4 billion limit), whereas IPv6 uses 128-bit addresses to overcome capacity limits.
+- **Scope & Behavior:** Public IPs face the global internet; private IPs operate within local networks.
+- **IP Packet Headers:** Contain critical routing metadata, notably the source and destination IP addresses.
+- **Layer Separation & HTTP:** Communication divides responsibilities across Network, Transport, and Application layers. Application data is the content, and HTTP is the application-layer protocol used to exchange it.

@@ -1,0 +1,678 @@
+---
+title: "Styling Forms and States"
+---
+
+{/* Topics to cover: Form Styling Basics; Form Controls; Focus and Feedback; Component States. */}
+
+## Form Styling Basics
+
+Browsers give inputs, selects, and buttons their own styles. They may start with different fonts or spacing. **Normalization** gives them shared styles so they fit the rest of the page.
+
+### Start with a labeled native control
+
+```html
+<!-- [!code word:for="visitor-name"] -->
+<!-- [!code word:id="visitor-name"] -->
+<form class="form" action="/profile" method="post">
+  <div class="form-field">
+    <label for="visitor-name">Your name</label>
+    <input
+      id="visitor-name"
+      name="visitorName"
+      type="text"
+      autocomplete="name">
+  </div>
+  <button type="submit">Save profile</button>
+</form>
+```
+
+The label’s `for` matches the input’s `id`, connecting the label to the control. Native inputs and buttons provide built-in interaction. To make this form save a profile, connect the example `/profile` URL to a server handler.
+
+### Share typography and box sizing
+
+```css
+/* [!code word:font\: inherit] */
+/* [!code word:box-sizing\: border-box] */
+.form {
+  display: grid;
+  gap: 1rem;
+  max-width: 28rem;
+  font: 1rem / 1.5 system-ui, sans-serif;
+  color: #17352a;
+}
+
+.form input,
+.form select,
+.form textarea,
+.form button {
+  box-sizing: border-box;
+  font: inherit;
+  color: inherit;
+}
+
+.form-field {
+  display: grid;
+  gap: 0.375rem;
+}
+
+.form-field label {
+  font-weight: 600;
+}
+
+.form-field input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #64748b;
+  border-radius: 0.5rem;
+  background: #ffffff;
+}
+
+.form button {
+  justify-self: start;
+  padding: 0.75rem 1rem;
+  border: 1px solid #17352a;
+  border-radius: 0.5rem;
+  background: #e7f3ec;
+}
+```
+
+Some controls do not inherit the page's font by default. `font: inherit` makes typography follow the form. `border-box` includes padding and borders in a declared width, so the full-width input stays inside its container.
+
+The shared rule gives controls a common starting point. The input and button rules then set their shapes. Keep the form class in the selectors so these rules apply only to this form.
+
+### Preserve useful native presentation
+
+Keep useful browser styles. Parts of date pickers and select menus can look different across platforms and may not respond to the same CSS.
+
+`appearance: none` removes native presentation where supported. Applying it broadly can also remove a checkbox's visible box or a select's arrow. Use it only when you intend to supply the missing visual states. For simple checkbox and radio tinting, `accent-color` can retain the native control.
+
+Keep the browser's focus indicator while establishing this baseline. The Focus and Feedback lesson builds an explicit focus style.
+
+### Check the baseline
+
+If the form font changes, why does `font: inherit` help its input follow that change?
+
+<details>
+<summary>Check your reasoning</summary>
+
+The input takes the computed font from its parent instead of relying on its own browser-provided control font.
+
+</details>
+
+A 100%-wide input also has padding. Which sizing rule includes that padding in the declared width?
+
+<details>
+<summary>Check your reasoning</summary>
+
+`box-sizing: border-box` includes padding and borders in the width.
+
+</details>
+
+### Key Takeaways
+
+- **Baseline:** Normalize shared typography and sizing before individual control styles.
+- **Labels:** Connect visible labels to native controls with matching `for` and `id` values.
+- **Native presentation:** Remove it only when you will provide the missing visual states.
+- **Scope:** Keep form styles specific to the interface they serve.
+
+### Try it yourself
+
+Create a small form with a visible email label, an email input and a submit button. Scope a shared font and box-sizing baseline to `.signup`, and make the input fill its container with padding. Keep the native focus indicator. Explain how the label connects to the input and why the padding stays inside the declared width.
+
+Check matching `for` and `id` values, a `name` on the input, scoped selectors, and keyboard focus in a browser. The example needs a server handler to submit data.
+
+<details>
+<summary>Hint 1</summary>
+
+Use the same identifier for the label's `for` and the input's `id`.
+
+</details>
+
+<details>
+<summary>Hint 2</summary>
+
+Apply `font: inherit` and `box-sizing: border-box` to the controls, then set the input width and padding.
+
+</details>
+
+<details>
+<summary>Check your work and reasoning</summary>
+
+```html
+<form class="signup">
+  <label for="email">Email address</label>
+  <input id="email" name="email" type="email">
+  <button type="submit">Sign up</button>
+</form>
+```
+
+```css
+.signup input, .signup button { font: inherit; box-sizing: border-box; }
+.signup input { width: 100%; padding: 0.75rem; }
+```
+
+Matching `for` and `id` associates the label with the input. Border-box sizing includes padding and borders within the width. The rule leaves the browser's focus indicator in place.
+
+</details>
+
+## Form Controls
+
+Give form controls consistent fonts, spacing, and borders. Keep each control easy to recognize and use: fields need room to type, and buttons should look clickable.
+
+### Build the controls in HTML
+
+```html
+<!-- [!code word:required] -->
+<form class="signup-form" action="/subscriptions" method="post">
+  <div class="signup-field">
+    <label for="signup-email">Email (required)</label>
+    <input
+      id="signup-email"
+      name="email"
+      type="email"
+      autocomplete="email"
+      aria-describedby="email-hint"
+      required>
+    <small id="email-hint">Use an address where you can receive updates.</small>
+  </div>
+
+  <div class="signup-field">
+    <label for="experience">Coding experience</label>
+    <select id="experience" name="experience">
+      <option value="beginner">Just starting</option>
+      <option value="experienced">Already coding</option>
+    </select>
+  </div>
+
+  <div class="signup-field">
+    <label for="goals">What would you like to learn?</label>
+    <textarea id="goals" name="goals" rows="4"></textarea>
+  </div>
+
+  <button type="submit">Subscribe</button>
+</form>
+```
+
+Each control has a label that stays visible. The email description adds guidance. A placeholder would disappear during typing, so it should not replace that label. The example endpoint needs a server implementation to save subscriptions.
+
+### Reuse a field treatment
+
+```css
+/* [!code word:resize\: vertical] */
+.signup-form {
+  display: grid;
+  gap: 1.25rem;
+  max-width: 30rem;
+  font: 1rem / 1.5 system-ui, sans-serif;
+  color: #17352a;
+}
+
+.signup-field {
+  display: grid;
+  gap: 0.375rem;
+}
+
+.signup-field label {
+  font-weight: 600;
+}
+
+.signup-form input,
+.signup-form select,
+.signup-form textarea,
+.signup-form button {
+  box-sizing: border-box;
+  font: inherit;
+  color: inherit;
+  padding: 0.75rem;
+  border: 1px solid #64748b;
+  border-radius: 0.5rem;
+  background: #ffffff;
+}
+
+.signup-field input,
+.signup-field select,
+.signup-field textarea {
+  width: 100%;
+  min-width: 0;
+}
+
+.signup-field textarea {
+  resize: vertical;
+}
+
+.signup-form button {
+  justify-self: start;
+  color: #ffffff;
+  background: #17352a;
+  border-color: #17352a;
+}
+```
+
+The shared border, padding, and radius connect the controls visually. `rows="4"` gives the textarea an initial height, while vertical resizing lets readers make more room for a longer answer. Avoid forcing all fields to a short fixed height.
+
+Keep the select's native appearance for this example. Styling its outer box does not guarantee that its popup or options will look identical across platforms. Test the actual controls in the browsers you support.
+
+### Style validation after interaction
+
+```css
+/* [!code word:user-invalid] */
+.signup-field input:user-invalid {
+  border-color: #9f1239;
+  border-width: 2px;
+}
+```
+
+`type="email"` checks the email format, and `required` means the field cannot be empty. An empty field can match `:invalid` before the user types. `:user-invalid` waits until the browser considers the user to have interacted, helping avoid an early error border.
+
+CSS changes the appearance; it does not write a helpful error message or prove that a subscription succeeded. The next lesson adds explicit feedback.
+
+### Trace the field guidance
+
+In the signup example, which attribute connects the email input to the hint, and why keep the label too?
+
+<details>
+<summary>Check your reasoning</summary>
+
+`aria-describedby="email-hint"` points to the hint's ID. The label names the control; the hint supplies additional guidance.
+
+</details>
+
+If the textarea needs more room, which declaration allows the reader to change its height?
+
+<details>
+<summary>Check your reasoning</summary>
+
+`resize: vertical` permits vertical resizing in browsers that support it.
+
+</details>
+
+### Key Takeaways
+
+- **Labels:** Keep the field's purpose visible during entry.
+- **Consistency:** Share spacing and borders while respecting each control's role.
+- **Textareas:** Allow enough space for longer answers and useful resizing.
+- **Validation:** HTML sets the validation rules; CSS styles the control’s valid or invalid state.
+
+### Try it yourself
+
+Build a feedback form with a labeled topic select, a labeled comment textarea and a submit button. Add a short hint connected to the textarea. Give the select and textarea a shared font, padding and full width, and allow the textarea to resize vertically. Keep the select's native appearance.
+
+Check that every label targets a unique control ID, the hint ID matches `aria-describedby`, and the textarea has an initial height. Explain why a placeholder alone is not a sufficient label. Test resizing and keyboard access in a browser.
+
+<details>
+<summary>Hint 1</summary>
+
+Use `for` and `id` for labels, and `aria-describedby` for the additional hint.
+
+</details>
+
+<details>
+<summary>Hint 2</summary>
+
+Use `rows` for the textarea's initial height and `resize: vertical` for later adjustment.
+
+</details>
+
+<details>
+<summary>Check your work and reasoning</summary>
+
+```html
+<form class="feedback">
+  <label for="topic">Topic</label>
+  <select id="topic" name="topic"><option value="course">Course</option><option value="site">Site</option></select>
+  <label for="comment">Comment</label>
+  <textarea id="comment" name="comment" rows="4" aria-describedby="comment-hint"></textarea>
+  <small id="comment-hint">Tell us what you noticed.</small>
+  <button type="submit">Send feedback</button>
+</form>
+```
+
+```css
+.feedback select, .feedback textarea {
+  box-sizing: border-box;
+  font: inherit;
+  width: 100%;
+  padding: 0.75rem;
+}
+.feedback textarea { resize: vertical; }
+```
+
+A placeholder can disappear when someone types; a visible label remains available. A server handler is needed to process the form. Equivalent styles are welcome.
+
+</details>
+
+## Focus and Feedback
+
+Help users see which control has focus, which actions are available, and whether an action worked. Use visible focus styles and clear messages.
+
+### Make keyboard focus visible
+
+**Focus** identifies the element currently receiving keyboard input. `:focus-visible` matches when the browser determines that a visible indicator is appropriate, commonly during keyboard navigation.
+
+```css
+/* [!code word:focus-visible] */
+/* [!code word:outline-offset] */
+.feedback-form input:focus-visible,
+.feedback-form button:focus-visible {
+  outline: 3px solid #1d4ed8;
+  outline-offset: 3px;
+}
+```
+
+The offset separates the ring from the control's border. This allows a focused input to keep its error border at the same time. Preserve the browser's indicator wherever you have not supplied a replacement, and check that nearby content does not clip the ring.
+
+### Explain a detected error
+
+This example represents a form after validation has detected an invalid email:
+
+```html
+<!-- [!code word:aria-invalid="true"] -->
+<!-- [!code word:aria-describedby] -->
+<form class="feedback-form" action="/subscriptions" method="post">
+  <label for="feedback-email">Email (required)</label>
+  <input
+    id="feedback-email"
+    name="email"
+    type="email"
+    value="visitor@"
+    autocomplete="email"
+    aria-invalid="true"
+    aria-describedby="feedback-email-error"
+    required>
+  <p class="field-error" id="feedback-email-error">
+    Error: Enter a complete email address, such as visitor@example.com.
+  </p>
+  <button type="submit">Subscribe</button>
+</form>
+```
+
+```css
+.feedback-form {
+  display: grid;
+  gap: 0.5rem;
+  max-width: 28rem;
+}
+
+.feedback-form input,
+.feedback-form button {
+  box-sizing: border-box;
+  font: inherit;
+  padding: 0.75rem;
+  border: 1px solid #64748b;
+  border-radius: 0.5rem;
+}
+
+/* [!code word:aria-invalid="true"] */
+.feedback-form input[aria-invalid="true"] {
+  border: 2px solid #9f1239;
+}
+
+.field-error {
+  margin: 0;
+  color: #9f1239;
+}
+```
+
+`aria-invalid` communicates an error state; `aria-describedby` connects the explanation to the field. The text states what to fix, so the border color is an additional cue.
+
+Application code or a server response sets these attributes after finding an error and updates them when it is fixed. CSS only styles the state; it does not keep `aria-invalid` in sync with browser validation.
+
+### Distinguish unavailable controls
+
+For a separate unavailable-button example:
+
+```html
+<button type="submit" disabled>Subscribe</button>
+<p>Subscriptions are temporarily unavailable.</p>
+```
+
+```css
+.feedback-form button:disabled {
+  color: #475569;
+  background: #e2e8f0;
+  border-style: dashed;
+  cursor: not-allowed;
+}
+```
+
+Replace the form’s enabled button with this button and explanation. `disabled` prevents activation and normally removes the button from the Tab order. The gray styling only changes its appearance.
+
+### Confirm completed actions in words
+
+After a subscription actually succeeds, show a message such as “Subscription saved.” A field matching `:valid` passes its browser validation checks. That does not tell you whether the server saved the form.
+
+### Trace the feedback
+
+Why can the input show both an error border and a focus outline in the example?
+
+<details>
+<summary>Check your reasoning</summary>
+
+The error uses the border and focus uses an offset outline, so each can remain visible at the same time. Check that the outline is not clipped.
+
+</details>
+
+Does a valid email field prove the subscription was saved?
+
+<details>
+<summary>Check your reasoning</summary>
+
+No. Validation checks the field; a success message should follow a confirmed successful action.
+
+</details>
+
+### Key Takeaways
+
+- **Focus:** Show where keyboard input will go with a visible indicator.
+- **Errors:** Pair visual styling with a specific, connected explanation.
+- **Disabled controls:** Use HTML behavior and explain why an action is unavailable.
+- **Success:** Confirm the completed action rather than inferring it from field validity.
+
+### Try it yourself
+
+A form has detected an invalid email after submission. Write a labeled input with an explicit error state and connected message telling the user what to fix. Add CSS for an error border and a separate visible keyboard focus outline. Explain who updates the error state when the value is corrected.
+
+Check that the message ID matches `aria-describedby`, the state and message agree, and the focus indicator remains visible on the error field. Test with keyboard navigation; do not infer that the form was saved from a valid field.
+
+<details>
+<summary>Hint 1</summary>
+
+Use `aria-invalid` for the detected state and associate the explanation with `aria-describedby`.
+
+</details>
+
+<details>
+<summary>Hint 2</summary>
+
+Style the attribute selector for the border and `:focus-visible` for an offset outline.
+
+</details>
+
+<details>
+<summary>Check your work and reasoning</summary>
+
+```html
+<label for="email">Email</label>
+<input id="email" name="email" type="email" aria-invalid="true" aria-describedby="email-error">
+<p id="email-error">Enter a complete email address.</p>
+```
+
+```css
+input[aria-invalid="true"] { border: 2px solid #9f1239; }
+input:focus-visible { outline: 3px solid #1d4ed8; outline-offset: 3px; }
+```
+
+Application code or a server response must update the state and message after validation; CSS cannot synchronize them. Check the ring and error text against their actual backgrounds.
+
+</details>
+
+## Component States
+
+A button can look different while hovered or pressed. A checkbox can stay checked. Choose a selector that matches the state you want to show.
+
+### Show interaction states
+
+| State | Meaning |
+| --- | --- |
+| `:hover` | A pointing device is over the element. |
+| `:focus-visible` | The browser considers a visible focus indicator appropriate. |
+| `:active` | The element is being activated, such as while a pointer is pressed. |
+| `:checked` | A native checkbox or radio is checked. |
+
+`:active` does not mean that a navigation item remains selected after a click.
+
+```html
+<button class="action" type="button">Create task</button>
+```
+
+```css
+.action {
+  padding: 0.75rem 1rem;
+  font: inherit;
+  color: #ffffff;
+  background: #17352a;
+  border: 2px solid #17352a;
+  border-radius: 0.5rem;
+}
+
+/* [!code word:hover\: hover] */
+@media (hover: hover) {
+  .action:hover {
+    background: #285b46;
+  }
+}
+
+.action:focus-visible {
+  outline: 3px solid #1d4ed8;
+  outline-offset: 3px;
+}
+
+.action:active {
+  background: #0d241b;
+  border-style: inset;
+}
+```
+
+The media query adds hover feedback when the primary input can hover. Keep the action visible and usable without that feedback: a touchscreen user may never hover. The later `:active` rule wins the background conflict while the button is pressed.
+
+### Show choices that stay selected
+
+Native controls expose checked state without extra scripting:
+
+```html
+<label class="notification-choice">
+  <input type="checkbox" name="notifications" value="email">
+  <span>Email updates</span>
+</label>
+```
+
+```css
+/* [!code word:checked] */
+.notification-choice input {
+  accent-color: #17352a;
+}
+
+.notification-choice input:checked + span {
+  font-weight: 700;
+  text-decoration: underline;
+}
+```
+
+The checkbox stays checked after activation until changed again. Its visible native check mark and the label treatment both show the choice.
+
+For a navigation link representing the current page, style the corresponding HTML attribute instead:
+
+```html
+<a class="link" href="/projects" aria-current="page">My projects</a>
+```
+
+```css
+.link[aria-current="page"] {
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 0.25em;
+}
+```
+
+The router or server must mark the actual current page; CSS reads that attribute but does not update it.
+
+### Recognize empty content carefully
+
+```html
+<p class="note"></p>
+```
+
+```css
+/* [!code word:empty] */
+.note:empty {
+  display: none;
+}
+```
+
+`:empty` checks whether an element has content, not whether a form field has a value. Child elements and even spaces between the tags can prevent a match in current browsers; comments do not. If a list is empty, write a message such as “No projects yet” in HTML so the user knows what happened.
+
+### Distinguish a press from a choice
+
+Why does `:active` not describe a checkbox that remains selected after the pointer is released?
+
+<details>
+<summary>Check your reasoning</summary>
+
+`:active` describes activation in progress; `:checked` describes the checkbox's persistent checked state.
+
+</details>
+
+A link has `aria-current="page"`. Does the CSS rule decide which page is current?
+
+<details>
+<summary>Check your reasoning</summary>
+
+No. The application or server sets the attribute; CSS matches it.
+
+</details>
+
+### Key Takeaways
+
+- **Interaction:** Hover, focus, and active states describe different moments.
+- **Persistent state:** Use checked controls or an appropriate state attribute.
+- **Input methods:** Keep essential actions available without hover.
+- **Empty content:** `:empty` checks element contents, not a field's value.
+
+### Try it yourself
+
+Create a labeled checkbox for “Email reminders”. Style its adjacent label text when checked, and give the checkbox a visible keyboard focus indicator. Explain which state persists after activation and why hover alone is insufficient feedback.
+
+Check that the native checkbox remains visible and operable, the selected styling changes when it is checked, and focus is visible when navigating by keyboard. Test with both a pointer and keyboard.
+
+<details>
+<summary>Hint 1</summary>
+
+Put the checkbox and a text `span` inside a label. The adjacent sibling selector can reach the span.
+
+</details>
+
+<details>
+<summary>Hint 2</summary>
+
+Use `:checked` for the persistent choice and `:focus-visible` for the keyboard indicator.
+
+</details>
+
+<details>
+<summary>Check your work and reasoning</summary>
+
+```html
+<label class="reminder">
+  <input type="checkbox" name="reminders">
+  <span>Email reminders</span>
+</label>
+```
+
+```css
+.reminder input:checked + span { font-weight: 700; text-decoration: underline; }
+.reminder input:focus-visible { outline: 3px solid #1d4ed8; outline-offset: 3px; }
+```
+
+`:checked` persists until the choice changes; `:active` is temporary. Hover may not be available on a touchscreen and does not communicate keyboard focus. The native check mark also conveys the choice.
+
+</details>

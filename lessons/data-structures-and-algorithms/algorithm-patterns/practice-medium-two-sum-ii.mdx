@@ -1,0 +1,69 @@
+---
+title: "Two Sum II"
+description: "Apply opposite-direction pointers to find a target pair in a sorted array."
+slug: "practice-medium-two-sum-ii"
+ 
+---
+
+## Try It Yourself
+
+Use the editor below to find the target pair without building a lookup map. Use the array's sorted order to decide which pointer should move after each sum.
+
+Submit your implementation when it passes the examples. Return one-based indices and handle negative and duplicate values.
+
+<PracticeExercise problemId="two-sum-ii" />
+
+## Solution
+
+![Sorted pair search](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/1e3e13b6-0db0-43d8-9eab-205bdcf6fa8f/gallery/844b79e4-d2d6-4e16-969c-f25d6d228cdc)
+
+Place one pointer at each end of the sorted array. If their sum is too small, moving the left pointer right is the only way to increase it. If it is too large, move the right pointer left.
+
+When the sum equals the target, convert both zero-based positions to the required one-based indices.
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```js
+    function twoSumSorted(numbers, target) {
+      let left = 0;
+      let right = numbers.length - 1;
+    
+      while (left < right) {
+        const sum = numbers[left] + numbers[right];
+    
+        if (sum === target) return [left + 1, right + 1];
+        if (sum < target) left++;
+        else right--;
+      }
+    
+      return [];
+    }
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    def two_sum_sorted(numbers, target):
+        left = 0
+        right = len(numbers) - 1
+    
+        while left < right:
+            total = numbers[left] + numbers[right]
+    
+            if total == target:
+                return [left + 1, right + 1]
+            if total < target:
+                left += 1
+            else:
+                right -= 1
+    
+        return []
+    ```
+  </Tab>
+</Tabs>
+
+### Big O notation
+
+| Measure | Complexity | Explanation |
+|---|---:|---|
+| Time | `O(n)` | Each pointer moves inward at most n positions. |
+| Auxiliary space | `O(1)` | Only two pointer indices and the current sum are stored. |

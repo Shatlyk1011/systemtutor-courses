@@ -1,0 +1,134 @@
+---
+title: "Implement Queue Using Stacks"
+description: "Combine two stacks to preserve first-in, first-out queue order."
+slug: "practice-queue-using-stacks"
+ 
+---
+
+## Try It Yourself
+
+Use the editor below to process queue operations while relying only on stack behavior internally. Separate newly pushed values from values ready to leave.
+
+Submit your implementation when it passes the examples. Interleaved pushes, peeks, pops, and empty checks must preserve FIFO order.
+
+<PracticeExercise problemId="queue-using-stacks" />
+
+## Solution
+
+![Queue behavior from two stacks](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/03ce588b-f581-46ee-b98b-277331400e55/gallery/f33ed34c-dc7a-4d5c-bfc1-cd49dddcaf34)
+
+Push new values onto an input stack. When a front value is needed and the output stack is empty, move every input value to the output stack.
+
+That reversal places the oldest value on top. Reuse the output stack until it becomes empty instead of transferring values for every operation.
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```js
+    function runQueueUsingStacks(operations, values) {
+      class MyQueue {
+        constructor() {
+          this.input = [];
+          this.output = [];
+        }
+    
+        moveIfNeeded() {
+          if (this.output.length > 0) return;
+    
+          while (this.input.length > 0) {
+            this.output.push(this.input.pop());
+          }
+        }
+    
+        push(value) {
+          this.input.push(value);
+        }
+    
+        pop() {
+          this.moveIfNeeded();
+          return this.output.pop();
+        }
+    
+        peek() {
+          this.moveIfNeeded();
+          return this.output[this.output.length - 1];
+        }
+    
+        empty() {
+          return this.input.length === 0 && this.output.length === 0;
+        }
+      }
+    
+      let queue;
+      const output = [];
+    
+      for (let index = 0; index < operations.length; index++) {
+        const operation = operations[index];
+    
+        if (operation === "MyQueue") {
+          queue = new MyQueue();
+          output.push(null);
+        } else if (operation === "push") {
+          queue.push(values[index][0]);
+          output.push(null);
+        } else {
+          output.push(queue[operation]());
+        }
+      }
+    
+      return output;
+    }
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    def run_queue_using_stacks(operations, values):
+        class MyQueue:
+            def __init__(self):
+                self.input = []
+                self.output = []
+    
+            def move_if_needed(self):
+                if self.output:
+                    return
+    
+                while self.input:
+                    self.output.append(self.input.pop())
+    
+            def push(self, value):
+                self.input.append(value)
+    
+            def pop(self):
+                self.move_if_needed()
+                return self.output.pop()
+    
+            def peek(self):
+                self.move_if_needed()
+                return self.output[-1]
+    
+            def empty(self):
+                return not self.input and not self.output
+    
+        queue = None
+        output = []
+    
+        for index, operation in enumerate(operations):
+            if operation == "MyQueue":
+                queue = MyQueue()
+                output.append(None)
+            elif operation == "push":
+                queue.push(values[index][0])
+                output.append(None)
+            else:
+                output.append(getattr(queue, operation)())
+    
+        return output
+    ```
+  </Tab>
+</Tabs>
+
+### Big O notation
+
+| Measure | Complexity | Explanation |
+|---|---:|---|
+| Time | `O(n)` | Across n operations, each value moves between stacks at most once and is popped once. |
+| Auxiliary space | `O(n)` | The two stacks together store all queued values. |

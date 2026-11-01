@@ -1,0 +1,128 @@
+---
+title: "Grid Tracks"
+description: "Define rows and columns in an explicit grid."
+---
+
+The rows and columns you define with template properties make up the **explicit grid**. Each track can have a fixed size, fit its content, or share available space.
+
+## Define columns and rows
+
+```css
+/* [!code word:12rem 1fr] */
+/* [!code word:4rem auto 3rem] */
+.page {
+  display: grid;
+  grid-template-columns: 12rem 1fr;
+  grid-template-rows: 4rem auto 3rem;
+  gap: 1rem;
+}
+```
+
+Each space-separated size defines one track:
+
+- **Columns:** A `12rem` column followed by a flexible `1fr` column.
+- **Rows:** A `4rem` row, an automatic row, and a `3rem` row.
+- **Gap:** Space between neighboring tracks on each axis.
+
+This defines two columns and three rows. It does not automatically make an item span both columns; placement is a separate decision.
+
+With an 800-pixel content width and a 16-pixel root font size, the first column uses 192 pixels and the gap uses 16. The flexible column receives the remaining 592 pixels when content minimums do not force it wider.
+
+## Complete a track list
+
+A grid needs a 10rem column followed by two equal flexible columns. Finish the list after the first size:
+
+```css
+.layout {
+  display: grid;
+  grid-template-columns: 10rem /* add two tracks */;
+}
+```
+
+<details>
+<summary>Check your answer</summary>
+
+Use `10rem 1fr 1fr`. Each value defines one track.
+
+</details>
+
+Now write a track list for four equal columns using `repeat()`. How many columns does it define if there are eight items?
+
+<details>
+<summary>Check your reasoning</summary>
+
+`repeat(4, 1fr)` defines four columns. Eight items can fill two rows; the repeat count describes tracks, not items.
+
+</details>
+
+## Choose a sizing approach
+
+| Track value | Behavior |
+| --- | --- |
+| `12rem` | A fixed length relative to the root font size. |
+| `auto` | Uses automatic sizing that considers the items' content and available space. |
+| `1fr` | Receives a share of leftover space, subject to its minimum. |
+
+Fixed row heights can be useful for a deliberate size, but text can outgrow them. The `auto` middle row can respond to its content. If a container has extra height, automatic rows can also stretch under the default content alignment.
+
+`fr` rows share space in the grid, not the viewport. Give the container a set height when you want rows to divide a known amount of vertical space.
+
+## Repeat a track pattern
+
+```css
+/* [!code word:repeat(3, 1fr)] */
+.three-columns {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+```
+
+`repeat(3, 1fr)` writes `1fr 1fr 1fr` compactly. The count repeats the supplied track pattern; it does not limit the total number of items to three.
+
+If six short articles use this grid, automatic placement fills two rows while preserving the same three column boundaries. Rows not explicitly listed are created as needed; the Implicit Grids lesson covers their sizing.
+
+## Keep percentage tracks and gaps in mind
+
+Two `50%` columns already consume the container's full width. Adding a nonzero gap can make the tracks overflow because the percentages do not automatically subtract the gap.
+
+Use `fr` to divide the space left after gaps. A plain `1fr` track still has a content-based minimum, so long text can make it wider. The next lesson uses `minmax()` to control that limit.
+
+## Key Takeaways
+
+- **Explicit tracks:** Template properties define the grid's intended rows and columns.
+- **Mixed sizes:** Fixed, automatic, and fractional tracks can coexist.
+- **Repetition:** `repeat()` abbreviates a track pattern, not an item limit.
+- **Available space:** Account for gaps, content minimums, and the container's dimensions.
+
+
+## Try it yourself
+
+In the editor, give the grid three equal columns using `repeat()`, with a 10px gap. Keep the six tiles and supplied styles. Check that the tiles form two rows with shared column boundaries.
+
+<LessonPractice />
+
+Inspect the declaration as well as the preview: a visual match at one width cannot verify your track syntax. Why does the second row appear even though no row sizes are listed?
+
+<details>
+<summary>Hint</summary>
+
+The column template defines three tracks. Automatic placement creates rows for items that do not fit in the first row.
+
+</details>
+
+<details>
+<summary>Check your reasoning</summary>
+
+`repeat(3, 1fr)` defines three columns, not a three-item limit. The browser creates row tracks as needed for the remaining items.
+
+</details>
+
+For a separate calculation, a 320px grid has two equal fractional columns and a 20px gap. Assuming no content minimum forces a wider track, how wide is each?
+
+<details>
+<summary>Check the calculation</summary>
+
+The gap leaves 300px; each track receives 150px.
+
+</details>

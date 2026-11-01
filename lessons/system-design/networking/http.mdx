@@ -1,0 +1,322 @@
+---
+title: "HTTP"
+description: Follow an HTTP request and understand methods, status codes, and HTTPS.
+---
+
+<Callout title="Lesson goal" type="info">
+  By the end of this lesson, you will understand how HTTP structures application-layer communication, the dynamic roles in the client-server model, remote procedure calls (RPCs), the anatomy of requests and responses, HTTP verbs and idempotency, status codes, and how HTTPS protects data in transit.
+</Callout>
+
+**HTTP (Hypertext Transfer Protocol)** is the foundational application-layer protocol used by web browsers, mobile apps, and backend services to exchange data, HTML documents, JSON payloads, images, and other resources across the World Wide Web.
+
+While lower networking layers handle host addressing (IP) and transport, HTTP defines the vocabulary, structure, and rules that make distributed web communication possible. HTTP/1.1 and HTTP/2 commonly use TCP; HTTP/3 uses QUIC over UDP.
+
+## The Client-Server Model
+
+At the heart of HTTP is the **client-server model**, an architectural pattern where communication is organized into requests and fulfillment:
+
+- The **client** initiates a request.
+- The **server** receives, processes, and fulfills that request.
+
+![](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/85f8547f-b01d-4b2b-be42-1c9f70864b3e/gallery/385580da-7625-43c0-a20b-cdd0ff77bd4d)
+
+This model creates a clean separation of concerns: one machine asks for a resource or action, and another machine handles the computation and returns the result.
+
+### Dynamic server roles
+
+A machine’s role is not permanently fixed by its hardware or hostname. Rather, its role is defined by the direction of each interaction:
+
+![](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/85f8547f-b01d-4b2b-be42-1c9f70864b3e/gallery/4fbe1085-8672-4916-a987-f9c569257a1e)
+
+<Callout title="Remember" type="info">
+The client initiates a request, and the server fulfills it. When servers communicate with one another, either server can take either role depending on who starts the exchange.
+</Callout>
+
+---
+
+## Remote Procedure Calls (RPC)
+
+In complex distributed architectures, machines do more than just exchange static documents—they often need to invoke logic running on other machines across the network.
+
+A **Remote Procedure Call (RPC)** is a mechanism that allows a program on one computer to execute code on another machine over a network as if it were a local function call.
+
+![](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/85f8547f-b01d-4b2b-be42-1c9f70864b3e/gallery/1782b444-92ad-431b-bb07-3c0abd5302ab)
+
+<Callout title="Key idea" type="info">
+RPCs make code on remote machines executable across a network, using application-layer protocols to support and standardize the underlying communication.
+</Callout>
+
+---
+
+## HTTP's Position in the Networking Stack
+
+To understand how HTTP carries both web traffic and RPCs, we must look at where HTTP sits in the layered network hierarchy.
+
+HTTP operates at the **Application Layer**, positioned directly above the Transport Layer (TCP) and Network Layer (IP):
+
+![](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/85f8547f-b01d-4b2b-be42-1c9f70864b3e/gallery/21309fcd-6298-4438-8fc9-3cfbd2d6f191)
+
+When HTTP uses TCP, it inherits TCP's reliable, ordered byte stream. HTTP/3 instead uses QUIC, which provides its own reliable streams over UDP. In either case, HTTP focuses on structuring requests and responses rather than on packet delivery.
+
+### The request–response cycle
+
+HTTP structures communication as a strict **request-response model**. A client sends a message containing request information, and the server returns a corresponding response message:
+
+![The request–response cycle](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/85f8547f-b01d-4b2b-be42-1c9f70864b3e/gallery/6949b2f7-7cd3-49b9-b3c4-286c5584f22b)
+
+Each HTTP exchange has a request and a corresponding response. The request carries the target, method, headers, and optional body needed by the server to interpret the operation; applications may still use cookies or other state mechanisms across exchanges.
+
+#### Code sample
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```js
+    // [Path]
+    const response = await fetch("https://api.example.com/users", {
+      method: "POST",                      // [Method]
+      headers: {                           // [Headers]
+        "Content-Type": "application/json",
+        Authorization: "Bearer xyz",
+      },
+      body: JSON.stringify({ username: "alice" }), // [Body]  ───>  Server
+    });
+
+    const data = await response.json();   // [Body]  <───  Server
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    import urllib.request, json
+
+    # [Body]  ───>  Server
+    payload = json.dumps({ "username": "alice" }).encode()
+
+    req = urllib.request.Request(
+        "https://api.example.com/users",   # [Path]
+        data=payload,
+        method="POST",                     # [Method]
+        headers={                          # [Headers]
+            "Content-Type": "application/json",
+            "Authorization": "Bearer xyz",
+        },
+    )
+
+    with urllib.request.urlopen(req) as res:
+        data = json.loads(res.read())      # [Body]  <───  Server
+    ```
+  </Tab>
+  
+</Tabs>
+
+<Callout title="Remember" type="info">
+HTTP sits above IP and TCP, structuring data into distinct, self-contained request-response pairs.
+</Callout>
+
+## HTTP Message Anatomy
+
+When you select an individual request in browser DevTools or inspect network traffic, what does the message look like? HTTP communication consists of two distinct message structures: **Requests** and **Responses**.
+
+![](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/85f8547f-b01d-4b2b-be42-1c9f70864b3e/gallery/c9cf216f-a023-43c3-a0d3-916690a5c551)
+
+### Request anatomy
+
+An HTTP request includes these core components:
+
+| Component | Purpose | Example |
+|---|---|---|
+| **URL & Host** | Identifies the destination domain and server. | `https://developer.mozilla.org` |
+| **Path** | Identifies the specific resource location on the server. | `/api/v1/whoami` |
+| **Request Method** | Describes the action or operation requested. | `GET`, `POST`, `PUT`, `DELETE` |
+| **Headers** | Key-value pairs providing metadata about the client and request. | `Accept: */*`, `Accept-Encoding: gzip, deflate, br, zstd`, `Accept-Language: en-US,en;q=0.7` |
+| **Body (Payload)** | Optional data transmitted to the server (common in `POST` and `PUT`). | `{"title": "New Post", "published": true}` |
+
+### Response anatomy
+
+An HTTP response includes:
+
+| Component | Purpose | Example |
+|---|---|---|
+| **Status Code & Line** | Indicates the outcome of the request. | `200 OK`, `404 Not Found`, `500 Internal Server Error` |
+| **Response Headers** | Metadata describing the response and server configuration. | `Content-Length: 181`, `Server: Google Frontend`, `X-Cache: MISS, MISS` |
+| **Content Type** | Specifies the MIME format of the returned data. | `application/json` |
+| **Body** | The actual resource payload returned to the client. | HTML document markup, JSON object, image binary bytes |
+
+### Sequence for analyzing an HTTP exchange
+
+When reading or debugging an HTTP exchange, follow this structured sequence:
+
+1. **Request URL & Path:** Determine *where* the request is directed.
+2. **Request Method:** Determine *what action* is being asked of the server.
+3. **Request Headers:** Check authentication tokens, accepted formats, and client metadata.
+4. **Status Code:** Verify whether the request succeeded or failed.
+5. **Response Headers:** Inspect the `Content-Type`, caching policies, and cookies.
+6. **Response Body:** Parse and validate the returned data payload.
+
+<Callout title="Remember" type="info">
+A request describes what is being directed where; a response provides information about the result, including the status code and content type.
+</Callout>
+
+---
+
+## Inspecting HTTP Requests in Practice
+
+Now that you know the parts of a request and response, browser developer tools make them visible in a real exchange. The **Network** tab shows each request a page makes, including its protocol, headers, payload, status code, response, and timing.
+
+1. **Open Developer Tools:** Press `F12` (or `Cmd + Option + I` on macOS) and open the **Network** tab.
+2. **Generate activity:** Load or interact with a webpage. Each request appears as a row in the waterfall.
+3. **Identify the protocol:** Check the **Protocol** column for `HTTP/1.1`, `h2` (HTTP/2), or `h3` (HTTP/3).
+4. **Inspect the exchange:** Open a row and identify the target and method, then its headers, status code, response headers, and body using the sequence above.
+
+![](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/85f8547f-b01d-4b2b-be42-1c9f70864b3e/gallery/5a8e868e-753a-40e0-89ae-8fc5f3d2ba82)
+
+---
+
+## Routes, Endpoints, and HTTP Methods
+
+While the URL path defines the **route or endpoint** (the location of the resource), the **HTTP method (verb)** defines the operation the server should perform on that resource.
+
+By pairing the same endpoint with different methods, you can express full CRUD (Create, Read, Update, Delete) operations:
+
+```text
+GET     /api/users      ──>  Retrieve all users
+POST    /api/users      ──>  Create a new user
+GET     /api/users/42   ──>  Retrieve user #42
+PUT     /api/users/42   ──>  Update/replace user #42
+PATCH   /api/users/42   ──>  Partially update user #42
+DELETE  /api/users/42   ──>  Remove user #42
+```
+
+### The core HTTP methods
+
+| Method | Server operation it represents | Primary use case |
+|---|---|---|
+| `GET` | **Retrieve** information | Fetching a web page, reading a user profile, querying a list |
+| `POST` | **Create** or submit data | Submitting a form, creating a new account, placing an order |
+| `PUT` | **Update** / replace existing data | Overwriting an entire existing user record or document |
+| `PATCH` | **Partially update** existing data | Updating only a user's email without touching other fields |
+| `DELETE` | **Remove** information | Deleting a record, canceling a subscription, removing a file |
+
+### PUT vs PATCH
+
+Both methods modify an existing resource, but they differ in scope:
+
+- **`PUT`** requests that the target resource be replaced with the supplied representation. The server defines the resource representation and its handling of omitted fields.
+- **`PATCH`** applies a set of partial changes described by a patch document or the API's update format.
+
+### Choosing the right method
+
+- Use `GET` when reading state without causing side effects on the server.
+- Use `POST` when submitting new data that causes the server to create a resource or process an action.
+- Use `PUT` when replacing an existing resource in its entirety with new data.
+- Use `PATCH` when updating only specific fields of an existing resource.
+- Use `DELETE` when deleting a target resource.
+
+<Callout title="Remember" type="info">
+The endpoint indicates where the request is directed. The method indicates what kind of server operation is requested.
+</Callout>
+
+---
+
+## Request Bodies, Method Behavior, and Idempotence
+
+Different HTTP methods behave differently with respect to data payloads, server state, caching, and retries.
+
+### Request bodies
+
+A **request body** carries additional data sent with the request. Methods such as `POST` and `PUT` regularly include a body (e.g., JSON documents or form data) to provide the necessary payload for creation or updates. Conversely, `GET` and `DELETE` requests typically do not carry a body.
+
+### Understanding idempotence
+
+A method is **idempotent** if making multiple identical requests has the same net effect on the server state as making a single request.
+
+```text
+GET /item/1  (1x or 100x)  ===> Server state remains unchanged        (Idempotent)
+PUT /item/1  (1x or 100x)  ===> Server state set to the same value   (Idempotent)
+DELETE /item/1 (1x or 100x)===> Item 1 is removed                    (Idempotent)
+POST /items  (1x vs 10x)   ===> Creates 1 item vs creates 10 items   (NON-Idempotent)
+```
+
+`PATCH` is not automatically idempotent. Whether it is safe to repeat depends on the patch format and operation: “set the name to Alice” can be idempotent, while “increment the balance” is not.
+
+Idempotence is a critical concept in distributed system design:
+- If a network glitch causes a `GET`, `PUT`, or `DELETE` request to time out, idempotence makes retrying safer—provided the endpoint actually follows the method's semantics and the client handles authentication, preconditions, and business effects correctly.
+- If a `POST` request times out, retrying blindly could result in duplicate database entries or double-charging a customer's credit card.
+
+<Callout title="Key idea" type="info">
+The request body carries the data; the method determines how the server processes the data, whether the operation can be cached, and whether it is safe to retry (idempotence).
+</Callout>
+
+---
+
+## HTTP Status Codes
+
+When a server finishes processing a request, it communicates the outcome back to the client using a three-digit **HTTP status code**.
+
+Status codes are grouped into five standard ranges:
+- **`1xx` (Informational):** Request received, continuing process.
+- **`2xx` (Success):** The action was successfully received, understood, and accepted.
+- **`3xx` (Redirection):** Further action must be taken to complete the request (e.g., URL moved).
+- **`4xx` (Client Error):** The request contains bad syntax or cannot be fulfilled by the client.
+- **`5xx` (Server Error):** The server failed to fulfill an apparently valid request.
+
+### Common status codes
+
+| Code | Name | Meaning | Common Scenario |
+|---|---|---|---|
+| `200` | **OK** | Request succeeded | Standard response for successful `GET` or `PUT` operations. |
+| `201` | **Created** | Resource created | Returned by `POST` when a new record is created in the database. |
+| `204` | **No Content** | Succeeded with no body | Common for successful `DELETE` requests where no data needs to return. |
+| `400` | **Bad Request** | Client error / invalid syntax | Request body missing required fields or containing invalid JSON. |
+| `401` | **Unauthorized** | Authentication is required or failed | Client must provide valid credentials; the response normally includes an authentication challenge. |
+| `403` | **Forbidden** | Lacks permissions | Client is authenticated, but does not have permission for the resource. |
+| `404` | **Not Found** | Resource missing | The requested URL path does not match any resource on the server. |
+| `500` | **Internal Server Error** | Server failure | An unhandled exception or crash occurred in the backend code. |
+| `502` | **Bad Gateway** | Upstream server failure | An API gateway or reverse proxy received an invalid response from upstream. |
+| `503` | **Service Unavailable** | Server overloaded / down | The server is temporarily unable to handle requests due to maintenance or load. |
+
+When reading an HTTP response, immediately check the status code range to pinpoint who owns the problem: a `4xx` code means the client needs to change its request; a `5xx` code means the backend server encountered an internal failure.
+
+---
+
+## Securing the Channel: HTTPS, SSL, and TLS
+
+Plain HTTP transmits message contents without TLS protection. A network attacker in a position to observe or modify the traffic can read or alter it, including URLs, headers, cookies, tokens, and request or response bodies.
+
+**HTTPS (Hypertext Transfer Protocol Secure)** eliminates this vulnerability by wrapping standard HTTP inside an encrypted security layer using **TLS (Transport Layer Security)**, historically known as **SSL (Secure Sockets Layer)**.
+
+
+```text
+┌───────────────────────────────────────────────────────────┐
+│              HTTP Application Data (Plaintext)            │
+├───────────────────────────────────────────────────────────┤
+│         TLS / SSL Encryption & Authentication Layer       │
+├───────────────────────────────────────────────────────────┤
+│          TCP transport or QUIC (for HTTP/3)               │
+└───────────────────────────────────────────────────────────┘
+```
+
+### The relationship between HTTP, TLS, and HTTPS
+
+- **HTTP** defines *what* is being transmitted (requests and responses).
+- **TLS / SSL** is the cryptographic protocol that *encrypts and secures* the communication.
+- **HTTPS** is standard HTTP data running through a secure TLS connection:
+
+![](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/85f8547f-b01d-4b2b-be42-1c9f70864b3e/gallery/126f2519-a6ab-4c7b-9789-aa2cb8256570)
+
+### TLS handshake
+
+Before the first HTTP byte is sent over an HTTPS connection, the client and server run a **TLS handshake** to negotiate a shared encryption key:
+
+![HTTPS and TLS handshake](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/54de4736-cbfb-4ca3-add4-542a111f11df/gallery/71a35a4c-ed2a-4f7b-bc7d-7f7a1b16645c)
+
+---
+
+## Key Takeaways
+
+- **Client-Server Architecture:** Clients initiate requests; servers fulfill them. In distributed architectures, backend servers frequently act as clients to other servers.
+- **Remote Procedure Calls (RPC):** RPC frameworks allow machines to execute code across a network using application-layer protocols.
+- **Protocol Layering:** HTTP sits at the application layer and structures data into request-response exchanges. It commonly runs over TCP, while HTTP/3 runs over QUIC.
+- **Message Anatomy:** Requests specify a URL, path, method, headers, and optional body; responses return a status code, response headers, content type, and body.
+- **HTTP Methods & Idempotence:** `GET`, `PUT`, and `DELETE` are idempotent (safe to retry); `POST` is non-idempotent (creates new state on each execution); `PATCH` partially updates a resource without replacing the whole record.
+- **Status Codes:** `2xx` indicates success, `3xx` redirection, `4xx` client errors, and `5xx` server failures.
+- **HTTPS Security:** HTTPS wraps HTTP in TLS encryption, providing confidentiality, data integrity, and server authentication.

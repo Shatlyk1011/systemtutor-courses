@@ -1,0 +1,162 @@
+---
+title: "Pseudo-Classes"
+description: "Select elements by state, structure, and form conditions."
+---
+
+A **pseudo-class** selects an element in a certain state or position. For example, it can match a hovered button, the first item in a list, or a checked checkbox.
+
+Read a selector such as `button:hover` in two parts: `button` chooses the kind of element, and `:hover` asks whether the browser's condition is true. Pseudo-classes start with one colon. You do not add a class named `hover` to the HTML.
+
+## Respond to interaction
+
+![Interaction states](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/e14888a7-fc1d-46bc-8752-868336e60891/gallery/89699ac5-0da9-45a5-ae18-0b2f69e19fb0)
+
+Start with a button:
+
+```html
+<!-- [!code word:class="visit-button"] -->
+<button type="button" class="visit-button">Visit the article</button>
+```
+
+```css
+/* [!code word:\:hover] */
+/* [!code word:\:focus-visible] */
+/* [!code word:outline] */
+.visit-button:hover {
+  color: green;
+}
+
+.visit-button:focus-visible {
+  outline: 2px solid purple;
+}
+```
+
+The first rule changes the button while a pointer is over it. The second rule keeps a visible outline when the browser decides that a focused button needs one. The selector supplies the condition; the declaration supplies the visual change.
+
+These conditions serve different purposes:
+
+- **`:hover`:** Matches while a pointer is over the element.
+- **`:focus`:** Matches the element that currently has input focus, such as a button reached with the Tab key.
+- **`:focus-visible`:** Matches a focused element when the browser determines that a visible focus indicator is needed.
+- **`:active`:** Matches during activation, such as while a pointer button is held down on the element.
+
+The outline gives the focused button a visible boundary. Keep a visible focus indicator so keyboard users can tell where they are. Hover styling alone does not provide that feedback.
+
+When choosing an interaction selector, name the event first: pointer over the button means `:hover`, keyboard or other input focus means `:focus`, and the browser's visible-focus decision means `:focus-visible`. `:active` applies during activation, such as while a pointer button is held down.
+
+## Select by position
+
+![Counting element siblings](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/e14888a7-fc1d-46bc-8752-868336e60891/gallery/cb310965-8a6f-49bd-b4f4-4f320ebf4835)
+
+Structural pseudo-classes match an element's position among its element siblings:
+
+```html
+<!-- [!code word:Dashboard] -->
+<!-- [!code word:Reports] -->
+<ul class="nav-list">
+  <li>Dashboard</li>
+  <li>Reports</li>
+  <li>Settings</li>
+</ul>
+```
+
+```css
+/* [!code word:\:first-child] */
+/* [!code word:\:nth-child(even)] */
+.nav-list > li:first-child {
+  font-weight: bold;
+}
+
+.nav-list > li:nth-child(even) {
+  background-color: yellow;
+}
+```
+
+- **`:first-child`:** Matches Dashboard, the first element child.
+- **`:last-child`:** Would match Settings, the last element child.
+- **`:nth-child(2)`:** Would match Reports, the second element child.
+- **`:nth-child(even)`:** Matches positions 2, 4, 6, and so on; here, only Reports.
+
+Positions start at 1. In this form of `li:nth-child(...)`, the browser counts all element siblings, then checks whether the element at that position is an `li`. It does not count only list items.
+
+For example, if the children are `li`, `div`, `li`, then the second `li` is the third child. `li:nth-child(2)` matches nothing in that group because child 2 is the `div`. This is why the element type and the position need to be checked together.
+
+Complete the selector before reading the explanation:
+
+```css
+/* Select the second item in the list. */
+.nav-list > li:nth-child(____) {
+  background-color: yellow;
+}
+```
+
+The missing value is `2`: positions start at 1, so Reports is the second child.
+
+## Select form states
+
+Form controls expose conditions that CSS can match:
+
+```html
+<!-- [!code word:required] -->
+<!-- [!code word:type="checkbox"] -->
+<!-- [!code word:disabled] -->
+<label>Email <input type="email" required></label>
+<label><input type="checkbox" checked> Send notes</label>
+<button type="submit" disabled>Subscribe</button>
+```
+
+```css
+/* [!code word:\:required] */
+/* [!code word:\:checked] */
+/* [!code word:\:disabled] */
+input:required {
+  border: 2px solid purple;
+}
+
+input:checked {
+  outline: 2px solid green;
+}
+
+button:disabled {
+  opacity: 0.5;
+}
+```
+
+Useful form pseudo-classes include:
+
+- **`:required`:** Matches controls marked as required.
+- **`:checked`:** Matches checked checkboxes or radio buttons.
+- **`:disabled`:** Matches controls that are disabled, such as this button.
+- **`:valid` and `:invalid`:** Match when a control’s value passes or fails its validation rules.
+
+An empty email field marked `required` can match `:invalid` before the form is submitted. These selectors reflect a control’s state; they do not change it. For example, `:disabled` styles a disabled control, while the HTML `disabled` attribute disables it. The checkbox must have its checked state, such as `checked`, before `input:checked` matches.
+
+## Check state or structure
+
+Use the condition already present in the page:
+
+- A checkbox is checked: `input:checked` can style it.
+- A button has the HTML `disabled` attribute: `button:disabled` can style it, but the selector does not disable the button.
+- You want the second item in the navigation list: `.nav-list > li:nth-child(2)` matches it.
+
+The part before the colon chooses the kind of element. The pseudo-class after it asks the browser whether that element currently has the required state or position. To predict the result, inspect the HTML state first, then apply the selector condition.
+
+## Try it yourself
+
+Use the same reasoning in three steps:
+
+1. Study the complete rule `.nav-list > li:nth-child(2) { background-color: yellow; }`. The target is an `li`; `:nth-child(2)` keeps the second element child.
+2. Complete `input:____ { outline: 2px solid green; }`. The HTML shows a checked checkbox, so the missing pseudo-class is `checked`.
+3. Write a rule that styles the disabled button. Start with `button`, then add `:disabled`, and choose a declaration such as `opacity: 0.5`.
+
+Explain why `li:nth-child(2)` depends on sibling position, while `input:checked` depends on the control's current state. If you can explain both selectors, try the practice task without copying the examples.
+
+<LessonPractice />
+
+## Key Takeaways
+
+- **Pseudo-classes:** A single colon introduces a condition on an element.
+- **Interaction:** Hover, focus, and activation describe different states.
+- **Structure:** Child-position selectors depend on the element's siblings.
+- **Forms:** Selectors such as `:checked` and `:invalid` reflect existing control states.
+- **Focus:** Visible focus feedback helps people navigate with a keyboard.

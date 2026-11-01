@@ -1,0 +1,78 @@
+---
+title: "Group Anagrams"
+description: "Use character-frequency signatures to group anagrams with a hash map."
+slug: "practice-medium-group-anagrams"
+ 
+---
+
+## Try It Yourself
+
+Use the editor below to group words that contain the same character counts. Preserve the order in which each group first appears and the input order inside each group.
+
+Submit your implementation when it passes the examples. Remember that repeated characters and empty strings need stable signatures too.
+
+<PracticeExercise problemId="group-anagrams" />
+
+## Solution
+
+![Anagram grouping keys](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/1e3e13b6-0db0-43d8-9eab-205bdcf6fa8f/gallery/f2fda1d4-6f1a-4096-afae-0855b3ddeefd)
+
+Build a 26-position frequency signature for each word. Anagrams produce the same signature even when their characters appear in a different order.
+
+Use that signature as a map key. The first word creates a group, and later words with the same signature are appended to it.
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```js
+    function groupAnagrams(words) {
+      const groups = new Map();
+    
+      for (const word of words) {
+        const counts = Array(26).fill(0);
+    
+        for (const character of word) {
+          counts[character.charCodeAt(0) - 97]++;
+        }
+    
+        const signature = counts.join("#");
+    
+        if (!groups.has(signature)) {
+          groups.set(signature, []);
+        }
+    
+        groups.get(signature).push(word);
+      }
+    
+      return Array.from(groups.values());
+    }
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    def group_anagrams(words):
+        groups = {}
+    
+        for word in words:
+            counts = [0] * 26
+    
+            for character in word:
+                counts[ord(character) - ord("a")] += 1
+    
+            signature = tuple(counts)
+    
+            if signature not in groups:
+                groups[signature] = []
+    
+            groups[signature].append(word)
+    
+        return list(groups.values())
+    ```
+  </Tab>
+</Tabs>
+
+### Big O notation
+
+| Measure | Complexity | Explanation |
+|---|---:|---|
+| Time | `O(n · k)` | Every character of every word is counted once, where k is the average word length. |
+| Auxiliary space | `O(n · k)` | The map and returned groups store the input words and their signatures. |

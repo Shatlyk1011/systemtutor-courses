@@ -1,0 +1,7 @@
+title: API design
+description: Compare REST, GraphQL, and RPC as service contracts.
+pages:
+  - introduction
+  - rest
+  - graphql
+  - rpc

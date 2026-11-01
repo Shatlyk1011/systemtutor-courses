@@ -1,0 +1,90 @@
+---
+title: "Sliding Window Maximum"
+description: "Maintain a monotonic deque to report every window maximum."
+slug: "practice-hard-sliding-window-maximum"
+ 
+---
+
+## Try It Yourself
+
+Use the editor below to return the maximum for every window of size k. Store useful indices in decreasing value order so the front always identifies the maximum.
+
+Submit your implementation when it passes the examples. Remove indices that leave the window and values that can no longer become a maximum.
+
+<PracticeExercise problemId="sliding-window-maximum" />
+
+## Solution
+
+![Monotonic deque window maximum](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/03ce588b-f581-46ee-b98b-277331400e55/gallery/633afca0-9d57-4ea8-aa1d-292c7ca20cf4)
+
+Before adding an index, remove smaller or equal values from the back because the new value will outlast them. Remove the front index when it falls outside the current window.
+
+Once a full window exists, the value at the front index is its maximum.
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```js
+    function maxSlidingWindow(nums, k) {
+      const entries = {};
+      let front = 0;
+      let back = 0;
+      const result = [];
+    
+      for (let index = 0; index < nums.length; index++) {
+        while (front < back && entries[front] <= index - k) {
+          delete entries[front];
+          front++;
+        }
+    
+        while (
+          front < back &&
+          nums[entries[back - 1]] <= nums[index]
+        ) {
+          back--;
+          delete entries[back];
+        }
+    
+        entries[back] = index;
+        back++;
+    
+        if (index >= k - 1) {
+          result.push(nums[entries[front]]);
+        }
+      }
+    
+      return result;
+    }
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    from collections import deque
+    
+    
+    def max_sliding_window(nums, k):
+        indices = deque()
+        result = []
+    
+        for index, value in enumerate(nums):
+            while indices and indices[0] <= index - k:
+                indices.popleft()
+    
+            while indices and nums[indices[-1]] <= value:
+                indices.pop()
+    
+            indices.append(index)
+    
+            if index >= k - 1:
+                result.append(nums[indices[0]])
+    
+        return result
+    ```
+  </Tab>
+</Tabs>
+
+### Big O notation
+
+| Measure | Complexity | Explanation |
+|---|---:|---|
+| Time | `O(n)` | Each index enters and leaves the deque at most once. |
+| Auxiliary space | `O(k)` | The deque stores only useful indices from the current window. |

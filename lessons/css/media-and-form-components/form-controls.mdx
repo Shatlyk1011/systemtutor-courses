@@ -1,0 +1,188 @@
+---
+title: "Form Controls"
+description: "Style inputs, labels, buttons, selects, and textareas."
+---
+
+Give form controls consistent fonts, spacing, and borders. Keep each control easy to recognize and use: fields need room to type, and buttons should look clickable.
+
+## Build the controls in HTML
+
+```html
+<!-- [!code word:required] -->
+<form class="signup-form" action="/subscriptions" method="post">
+  <div class="signup-field">
+    <label for="signup-email">Email (required)</label>
+    <input
+      id="signup-email"
+      name="email"
+      type="email"
+      autocomplete="email"
+      aria-describedby="email-hint"
+      required>
+    <small id="email-hint">Use an address where you can receive updates.</small>
+  </div>
+
+  <div class="signup-field">
+    <label for="experience">Coding experience</label>
+    <select id="experience" name="experience">
+      <option value="beginner">Just starting</option>
+      <option value="experienced">Already coding</option>
+    </select>
+  </div>
+
+  <div class="signup-field">
+    <label for="goals">What would you like to learn?</label>
+    <textarea id="goals" name="goals" rows="4"></textarea>
+  </div>
+
+  <button type="submit">Subscribe</button>
+</form>
+```
+
+Each control has a label that stays visible. The email description adds guidance. A placeholder would disappear during typing, so it should not replace that label. The example endpoint needs a server implementation to save subscriptions.
+
+## Reuse a field treatment
+
+```css
+/* [!code word:resize\: vertical] */
+.signup-form {
+  display: grid;
+  gap: 1.25rem;
+  max-width: 30rem;
+  font: 1rem / 1.5 system-ui, sans-serif;
+  color: #17352a;
+}
+
+.signup-field {
+  display: grid;
+  gap: 0.375rem;
+}
+
+.signup-field label {
+  font-weight: 600;
+}
+
+.signup-form input,
+.signup-form select,
+.signup-form textarea,
+.signup-form button {
+  box-sizing: border-box;
+  font: inherit;
+  color: inherit;
+  padding: 0.75rem;
+  border: 1px solid #64748b;
+  border-radius: 0.5rem;
+  background: #ffffff;
+}
+
+.signup-field input,
+.signup-field select,
+.signup-field textarea {
+  width: 100%;
+  min-width: 0;
+}
+
+.signup-field textarea {
+  resize: vertical;
+}
+
+.signup-form button {
+  justify-self: start;
+  color: #ffffff;
+  background: #17352a;
+  border-color: #17352a;
+}
+```
+
+The shared border, padding, and radius connect the controls visually. `rows="4"` gives the textarea an initial height, while vertical resizing lets readers make more room for a longer answer. Avoid forcing all fields to a short fixed height.
+
+Keep the select's native appearance for this example. Styling its outer box does not guarantee that its popup or options will look identical across platforms. Test the actual controls in the browsers you support.
+
+## Style validation after interaction
+
+```css
+/* [!code word:user-invalid] */
+.signup-field input:user-invalid {
+  border-color: #9f1239;
+  border-width: 2px;
+}
+```
+
+`type="email"` checks the email format, and `required` means the field cannot be empty. An empty field can match `:invalid` before the user types. `:user-invalid` waits until the browser considers the user to have interacted, helping avoid an early error border.
+
+CSS changes the appearance; it does not write a helpful error message or prove that a subscription succeeded. The next lesson adds explicit feedback.
+
+## Trace the field guidance
+
+In the signup example, which attribute connects the email input to the hint, and why keep the label too?
+
+<details>
+<summary>Check your reasoning</summary>
+
+`aria-describedby="email-hint"` points to the hint's ID. The label names the control; the hint supplies additional guidance.
+
+</details>
+
+If the textarea needs more room, which declaration allows the reader to change its height?
+
+<details>
+<summary>Check your reasoning</summary>
+
+`resize: vertical` permits vertical resizing in browsers that support it.
+
+</details>
+
+## Key Takeaways
+
+- **Labels:** Keep the field's purpose visible during entry.
+- **Consistency:** Share spacing and borders while respecting each control's role.
+- **Textareas:** Allow enough space for longer answers and useful resizing.
+- **Validation:** HTML sets the validation rules; CSS styles the control’s valid or invalid state.
+
+## Try it yourself
+
+Build a feedback form with a labeled topic select, a labeled comment textarea and a submit button. Add a short hint connected to the textarea. Give the select and textarea a shared font, padding and full width, and allow the textarea to resize vertically. Keep the select's native appearance.
+
+Check that every label targets a unique control ID, the hint ID matches `aria-describedby`, and the textarea has an initial height. Explain why a placeholder alone is not a sufficient label. Test resizing and keyboard access in a browser.
+
+<details>
+<summary>Hint 1</summary>
+
+Use `for` and `id` for labels, and `aria-describedby` for the additional hint.
+
+</details>
+
+<details>
+<summary>Hint 2</summary>
+
+Use `rows` for the textarea's initial height and `resize: vertical` for later adjustment.
+
+</details>
+
+<details>
+<summary>Check your work and reasoning</summary>
+
+```html
+<form class="feedback">
+  <label for="topic">Topic</label>
+  <select id="topic" name="topic"><option value="course">Course</option><option value="site">Site</option></select>
+  <label for="comment">Comment</label>
+  <textarea id="comment" name="comment" rows="4" aria-describedby="comment-hint"></textarea>
+  <small id="comment-hint">Tell us what you noticed.</small>
+  <button type="submit">Send feedback</button>
+</form>
+```
+
+```css
+.feedback select, .feedback textarea {
+  box-sizing: border-box;
+  font: inherit;
+  width: 100%;
+  padding: 0.75rem;
+}
+.feedback textarea { resize: vertical; }
+```
+
+A placeholder can disappear when someone types; a visible label remains available. A server handler is needed to process the form. Equivalent styles are welcome.
+
+</details>

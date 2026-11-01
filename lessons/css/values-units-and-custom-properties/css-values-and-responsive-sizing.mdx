@@ -1,0 +1,155 @@
+---
+title: "CSS Values and Responsive Sizing"
+description: "Understand CSS value types and use units and functions to create flexible sizes."
+---
+
+A CSS declaration pairs a **property**, the characteristic to change, with a **value**, the setting to apply. In `color: blue`, `color` is the property and `blue` is its value. Each property accepts particular kinds of values, so a color cannot be used wherever a length is expected.
+
+```css
+h1 {
+  color: blue;
+  font-size: 24px;
+}
+```
+
+The first declaration sets the heading's text color; the second sets its font size. Knowing what a value represents helps you choose a valid value and predict how the result will change.
+
+## Common value types
+
+CSS values can take several forms:
+
+| Value type | Meaning | Example |
+| --- | --- | --- |
+| **Keywords** | Predefined words. | <code>display: <mark>block</mark></code> or <code>color: <mark>blue</mark></code> |
+| **Numbers** | Whole numbers or decimals. | <code>z-index: <mark>10</mark></code> or <code>line-height: <mark>1.2</mark></code> |
+| **Lengths** | A number combined with a unit. | <code><mark>24px</mark></code> or <code><mark>1.5em</mark></code> |
+| **Percentages** | A proportion of another value. | <code>width: <mark>50%</mark></code> is half the parent container's width. |
+| **Colors** | Named colors or values written in a color format. | <code><mark>#FF5733</mark></code> and <code><mark>rgb(255, 87, 51)</mark></code> describe the same color. |
+| **Strings** | Text enclosed in quotes. | <code>font-family: <mark>'Times New Roman'</mark>, serif</code> |
+| **Functions** | A name and parentheses that produce or supply a value. | <code><mark>calc(100% - 20px)</mark></code> |
+
+The property determines which forms make sense. For example, `display` can use the keyword `block`, while `font-size` can use a length like `24px`.
+
+## Numbers, percentages, and identifiers
+
+An **integer** is a whole number, such as `10` in `z-index: 10`. The `z-index` property uses it to control stacking order. A number can also be fractional: `line-height: 1.2` uses a decimal without a unit. A length such as `1.5em` combines a number with a unit, while a percentage such as `50%` expresses a proportion of another value.
+
+An **identifier** can name a selector or provide a keyword value. For example, `content` identifies the element selected by `#content`, and `block` is the value of `display`:
+
+```css
+#content {
+  display: block;
+  font-family: 'Times New Roman', serif;
+  background-image: url("assets/banner.jpg");
+}
+```
+
+The quoted font name and image path are strings. The `url()` function uses the path to identify the background image.
+
+## Color values
+
+![Hex and RGB components](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/e99265ac-856d-4aac-b65d-f061815fd7e2/gallery/a29a45f9-1c57-4ce1-82d9-af9ec02e49a3)
+
+Named colors such as `red` and `blue` are easy to read, but their available names are limited. Hexadecimal and RGB values offer other ways to specify colors:
+
+```css
+.example {
+  color: #FF5733;
+  background-color: rgb(255, 87, 51);
+}
+```
+
+Both declarations use the same color. In the six-digit hex value, the pairs `FF`, `57`, and `33` represent red, green, and blue. Each pair ranges from `00` to `FF`. In `rgb()`, the three numbers represent the same components on a scale from 0 to 255: `FF` corresponds to 255, `57` to 87, and `33` to 51.
+
+Two other color functions let you work from a hue:
+
+```css
+.button {
+  background-color: hsl(120, 100%, 50%);
+}
+
+.background {
+  background-color: hwb(240, 0%, 0%);
+}
+```
+
+In `hsl()`, the values are **hue**, **saturation**, and **lightness**. Hue is an angle: 120 represents green. Saturation controls color intensity, from gray at 0% to full color at 100%; lightness ranges from black at 0% to white at 100%. The example gives a bright green.
+
+In `hwb()`, the values are hue, **whiteness**, and **blackness**. The example starts with a blue hue and adds 0% white and 0% black. Increasing whiteness or blackness changes how much white or black is mixed into the hue.
+
+## Units and their references
+
+![Relative unit references](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/e99265ac-856d-4aac-b65d-f061815fd7e2/gallery/603cff35-d5d0-43b2-b738-6e9ddd18b183)
+
+A unit tells CSS how to interpret a length. An absolute unit such as `px` gives a fixed CSS length. Other absolute units include inches (`in`) and points (`pt`), which are useful for print. A CSS pixel does not necessarily correspond directly to a physical screen pixel.
+
+Relative units instead depend on another size. The reference matters when you work out the result:
+
+- **`em`:** For `font-size`, it follows the inherited font size. For padding in the example below, it follows the element's own font size.
+- **`rem`:** Follows the root element's font size.
+- **`vw` and `vh`:** Follow the viewport's width and height. The viewport is the area in which the browser displays the page. `1vw` is 1% of its width, and `1vh` is 1% of its height.
+
+```css
+button {
+  font-size: 1.5rem;
+  padding: 1em 2em;
+  width: 50vw;
+  height: 10vh;
+}
+```
+
+If the root font size is `16px`, the button's `1.5rem` font size is `24px`. Its `1em` vertical padding is then `24px`, and its `2em` horizontal padding is `48px`. The width and height follow the viewport, so they change as its dimensions change.
+
+## Fixed and fluid widths
+
+A fixed width such as `960px` stays at that CSS size. It gives precise control, but it may be too wide for a smaller screen and cause horizontal scrolling. A fluid width such as `80%` changes with its parent container: if the parent is `500px` wide, the element's width is `400px`; if the parent becomes narrower, the element becomes narrower too.
+
+Fluid and fixed values can work together. A width can follow the available space while also having a limit, so it does not grow indefinitely.
+
+## Position values and offsets
+
+![Relative positioning offsets](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/e99265ac-856d-4aac-b65d-f061815fd7e2/gallery/7ec8abe6-7a87-4650-8e70-9182e0c41ed9)
+
+The `position` property also uses keywords. `static` places an element in normal document flow, while `relative` positions it relative to its normal position. `absolute` uses the nearest positioned ancestor, `fixed` uses the viewport, and `sticky` changes between relative and fixed behavior based on scroll position.
+
+```css
+.box {
+  position: relative;
+  top: 50px;
+  left: 20px;
+}
+```
+
+The numeric offsets move the box `50px` down and `20px` right from its normal position. The effect of an offset depends on the positioning context established by the `position` value.
+
+## Calculate and constrain sizes
+
+![Responsive size constraints](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/e99265ac-856d-4aac-b65d-f061815fd7e2/gallery/9304d35b-b059-42be-af4b-e655be518519)
+
+CSS functions can combine values or choose between them:
+
+```css
+.container {
+  width: calc(100% - 20px);
+}
+
+.card {
+  width: min(90%, 600px);
+  padding: clamp(10px, 2vw, 20px);
+}
+```
+
+- **`calc()`** performs arithmetic. Here, the container's width is its parent container's width minus `20px`, so it changes as the parent changes. Put spaces around the minus sign in this expression.
+- **`min()`** chooses the smaller value. The card's width is `90%` of its available container width when that is less than `600px`; otherwise, it is `600px`. For a `500px` container, 90% is `450px`, so `min()` selects `450px`. For a `1000px` container, 90% is `900px`, so it selects `600px`.
+- **`max()`** does the reverse: `width: max(300px, 50%)` selects whichever is larger. The width is at least `300px`, but can grow when 50% of the container is larger.
+- **`clamp()`** takes a minimum, a preferred value, and a maximum. In the card example, the preferred padding is `2vw`, but it stays between `10px` and `20px`. As the viewport width changes, the padding can change within those limits.
+
+The `--main-color` variable holds the hex color. The `background-color` declaration reads that value through `var(--main-color)`. Using the same variable for a common color gives you one place to change it for declarations that use it.
+
+## Key Takeaways
+
+- **Values:** A property accepts particular kinds of values, including keywords, numbers, lengths, colors, and functions.
+- **References:** Relative units and percentages depend on another size; identify that reference before calculating a result.
+- **Positioning:** Position keywords establish a context for offsets such as `top` and `left`.
+- **Sizing:** Fixed lengths provide a set size, while fluid values can change with their container or viewport.
+- **Functions:** `calc()` combines values, `min()`, `max()`, and `clamp()` constrain sizes.

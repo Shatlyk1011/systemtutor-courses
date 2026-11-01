@@ -1,0 +1,122 @@
+---
+title: "Direction and Wrapping"
+description: "Set the direction of flex items and control wrapping."
+---
+
+`flex-direction` chooses the main axis. `flex-wrap` decides whether items stay on one flex line or can move to additional lines. Together, they determine the flow of a flex layout.
+
+## Choose a direction
+
+```css
+/* [!code word:flex-direction] */
+/* [!code word:column] */
+.steps {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+```
+
+In a horizontal writing mode, the steps form a vertical stack. The first step stays before the second in the document and appears above it.
+
+| Direction | Main axis | Starting side in horizontal, left-to-right text |
+| --- | --- | --- |
+| `row` | Inline axis. | Left. |
+| `row-reverse` | Reversed inline axis. | Right. |
+| `column` | Block axis. | Top. |
+| `column-reverse` | Reversed block axis. | Bottom. |
+
+A row follows the document's inline direction. For right-to-left text, `row` starts on the right; it is not permanently tied to the left edge.
+
+## Allow items to wrap
+
+```css
+/* [!code word:flex-wrap] */
+/* [!code word:wrap] */
+/* [!code word:0 1 10rem] */
+.cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.cards > article {
+  flex: 0 1 10rem;
+}
+```
+
+Each article starts from a `10rem` basis. The container places as many as fit on a line, accounting for their sizes and gaps, before starting another line. The next sizing lesson explains the three `flex` values.
+
+With a 16-pixel root font size, no item margins or padding, and enough room for each card's content:
+
+- At 352 pixels of available width, two 160-pixel cards fit with a 16-pixel gap.
+- At 320 pixels, the cards and gap need 336 pixels, so the cards move onto separate lines.
+- An item that is itself wider than a line may still need to shrink or handle overflowing content.
+
+Items wrap when the container runs out of space, whatever device is in use. For a column to wrap into more columns, give it a height limit.
+
+## Distinguish wrapping values
+
+- **`nowrap`:** The initial value. Items remain on one flex line, even if they shrink or overflow.
+- **`wrap`:** Adds lines toward the cross-end side.
+- **`wrap-reverse`:** Adds lines with cross-start and cross-end reversed.
+
+`wrap-reverse` changes the stacking direction of flex lines. It does not reverse the sequence of items within each line.
+
+Direction and wrapping can also be written together:
+
+```css
+/* [!code word:flex-flow] */
+/* [!code word:row wrap] */
+.cards {
+  flex-flow: row wrap;
+}
+```
+
+Add this declaration to a flex container; the shorthand sets both properties.
+
+## Preserve a meaningful reading order
+
+Reversing the direction changes what you see, but keeps the HTML order and usual Tab order. Write the HTML in a sensible reading order first.
+
+## Predict the next line
+
+With the card sizes above, what happens at 320 pixels if you change `wrap` to `nowrap`? The cards can shrink; which part of the rule permits that?
+
+<details>
+<summary>Check your reasoning</summary>
+
+They stay on one line. The middle `1` in `flex: 0 1 10rem` permits shrinking, although minimum sizes can still cause overflow.
+
+</details>
+
+A column needs multiple columns of steps. Which constraint must it have before wrapping can occur?
+
+<details>
+<summary>Check your reasoning</summary>
+
+Give the column a limited main size (height in horizontal writing), so there is a point where another line is needed.
+
+</details>
+
+## Key Takeaways
+
+- **Direction:** Chooses the main axis and its starting side.
+- **Wrapping:** Creates more flex lines when the items do not fit.
+- **Shorthand:** `flex-flow` combines direction and wrapping.
+- **Order:** Keep the document sequence meaningful when visual direction changes.
+
+## Try it yourself
+
+Make the editor's 230px-wide list flow in a row and wrap. Each item has a 100px basis and the gap is 10px. Keep the HTML and supplied styles. Two items should fit on the first line and the third should move to the next. Explain why all three cannot fit without wrapping at their bases.
+
+<LessonPractice />
+
+Use the editor hints if needed. The visual comparison checks one size, so also inspect your declarations and reasoning.
+
+<details>
+<summary>Check your reasoning</summary>
+
+Add `flex-direction: row` and `flex-wrap: wrap` to `.list`. Three 100px bases plus two 10px gaps need 320px, more than 230px. Two need 210px and fit.
+
+</details>

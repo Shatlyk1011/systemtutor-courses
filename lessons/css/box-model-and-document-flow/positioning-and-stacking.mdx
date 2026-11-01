@@ -1,0 +1,255 @@
+---
+title: "Positioning and Stacking"
+---
+
+{/* Topics to cover: Positioning; Stacking and Z-Index. */}
+
+## Positioning
+
+`position` lets you shift an element, place it in a corner, or keep it in view while scrolling. For each value, check where its position is measured from and whether it still takes up space in the layout.
+
+### Start with static positioning
+
+`position: static` is the initial value. The box follows its ordinary layout, and inset properties such as `top`, `right`, `bottom`, and `left` do not move it.
+
+An element with a position value other than `static` is called a **positioned element**.
+
+### Shift a box with `relative`
+
+```html
+<!-- [!code word:class="note"] -->
+<p class="note">Check the notification.</p>
+<p>Check the content tools.</p>
+```
+
+```css
+/* [!code word:relative] */
+/* [!code word:top] */
+.note {
+  position: relative;
+  top: 8px;
+  left: 12px;
+}
+```
+
+The first paragraph shifts 8 pixels downward and 12 pixels right from its normal position. Its original space remains reserved, so the second paragraph does not move to accommodate the shift. The boxes can overlap.
+
+Relative positioning is also useful without any offsets: it can establish a reference for an absolutely positioned descendant.
+
+### Anchor a badge with `absolute`
+
+```html
+<!-- [!code word:class="card"] -->
+<!-- [!code word:class="badge"] -->
+<article class="card">
+  <span class="badge">New</span>
+  <h2>Account overview</h2>
+  <p>Review recent activity and account settings.</p>
+</article>
+```
+
+```css
+/* [!code word:relative] */
+/* [!code word:absolute] */
+.card {
+  position: relative;
+  padding: 3rem 1rem 1rem;
+  border: 1px solid green;
+}
+
+.badge {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  background-color: honeydew;
+}
+```
+
+The badge leaves normal flow. The card's extra top padding deliberately makes room for it; the badge itself does not push the heading downward.
+
+Here, the card is the nearest positioned ancestor (an element surrounding the badge), so the badge’s offsets are measured from the card’s padding box. This puts the badge near its top-right corner. Without `position: relative` on the card, the badge may use another ancestor as its reference. A `transform` on an ancestor can also change that reference.
+
+### Keep a control in view with `fixed`
+
+```html
+<a class="help" href="/help">Content help</a>
+```
+
+```css
+/* [!code word:fixed] */
+.help {
+  position: fixed;
+  right: 1rem;
+  bottom: 1rem;
+}
+```
+
+A fixed box leaves normal flow and is usually positioned relative to the viewport, so it stays in view as the document scrolls. Certain ancestors, including transformed ones, can establish a different containing block for it.
+
+Because it reserves no layout space, a fixed control can cover page content. Test it on small screens and when text is enlarged.
+
+### Keep a heading nearby with `sticky`
+
+```html
+<section class="journal">
+  <h2 class="heading">Content journal</h2>
+  <p>Record today's observations.</p>
+  <p>Add enough entries to make the section taller than the viewport.</p>
+</section>
+```
+
+```css
+/* [!code word:sticky] */
+/* [!code word:top] */
+.heading {
+  position: sticky;
+  top: 0;
+  background-color: white;
+}
+```
+
+The heading keeps its space in the layout. As you scroll, it sticks at the set distance from the top until it reaches the edge of its containing block.
+
+For vertical sticking, set an offset such as `top: 0` and leave enough room for the element to move. A parent with scrolling overflow can become the scroll reference. If sticky does not work, check the offset, parent overflow, and available height.
+
+### Key Takeaways
+
+- **Static:** Ordinary placement ignores positioning offsets.
+- **Relative:** Visual offsets preserve the box's original layout space.
+- **Absolute:** The box leaves normal flow and uses its containing block for offsets.
+- **Fixed:** The box leaves normal flow and usually stays positioned against the viewport.
+- **Sticky:** The box keeps its flow space while responding to a scroll threshold within its boundaries.
+
+## Stacking and Z-Index
+
+When boxes overlap, the browser must decide which one to paint in front. `z-index` helps control that order, but its numbers are compared within **stacking contexts**, not across the whole page.
+
+### Set an order for positioned boxes
+
+```html
+<!-- [!code word:class="card"] -->
+<!-- [!code word:class="badge"] -->
+<!-- [!code word:class="caption"] -->
+<article class="card">
+  <h2>Latest updates</h2>
+  <span class="badge">New</span>
+  <p class="caption">Read the announcement.</p>
+</article>
+```
+
+```css
+/* [!code word:z-index] */
+.card {
+  position: relative;
+  padding: 1rem 1rem 5rem;
+  border: 1px solid green;
+}
+
+.badge {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  z-index: 2;
+  background-color: honeydew;
+}
+
+.caption {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  margin: 0;
+  z-index: 1;
+  background-color: white;
+}
+```
+
+Where these boxes overlap, the badge paints in front because `2` is greater than `1` within their shared stacking context. `z-index` changes painting order; it does not move boxes or reserve space.
+
+For these ordinary boxes, positioning makes `z-index` applicable. Flex and grid items can also use `z-index` without positioning. Adding a large number to a static paragraph in normal block flow does not bring it forward.
+
+### Understand the context boundary
+
+A **stacking context** groups elements into one layer. Children stack within that group, and the whole group stacks among the surrounding elements.
+
+The document root creates a stacking context. Other common causes include:
+
+- A relative or absolute box with a `z-index` other than `auto`.
+- A fixed or sticky box.
+- An element with `opacity` less than `1`.
+- An element with `transform` other than `none`.
+- An element with `isolation: isolate`.
+
+This is a selection, not the complete list. In particular, `position: relative` by itself, with `z-index: auto`, does not create a stacking context.
+
+### Compare ancestors before descendants
+
+For a separate example, put a badge inside one section and a notice after it:
+
+```html
+<!-- [!code word:class="panel"] -->
+<!-- [!code word:class="notice"] -->
+<section class="panel">
+  <span class="badge">New updates</span>
+</section>
+<aside class="notice">The shop closes at sunset.</aside>
+```
+
+Replace the previous CSS with:
+
+```css
+/* [!code word:999] */
+/* [!code word:z-index] */
+.panel {
+  position: relative;
+  z-index: 1;
+  height: 6rem;
+  background-color: honeydew;
+}
+
+.panel .badge {
+  position: absolute;
+  top: 4rem;
+  left: 0;
+  z-index: 999;
+}
+
+.notice {
+  position: relative;
+  z-index: 2;
+  margin-top: -3rem;
+  padding: 1rem;
+  background-color: white;
+}
+```
+
+The notice overlaps the panel. Wherever it overlaps the badge, the notice paints in front:
+
+- The panel establishes a context at level `1`.
+- The badge's `999` is meaningful inside that panel.
+- The notice's context is at level `2` in the shared parent context, above the panel as a whole.
+
+Increasing the badge's number cannot move it outside its context. Adjust the ancestor's stacking level or move the overlay to a suitable place in the document when that matches the intended design.
+
+### Keep a component's stacking local
+
+Give a component its own stacking context with `isolation: isolate`:
+
+```css
+/* [!code word:isolate] */
+.card {
+  isolation: isolate;
+}
+```
+
+Its descendants now stack within the card's context. This can keep local decorative layers from competing directly with unrelated page layers, but it also constrains overlays that need to appear outside the component's stacking order.
+
+If an element appears behind the wrong thing, check its parents for stacking contexts. Then check its position and `z-index`.
+
+### Key Takeaways
+
+- **`z-index`:** Changes which eligible elements appear in front without moving them.
+- **Contexts:** Stacking contexts group descendants into units in a parent context.
+- **Local numbers:** A child's large value cannot escape an ancestor's stacking context.
+- **Context creators:** Positioning, opacity, transforms, and isolation can establish boundaries.
+- **Debugging:** Compare the relevant ancestor contexts before adjusting descendant values.

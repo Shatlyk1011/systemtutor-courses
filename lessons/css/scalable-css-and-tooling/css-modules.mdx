@@ -1,0 +1,140 @@
+---
+title: "CSS Modules"
+description: "Use local scoping and composition for component styles."
+---
+
+In ordinary CSS, a `.title` rule can affect any element with that class. **CSS Modules** give classes and animation names local names by default, so components can use the same source names without clashing.
+
+Your build tool must support CSS Modules. The common `.module.css` filename tells the tool how to process the file; browsers do not handle modules themselves. See the [CSS Modules overview](https://github.com/css-modules/css-modules).
+
+## Import a component's class mapping
+
+In a React project configured for CSS Modules, create `ProfileCard.module.css`:
+
+```css
+.card {
+  padding: 1.25rem;
+  color: #17352a;
+  background: #ffffff;
+  border: 1px solid #64748b;
+  border-radius: 0.75rem;
+}
+
+.title {
+  margin-block: 0 0.5rem;
+  font-size: 1.25rem;
+}
+```
+
+Create `ProfileCard.jsx` beside it:
+
+```jsx
+// [!code word:styles.card]
+// [!code word:styles.title]
+import styles from "./ProfileCard.module.css";
+
+export default function ProfileCard() {
+  return (
+    <article className={styles.card}>
+      <h2 className={styles.title}>Alex Morgan</h2>
+      <p>Design lead based in London.</p>
+    </article>
+  );
+}
+```
+
+The build tool generates class names and makes them available through `styles`. Another module can use `.title` without sharing this heading’s generated class.
+
+Use the exported value rather than writing `className="title"`: the literal string does not refer to the module's generated class. The exact generated spelling is an implementation detail. See the [local scope documentation](https://github.com/css-modules/css-modules/blob/master/docs/local-scope.md).
+
+## Compose a variation from a base class
+
+Add this rule after `.card` in the same stylesheet:
+
+```css
+/* [!code word:composes] */
+.featured {
+  composes: card;
+  background: #e7f3ec;
+  border-color: #17352a;
+}
+```
+
+Then change the article's class to `styles.featured`:
+
+```jsx
+<article className={styles.featured}>
+  <h2 className={styles.title}>Alex Morgan</h2>
+  <p>Design lead based in London.</p>
+</article>
+```
+
+`styles.featured` contains both the featured and base class names. The element gets both classes; the base declarations are not copied into `.featured`. The cascade handles any conflicting styles.
+
+Put `composes` before the other declarations in its rule. Composition works with local single-class selectors; it is not ordinary browser CSS. Modules can also compose from another file, but avoid competing declarations whose outcome depends on cross-file order. See the [composition documentation](https://github.com/css-modules/css-modules/blob/master/docs/composition.md).
+
+## Know what local scope covers
+
+Local class names reduce naming collisions; they do not create an isolated document. Inherited fonts and custom properties still reach the component, and global rules can still affect its elements.
+
+A plain `h2` selector is still global inside a module file. Use a local class such as `.title`, or select headings inside a local class when that is what you intend.
+
+Keep shared tokens and document defaults in a clear shared location. CSS Modules can organize component names while the cascade continues to handle the final appearance.
+
+## Trace the exported class mapping
+
+Why does the example use `className={styles.title}` instead of `className="title"`?
+
+<details>
+<summary>Check your reasoning</summary>
+
+The imported mapping supplies the generated local class name; the literal string does not use that mapping.
+
+</details>
+
+Now take the next decision yourself: If `.featured` composes `card`, does it copy declarations into its own rule or add class names to the exported value?
+
+<details>
+<summary>Check your reasoning</summary>
+
+It adds class names to the exported value. The cascade still resolves conflicting declarations.
+
+</details>
+
+## Key Takeaways
+
+- **Local names:** CSS Modules transform names through a compatible build integration.
+- **Mapping:** Apply classes with their exported values rather than literal local names.
+- **Composition:** Combine class names while leaving conflict resolution to the cascade.
+- **Boundaries:** Local naming does not block inheritance or all global styles.
+
+## Try it yourself
+
+In a React project configured for CSS Modules, `Badge.module.css` defines `.badge` and `.label`. Write the import and JSX for a badge containing a label. Explain whether the module stops an inherited font or a global element rule from affecting the label.
+
+Check your work against these criteria:
+
+- Address each part of the scenario using the mechanism taught in this lesson.
+- Explain the decision and its effect, rather than only naming a tool or selector.
+- Compare your answer with the reasoning below; equivalent correct solutions are welcome.
+
+<details>
+<summary>Hint 1</summary>
+
+Import the module as a mapping, then use its properties in `className`.
+
+</details>
+
+<details>
+<summary>Hint 2</summary>
+
+Local class names prevent name collisions; they are not an isolation boundary.
+
+</details>
+
+<details>
+<summary>Check your reasoning</summary>
+
+For example: `import styles from "./Badge.module.css";` and `<span className={styles.badge}><span className={styles.label}>New</span></span>`. Inherited fonts and applicable global element rules can still affect the label.
+
+</details>

@@ -1,0 +1,157 @@
+---
+title: "Images and Icons"
+description: "Style images and icons with filters and visual effects."
+---
+
+A photograph may fill a card and be cropped at the edges. An icon should stay clear beside its label. CSS controls their size and appearance, while HTML provides their meaning.
+
+## Shape an image without stretching it
+
+```html
+<img
+  class="profile-photo"
+  src="/images/profile.jpg"
+  width="900"
+  height="600"
+  alt="A person smiling outdoors">
+```
+
+Supply a 900-by-600-pixel photo at the example path.
+
+```css
+/* [!code word:object-fit] */
+/* [!code word:object-position] */
+.profile-photo {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  object-position: center;
+  border-radius: 0.75rem;
+}
+```
+
+The source has a 3:2 ratio, but the displayed box uses 4:3. `object-fit: cover` fills that box without stretching the photograph, so some content is cropped. `object-position` controls the crop's alignment.
+
+For a diagram or logo whose entire contents must remain visible, use `object-fit: contain` instead. It can leave unused space inside the box.
+
+## Add effects to the intended element
+
+```css
+/* [!code word:filter] */
+.profile-photo {
+  filter: grayscale(30%) brightness(95%);
+}
+```
+
+`grayscale(30%)` partially removes color; `brightness(95%)` slightly darkens the result. Multiple filters run in their written order. `filter: none` restores the unfiltered appearance.
+
+Put the filter on the image to change only the photo. A filter on the card affects its text and other content too. `drop-shadow()` follows an image's visible shape, including transparent edges; a box shadow follows the element's box.
+
+## Size icons relative to their labels
+
+An inline SVG contains drawing instructions and can scale without the pixelation associated with enlarging a small bitmap:
+
+```html
+<button class="add-contact" type="button">
+  <svg class="button-icon" viewBox="0 0 24 24" aria-hidden="true">
+    <path d="M12 5v14M5 12h14" />
+  </svg>
+  Add contact
+</button>
+```
+
+```css
+/* [!code word:1em] */
+.add-contact {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  padding: 0.75em 1em;
+  font: inherit;
+  color: #17352a;
+  background: #ffffff;
+  border: 1px solid;
+  border-radius: 0.5rem;
+}
+
+.button-icon {
+  width: 1em;
+  height: 1em;
+  flex-shrink: 0;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+}
+```
+
+The icon follows the button’s font size and text color. The label already names the action, so `aria-hidden="true"` hides the decorative SVG from screen readers. Application code handles the actual “add contact” action.
+
+## Predict a crop
+
+A wide photograph must fill a square card. Which fitting value keeps its proportions and fills the square? What might disappear?
+
+<details>
+<summary>Check your reasoning</summary>
+
+`cover` fills the box without stretching the image, but can crop the sides. Check the actual photograph at the intended size.
+
+</details>
+
+A logo must show every edge in the same square. Which value would you choose instead?
+
+<details>
+<summary>Check your reasoning</summary>
+
+`contain` shows the whole logo, potentially leaving space in the box.
+
+</details>
+
+## Key Takeaways
+
+- **Fitting:** Use `cover` for intentional crops and `contain` to preserve the whole image.
+- **Filters:** Effects apply to the rendered element, so target them carefully.
+- **Icons:** Relative sizing and `currentColor` help icons follow nearby text.
+- **Meaning:** Give actions clear labels and hide redundant decorative icons.
+
+## Try it yourself
+
+A directory card has a portrait in an `<img class="portrait">` and a decorative stroked SVG with `class="button-icon"` beside a button labeled “Message”. Write CSS for a square portrait that fills its box without distortion and an icon that follows the button's font size and text color. Explain one limitation of your crop and why the labeled button can hide the SVG from assistive technology.
+
+Check for a square box, proportion-preserving fill, relative icon dimensions and `currentColor`. Inspect the portrait at different card sizes.
+
+<details>
+<summary>Hint 1</summary>
+
+Use a square `aspect-ratio` and choose the fitting value that fills the box.
+
+</details>
+
+<details>
+<summary>Hint 2</summary>
+
+The inline SVG uses a stroke. Size it in `em` and set its stroke to the inherited color.
+
+</details>
+
+<details>
+<summary>Check your work and reasoning</summary>
+
+```css
+.portrait {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+}
+.button-icon {
+  width: 1em;
+  height: 1em;
+  stroke: currentColor;
+}
+```
+
+The portrait can lose content at its edges; `cover` does not guarantee the subject remains visible. If the SVG merely repeats the visible button label, `aria-hidden="true"` avoids a redundant announcement. A meaningful icon without a label needs an accessible name.
+
+</details>

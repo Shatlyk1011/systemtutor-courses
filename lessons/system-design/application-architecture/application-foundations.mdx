@@ -1,0 +1,83 @@
+---
+title: Application Foundations
+description: Follow an application from development and deployment to a user request.
+---
+
+<Callout title="Lesson goal" type="info">
+  By the end of this lesson, you will be able to trace how code becomes a running application and how user requests travel through the application to reach persistent data and return a response.
+</Callout>
+
+A modern application is more than source code. It is a system that connects **code, execution, data, and user requests**.
+
+## The application path
+
+An application has two paths that must work together:
+
+- the **delivery path**, which turns source code into a running version of the application
+- the **request path**, which carries a user action to the right service and returns a result
+
+The paths meet at the running application. A deployment changes the code that the application executes; a request uses that running code to do useful work.
+
+
+### 1. Delivery: from code to a running service
+
+**Developer → Source control → Build and test → Deployment → Running application**
+
+A developer writes a change and saves it in source control. A build process turns that source into something the runtime can execute, such as a compiled program, package, or container image. 
+
+Deployment places the approved version into an environment. The runtime starts the application with its configuration, network access, and credentials. At that point, the application is ready to **receive requests**.
+
+![](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/ba63474e-1b92-4442-ad73-e67e7b1b8070/gallery/d5eb3c7f-c468-4a2f-8be2-e51ddcf0b879)
+
+### 2. Requests: from a user action to data and back
+
+**User → Front-end or client → API entry point → Application → Storage or other services → Application → Response → User**
+
+A user might click a button in a web page, open a mobile screen, or call an API from another system. The front-end or client sends that action to an entry point, commonly an API or gateway. The entry point routes the request to application code running on an available server.
+
+The application validates the request, applies business rules, and reads or writes the data it needs. That data may live in a database, cache, object store, or another service. The application then constructs a response, which travels back through the entry point to the client so the user can see the result.
+
+![](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/ba63474e-1b92-4442-ad73-e67e7b1b8070/gallery/3b2a61a0-33c4-4972-82d1-543f44072167)
+
+The path is not a single physical machine or a single program. Different stages can run on different machines and can scale independently, but each stage has to pass the correct work to the next one.
+
+## Core stages
+| Stage | Role |
+|---|---|
+| **Source control, build, and deployment** | Version code, check it, and release a runnable version to an environment. |
+| **Runtime / servers** | Provide compute, configuration, and network access for the running application. |
+| **Front-end / API entry point** | Accepts actions from users or other systems and directs them to the appropriate application capability. |
+| **Application** | Authenticates and validates requests, applies business logic, coordinates dependencies, and creates responses. |
+| **Storage and supporting services** | Persist data or provide shared capabilities such as caching, file storage, messaging, or search. |
+
+<Callout title="Key idea" type="info">
+  An application is not just code. It must be built and deployed, run in an environment, receive requests through an entry point, use data or services, and return a response.
+</Callout>
+
+## Trace a request
+
+Consider a user loading their **profile**:
+
+**User → Front-end → API → Application Server → Storage → Application Server → API → Front-end → User**
+
+
+![](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/ba63474e-1b92-4442-ad73-e67e7b1b8070/gallery/3b2a61a0-33c4-4972-82d1-543f44072167)
+
+The request starts at the user-facing interface. The front-end calls an API, and the API routes the request to an application server. The application checks that the user is allowed to view the profile, reads the profile from storage, and builds a response. If the application needs data from another service, it can make that call before responding.
+
+The response then travels back through the API to the front-end, which displays the profile to the user. The same route works in reverse for updates: the application validates the new information, writes it to storage, and returns confirmation.
+
+## Connect the two paths
+
+When a developer deploys a new version, the runtime begins serving requests with that version. This is why delivery and request handling cannot be treated as separate concerns: deployment determines what behavior users receive, and request handling shows whether that version works correctly in practice.
+
+This gives us two connected paths:
+
+- **Delivery path:** source code → build and test → deployment → running application
+- **Request path:** user or system → client/API → application → data or services → response
+
+Together, these paths form the foundation of a running application.
+
+<Callout title="Key idea" type="info">
+  To understand an application, trace both directions: **how code becomes a running service** and **how a user request travels through that service to reach data and return a response**.
+</Callout>

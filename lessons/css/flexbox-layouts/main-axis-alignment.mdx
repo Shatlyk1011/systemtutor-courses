@@ -1,0 +1,114 @@
+---
+title: "Main-Axis Alignment"
+description: "Distribute flex items along the main axis."
+---
+
+`justify-content` places the items along the **main axis** using any leftover space. It works on each flex line after the items have grown or shrunk.
+
+## Start with a container that has spare space
+
+```css
+/* [!code word:justify-content] */
+/* [!code word:center] */
+.actions {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+}
+```
+
+Assume the direct children are three buttons. In the initial `row` direction, they form a centered group, with a `1rem` gap between neighbors.
+
+With a 600-pixel content width, three 100-pixel items, and two 16-pixel gaps, 268 pixels remain. Centering puts 134 pixels before the group and 134 pixels after it. This example assumes no margins, borders, or padding affect those measurements.
+
+## Choose a distribution
+
+| Value | Effect along the main axis |
+| --- | --- |
+| `flex-start` | Packs items toward main-start. |
+| `flex-end` | Packs items toward main-end. |
+| `center` | Centers the group. |
+| `space-between` | Places remaining space between items, with none added at the outer edges. |
+| `space-around` | Adds equal space on each item's sides; edge spaces are half the spaces between neighbors. |
+| `space-evenly` | Adds equal spaces between neighbors and at the outer edges. |
+
+`gap` still applies. With distributed alignment, the visible space between items can be larger than the declared gap.
+
+## Follow the main axis when direction changes
+
+```css
+/* [!code word:column] */
+/* [!code word:min-height] */
+/* [!code word:space-between] */
+.stack {
+  display: flex;
+  flex-direction: column;
+  min-height: 20rem;
+  justify-content: space-between;
+}
+```
+
+In horizontal text, the main axis now runs vertically. The extra height provides room for the first and last items to move apart. Without extra main-axis space, changing the distribution may have little visible effect.
+
+For a wrapped container, each line performs its own main-axis distribution. A line containing one item will not reproduce the spacing of a line containing three.
+
+## Push one group away with an auto margin
+
+```css
+/* [!code word:margin-inline-start] */
+/* [!code word:auto] */
+.toolbar {
+  display: flex;
+  gap: 1rem;
+}
+
+.toolbar > .account-link {
+  margin-inline-start: auto;
+}
+```
+
+In a normal row, the auto margin takes the spare space before the account link. The earlier items stay together and the account link moves to the far end.
+
+`justify-self` does not align individual flex items on the main axis. Use an auto margin for this layout.
+
+## Predict the distribution
+
+In the 600px example, what happens to the 268px of spare space if `center` becomes `space-between`? Keep the two 16px gaps.
+
+<details>
+<summary>Check your reasoning</summary>
+
+The 268px is divided between the two spaces: 134px is added to each existing 16px gap, for 150px between neighbors. No extra space is added at the edges.
+
+</details>
+
+If the buttons grow until they fill the row, why might changing `justify-content` make no visible difference?
+
+<details>
+<summary>Check your reasoning</summary>
+
+There is no positive free space left to distribute after sizing and gaps.
+
+</details>
+
+## Key Takeaways
+
+- **Main axis:** `justify-content` follows the chosen flex direction.
+- **Distribution:** Alignment uses space left after sizing, gaps, and auto margins.
+- **Groups:** An auto margin can separate one group from another.
+- **Wrapped lines:** Each line distributes its own available space.
+
+## Try it yourself
+
+In the editor, spread the two items to opposite ends of the 300px row with `justify-content`. Keep their sizes and the HTML. Check that each item touches an end and explain what space the declaration distributes.
+
+<LessonPractice />
+
+Use the editor hints as needed. The visual comparison cannot verify which property you used, so inspect your CSS too.
+
+<details>
+<summary>Check your reasoning</summary>
+
+Set `justify-content: space-between` on `.bar`. The two 60px items leave 180px, which goes between them because no gaps or margins are specified.
+
+</details>

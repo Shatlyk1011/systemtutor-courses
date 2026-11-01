@@ -1,0 +1,275 @@
+---
+title: "Accessible and Resilient CSS"
+---
+
+{/* Topics to cover: Accessibility Checks; CSS Performance; Browser Support. */}
+
+## Accessibility Checks
+
+Check that people can read the page, find controls, and use them with different input methods and display settings. A page that looks good at one size may still be difficult to use.
+
+### Check text and state contrast
+
+Measure the contrast between text and the background actually behind it. For ordinary-sized text, the WCAG AA minimum contrast ratio is **4.5:1**. Large text has a different threshold; do not treat every bold label as large text.
+
+Check resting, hover, focus, and error appearances, including text over images or gradients. A color that works on one surface may fail on another. Pair color with words or another visible cue: “Error: Enter your email” conveys more than a red border alone.
+
+### Navigate using the keyboard
+
+Put the pointer aside and use Tab and Shift+Tab to move through interactive elements. Activate links and buttons and operate native form controls. Confirm that focus follows a sensible order and remains visible.
+
+For an existing form with the `signup-form` class, this rule adds an explicit indicator:
+
+```css
+/* [!code word:focus-visible] */
+.signup-form input:focus-visible,
+.signup-form select:focus-visible,
+.signup-form textarea:focus-visible,
+.signup-form button:focus-visible {
+  outline: 3px solid #1d4ed8;
+  outline-offset: 3px;
+}
+```
+
+Check that the outline is visible against nearby colors and is not clipped or hidden by a sticky header. Try activating each control with the keyboard too: a visible outline alone does not make it work.
+
+### Enlarge the content and narrow the layout
+
+Zoom in and narrow the browser window. Check long labels and every control. Text should wrap and containers should grow, so ordinary reading content does not force horizontal scrolling across the page.
+
+This card allows text to grow naturally:
+
+```html
+<article class="info-card">
+  <h2>Delivery options for your next order</h2>
+  <p>Review the delivery address and estimated arrival date.</p>
+</article>
+```
+
+```css
+.info-card {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 36rem;
+  padding: 1.25rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+```
+
+There is no fixed height, so wrapped text can increase the card's height. A genuinely two-dimensional table may need its own scrolling region, but that does not justify page-wide overflow. See the [W3C reflow explanation](https://www.w3.org/WAI/WCAG22/Understanding/reflow.html).
+
+### Review reduced motion
+
+Enable the device's reduced-motion preference or emulate it in DevTools. Check that removing an entrance does not leave content invisible and that success or error feedback remains understandable.
+
+### Combine automated and manual checks
+
+Automated tools can identify some contrast and structural problems. They cannot confirm every interaction, useful reading order, or clear instruction. Treat this review as a set of practical checks, not proof of complete accessibility.
+
+### Key Takeaways
+
+- **Contrast:** Measure actual text and background combinations across states.
+- **Keyboard:** Verify visible focus, sensible order, and working controls.
+- **Reflow:** Check enlarged text and narrow layouts without clipping content.
+- **Coverage:** Combine automated findings with manual interaction checks.
+
+### Try it yourself
+
+A form has pale gray error text on white, a red border as its only error cue, a clipped focus outline, and a button cut off at 200% zoom. It has only been checked with a mouse.
+
+Identify checks or repairs for each issue. Why is an automated scan alone insufficient? Use the lesson to check that your response addresses each part.
+
+<details>
+<summary>Hint</summary>
+
+Consider contrast, keyboard use, reflow, and error feedback.
+
+</details>
+
+<details>
+<summary>Check your reasoning</summary>
+
+Measure text against its actual background; add a message alongside color; make focus visible and test keyboard operation; allow content to grow and check reflow. Automation cannot establish that controls work or that focus order and instructions make sense.
+
+Other accurate approaches can also meet the task.
+
+</details>
+
+## CSS Performance
+
+CSS affects how quickly a page appears and how smoothly it responds. First measure whether the delay comes from loading styles or drawing the page, then choose a change that addresses it.
+
+### Deliver the styles the page needs
+
+A normal linked stylesheet can block initial rendering while the browser loads and processes it. Large shared files can make a small page download styles for features it never uses.
+
+In the Network panel, check which stylesheets load and how large they are. Look for duplicates, old rules, or a whole library loaded for one small feature. Splitting a file helps only if the page then loads less CSS.
+
+Minification shortens the CSS. Transfer compression, such as gzip, reduces the download size. Neither automatically finds every unused rule.
+
+### Interpret unused CSS carefully
+
+Chrome DevTools Coverage records which stylesheet ranges are used during a session. Start recording, then open menus, submit invalid forms, navigate relevant routes, and resize through responsive states before drawing conclusions.
+
+“Unused during this recording” is evidence to investigate, not permission to delete a rule immediately. A closed dialog, another route, print styles, or a different viewport can need code that the current recording never exercised. See the [Coverage documentation](https://developer.chrome.com/docs/devtools/coverage/).
+
+### Keep text readable during font loading
+
+```css
+/* [!code word:font-display\: swap] */
+@font-face {
+  font-family: "Site Sans";
+  src: url("/fonts/site-sans-regular.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+
+body {
+  font-family: "Site Sans", system-ui, sans-serif;
+  line-height: 1.5;
+}
+```
+
+Supply the actual regular-weight WOFF2 font at the example path. The fallback stack remains usable if it cannot load. Load only the families, styles, and weights your design uses; declaring a regular face does not supply a separate bold file.
+
+`font-display: swap` permits fallback text after a very short block period and allows replacement when the web font arrives. Different font metrics can still change line wrapping and shift layout. Check a slow initial load as well as a cached reload.
+
+### Examine rendering work
+
+Changing dimensions or positions can trigger layout and paint. Large shadows, filters, and other effects can also add rendering cost. Transforms and opacity are often useful for motion that should leave layout fixed, but they are not a guarantee of smooth playback.
+
+Record a slow interaction in the Performance panel. Check whether the browser spends time on layout, paint, or compositing. Keep selectors readable and focus on the work the recording shows is slow.
+
+### Compare before and after
+
+Use the same route, interaction, viewport, and loading conditions for each comparison. Check that reducing bytes or rendering work preserves the intended layout and states. Keep an optimization only when the evidence supports its benefit.
+
+### Key Takeaways
+
+- **Delivery:** Reduce unnecessary styles the page actually downloads and processes.
+- **Coverage:** Investigate unused ranges across real states before deleting them.
+- **Fonts:** Provide readable fallbacks and inspect layout during loading.
+- **Measurement:** Compare equivalent conditions and verify behavior after optimization.
+
+### Try it yourself
+
+Coverage reports 60% of a shared stylesheet unused on a dashboard at one width. A menu was closed and the settings route was not visited. Text changes line breaks when a web font arrives.
+
+Explain what to investigate before removing CSS and how to investigate the font shift. Describe a fair before-and-after comparison. Use the lesson to check that your response addresses each part.
+
+<details>
+<summary>Hint</summary>
+
+Which states were omitted, and which conditions must remain the same?
+
+</details>
+
+<details>
+<summary>Check your reasoning</summary>
+
+Record coverage across the menu, settings route and responsive states; inspect ranges before removal. Compare fallback and web-font metrics on a slow first load. Repeat the same route, viewport, interaction and loading conditions, and verify required states still work.
+
+Other accurate approaches can also meet the task.
+
+</details>
+
+## Browser Support
+
+Browsers do not all support the same CSS features. **Progressive enhancement** starts with a usable page, then adds features in browsers that support them.
+
+The baseline does not need to look identical everywhere. It needs to preserve content and essential tasks.
+
+### Establish a working fallback
+
+This collection begins as ordinary stacked content:
+
+```html
+<div class="article-list">
+  <article>Planning: define the project goals and scope.</article>
+  <article>Delivery: review progress and share updates.</article>
+</div>
+```
+
+```css
+.article-list > article {
+  padding: 1.25rem;
+  color: #17352a;
+  background: #e7f3ec;
+  border: 1px solid #17352a;
+  border-radius: 0.75rem;
+}
+
+.article-list > article + article {
+  margin-top: 1rem;
+}
+```
+
+Even without a layout enhancement, both articles remain readable in source order. Keep essential content outside conditions that might not match.
+
+### Add a feature query
+
+```css
+/* [!code word:@supports] */
+@supports (display: grid) {
+  @media (min-width: 40rem) {
+    .article-list {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .article-list > article + article {
+      margin-top: 0;
+    }
+  }
+}
+```
+
+`@supports` tests a property-value declaration. The media query tests viewport width. When both conditions match, Grid creates two columns and `gap` replaces the fallback spacing between articles.
+
+Resetting the margin matters: retaining it would push the second grid item downward as well as adding the gap. Test how the enhancement interacts with existing styles, not only whether the new declaration is accepted.
+
+### Understand what feature detection tells you
+
+A passing feature query means the browser reports support for that property and value. It does not check for bugs or every related feature. For example, `(display: grid)` does not test every possible track-size value.
+
+If the browser does not understand `@supports`, it ignores the enhancement and keeps the baseline. This is why placing all content styling inside the query would be a poor fallback strategy.
+
+### Match testing to your audience
+
+Define which browser versions and devices the project needs to support. Consult the compatibility tables for the exact properties, values, and selectors in use, then test representative browsers.
+
+Include content wrapping, native form controls, fonts, focus, and responsive states. Device emulation helps inspect dimensions and settings; it does not turn one browser engine into another. A desktop Chromium preview cannot confirm Safari behavior.
+
+Test the CSS feature with a query when possible, rather than checking a browser name. Keep fallback rules clear so they are easy to maintain.
+
+### Key Takeaways
+
+- **Baseline:** Preserve readable content and essential tasks before enhancement.
+- **Detection:** Use `@supports` for CSS capabilities and media queries for display conditions.
+- **Limits:** Accepted syntax does not guarantee a bug-free interface.
+- **Testing:** Check exact feature compatibility and representative browser engines.
+
+### Try it yourself
+
+Three articles are readable in a stack. A proposed change moves all article styling into a feature query for display: grid and uses two columns at wider widths.
+
+Explain what happens when the query is unsupported, describe a baseline and enhancement, and name a test the query cannot replace. Use the lesson to check that your response addresses each part.
+
+<details>
+<summary>Hint</summary>
+
+Separate content styling from optional layout and consider width independently.
+
+</details>
+
+<details>
+<summary>Check your reasoning</summary>
+
+Keep readable article styles and spacing outside the query. Inside the query, add the wide-screen Grid layout and replace fallback spacing with a gap. Unsupported browsers retain the baseline. Check exact features and representative browsers; accepting display: grid does not prove every related behavior works.
+
+Other accurate approaches can also meet the task.
+
+</details>

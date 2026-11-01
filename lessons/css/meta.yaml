@@ -1,0 +1,15 @@
+title: "CSS Masterclass"
+description: "Build a foundation in CSS, layouts, responsive design, and maintainable interfaces."
+pages:
+  - index
+  - css-foundations
+  - selectors-and-the-cascade
+  - values-units-and-custom-properties
+  - typography-and-colors
+  - box-model-and-document-flow
+  - flexbox-layouts
+  - responsive-design
+  - media-and-form-components
+  - motion-and-visual-effects
+  - scalable-css-and-tooling
+  - quality-accessibility-and-performance

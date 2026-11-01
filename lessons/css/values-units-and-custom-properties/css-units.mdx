@@ -1,0 +1,160 @@
+---
+title: "CSS Units"
+description: "Use absolute, relative, viewport, and container units."
+---
+
+A **unit** gives a numeric length its meaning. In `20px`, the number is `20` and the unit is `px`. The useful question is not only “how large is the number?” but also “what does this number measure against?”
+
+Write a length without a space between its number and unit. For zero lengths, the unit can usually be omitted, as in `margin: 0`.
+
+## Choose a reference first
+
+![CSS unit references]()
+{/*
+IMAGE PROMPT — CSS unit references
+Show a component connected to four labeled measurement references: fixed CSS pixels, local and root font sizes, browser viewport, and its query container; map `px`, `em`/`rem`, viewport units, and `cqi` to the appropriate reference.
+*/}
+
+Use the reference that should control the size:
+
+| If the size should follow... | Start with... | Why |
+| --- | --- | --- |
+| A fixed CSS measurement | `px` | The value stays the same CSS length as its context changes. |
+| A font size | `em` or `rem` | The value scales from a local or root font size. |
+| The browser viewport | `vw`, `vh`, `svh`, or `dvh` | The value follows the viewport rather than a component. |
+| A component’s own width | `cqi` | The value follows a size-query container around the component. |
+
+Percentages are another relative option, but their reference depends on the property. The preceding lesson’s rule still applies: ask “a percentage of what?” before calculating one.
+
+## Absolute lengths: `px`
+
+```css
+/* [!code word:2px] */
+.note {
+  border: 2px solid green;
+}
+```
+
+`px` is an absolute length unit in CSS. A CSS pixel is an abstract CSS measurement, so it is not necessarily one physical screen pixel; device resolution and zoom affect how it is displayed.
+
+Other absolute units include `cm`, `mm`, `in`, and `pt`. They have fixed relationships to each other in CSS.
+
+## Font-relative lengths: `em` and `rem`
+
+- **`em`:** Uses the element's computed font size for most properties. On `font-size` itself, it uses the inherited font size instead.
+- **`rem`:** Uses the root element's font size, which is the font size on `html` in an HTML document.
+
+```css
+/* [!code word:1.5em] */
+/* [!code word:1em] */
+/* [!code word:1rem] */
+html {
+  font-size: 16px;
+}
+
+.theme {
+  font-size: 20px;
+}
+
+.note {
+  font-size: 1.5em;
+  padding: 1em;
+  margin-top: 1rem;
+}
+```
+
+For a `.note` directly inside `.theme`:
+
+- **Font size:** `1.5 × 20px = 30px`.
+- **Padding:** `1em` uses the note's own 30-pixel font size, so it is `30px`.
+- **Top margin:** `1rem` uses the root's font size, so it is `16px`.
+
+These results use the font sizes set in the example. A visitor’s root font size may differ. Nested `em` font sizes can multiply at each level, while `rem` always refers to the root.
+
+### Worked comparison
+
+Trace each declaration from its reference instead of memorising the numbers:
+
+```css
+html { font-size: 16px; }
+
+.theme { font-size: 20px; }
+
+.note {
+  font-size: 1.5em;
+  padding: 1em;
+  margin-top: 1rem;
+}
+```
+
+For a `.note` inside `.theme`:
+
+1. `1.5em` on `font-size` uses the inherited `20px`, so the note’s font size is `30px`.
+2. `1em` on `padding` uses the note’s computed `30px` font size, so the padding is `30px`.
+3. `1rem` uses the root’s `16px`, so the margin is `16px`.
+
+Now complete the reasoning: if `.theme` changed to `font-size: 24px`, the `em` results would change, but the `1rem` margin would still use the root size. That is the practical difference between a local reference and a root reference.
+
+## Viewport-relative lengths
+
+The **viewport** is the area through which the browser displays the document:
+
+- **`1vw`:** One percent of the viewport width.
+- **`1vh`:** One percent of the large viewport height in current browsers.
+- **`1svh`:** One percent of the small viewport height, accounting for expanded browser controls.
+- **`1dvh`:** One percent of the dynamic viewport height, which can change as browser controls appear or disappear.
+
+```css
+/* [!code word:50vw] */
+/* [!code word:100dvh] */
+.banner {
+  width: 50vw;
+  min-height: 100dvh;
+}
+```
+
+At a viewport width of 1000 pixels, `50vw` is 500 pixels. Dynamic height can resize as mobile browser controls appear or disappear, while the small viewport gives a stable reference when those controls are expanded. Viewport units and percentages have different bases.
+
+Check the reference before calculating:
+
+- At a 1000-pixel viewport width, `25vw` is `250px`.
+- At a 600-pixel large viewport height, `50vh` is `300px`.
+
+The calculation is always “number × 1% of the named reference.”
+
+## Container-relative lengths
+
+Container units measure a size-query container around the element. `1cqi` is 1% of that container’s **inline size**, which is its width in horizontal writing:
+
+```css
+/* [!code word:inline-size] */
+/* [!code word:5cqi] */
+.panel {
+  container-type: inline-size;
+}
+
+.panel h2 {
+  font-size: 5cqi;
+}
+```
+
+The panel establishes the size-query container. If its inline size is 400 pixels, `5cqi` gives the heading a 20-pixel font size. This responds to the panel, rather than the whole browser window.
+
+If there is no suitable container, these units fall back to the small viewport size for that direction. You will use containers more fully in responsive design.
+
+The important sequence is: create the container, identify the axis, then calculate the percentage. In the example, `inline-size` is the width because the writing direction is horizontal. `5cqi` therefore means `5% × 400px = 20px`.
+
+## Check your understanding
+
+1. **Completion:** In the font example, replace `.theme`’s `20px` with `24px`. Work out the new `1.5em` font size and `1em` padding. Keep the `1rem` margin unchanged.
+2. **Choose a reference:** Which unit would you start with for a heading that should scale with its card, not the browser window? Explain what supplies the reference.
+3. **Independent check:** At a 1200-pixel viewport width, calculate `40vw`. Then explain why `40%` could produce a different result on the same element.
+
+<LessonPractice />
+
+## Key Takeaways
+
+- **Units:** A unit connects a number to a particular measurement or reference.
+- **Fonts:** `em` can follow a local font size; `rem` follows the root font size.
+- **Viewports:** Viewport units follow browser dimensions, with small and dynamic variants for changing controls.
+- **Containers:** Container units follow a suitable size-query container around the element.

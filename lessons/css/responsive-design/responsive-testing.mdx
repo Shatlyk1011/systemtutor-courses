@@ -1,0 +1,100 @@
+---
+title: "Responsive Testing"
+description: "Check layouts across viewport sizes and devices."
+---
+
+Test a responsive layout across a range of widths, including between breakpoints. Also try larger text, zoom, and user preferences.
+
+## Resize continuously, then test boundaries
+
+Open the browser's responsive viewport tools and drag through a range of widths. When a problem appears, note the width and inspect the component that causes it.
+
+Then check the exact points where rules change. For an example breakpoint of `48rem` with a 16-pixel initial font size:
+
+| Width | What to inspect |
+| --- | --- |
+| 320px | Narrow layout, long text, and horizontal overflow. |
+| 767px | The last whole CSS pixel below the breakpoint. |
+| 768px | The boundary where an inclusive minimum query matches. |
+| 769px | The layout immediately above the boundary. |
+| 1280px | Maximum widths, line lengths, and unused space. |
+
+Use these widths as examples to test. Also try short landscape windows to find problems caused by limited height. See the [Chrome Device Mode guide](https://developer.chrome.com/docs/devtools/device-mode).
+
+## Stress the content
+
+Use a deliberately demanding card while checking a layout:
+
+```html
+<!-- [!code word:class="test-card"] -->
+<!-- [!code word:averylongprojectidentifierwithoutspaces] -->
+<article class="test-card">
+  <h2>A longer guide to planning a complex project with a distributed team</h2>
+  <p>Project identifier: averylongprojectidentifierwithoutspaces</p>
+  <a href="/guides/projects">Read the complete project guide</a>
+</article>
+```
+
+```css
+/* [!code word:min-width] */
+/* [!code word:overflow-wrap] */
+.test-card {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+```
+
+As a flex or grid item, this card can shrink because of `min-width: 0`. `overflow-wrap` lets long strings wrap. Check children too: a child with a fixed width can still overflow.
+
+Try longer labels, more items, missing images, and translated text too. Check that containers grow or wrap so the extra content stays visible.
+
+## Check enlargement and interaction
+
+Enlarge the page and test a larger default text size. Inspect whether:
+
+- Text wraps without losing words or controls.
+- Fixed and sticky elements leave the content and focused controls reachable.
+- Keyboard focus remains visible as the layout changes.
+- Links and buttons remain usable without hover.
+- Images and component columns fit their actual containers.
+
+For ordinary reading content, WCAG’s reflow criterion checks that everything remains available at a width equivalent to 320 CSS pixels, without scrolling both horizontally and vertically. Some two-dimensional content has exceptions. A 1280-pixel viewport at 400% zoom gives that 320-pixel width. See the [reflow guidance](https://www.w3.org/WAI/WCAG22/Understanding/reflow.html).
+
+## Test more than width
+
+| Condition | Check |
+| --- | --- |
+| Light and dark preferences | Text, links, controls, and focus indicators stay visible. |
+| Reduced motion | Optional motion is reduced while feedback remains available. |
+| Higher contrast | Important boundaries and states remain distinguishable. |
+| Print preview | Meaningful content survives pagination and screen controls are omitted appropriately. |
+| Narrow and wide component slots | Container queries respond to each instance's space. |
+
+Use developer tools to emulate conditions, then verify important paths on real devices and the browsers the site supports. Device emulation approximates selected properties; it does not reproduce every hardware, input, or browser behavior.
+
+## Key Takeaways
+
+- **Range:** Resize continuously and inspect query boundaries explicitly.
+- **Content:** Test long strings, extra items, and enlarged text.
+- **Conditions:** Check preferences, print output, and component-sized layouts.
+- **Devices:** Combine emulation with real-device and supported-browser checks.
+
+## Try it yourself
+
+A page has two columns at `min-width: 48rem`, a long unbroken project ID, and a decorative transition. The browser's initial font size is `16px`. Plan a test pass covering the breakpoint, overflow, zoom, and reduced motion. State what a failure would look like and one useful next step.
+
+Include widths immediately below, at, and above the threshold, difficult content at a narrow width, an enlargement check, and both motion preference states. Explain why a device preset alone is insufficient.
+
+<details>
+<summary>Hints</summary>
+
+Convert `48rem` using the stated initial size. Inspect item and child widths if the ID overflows; inspect the preference override if motion continues under `reduce`.
+
+</details>
+
+<details>
+<summary>Check your plan</summary>
+
+At `767px`, `768px`, and `769px`, check that columns change at the inclusive boundary. At `320px`, look for horizontal overflow from the ID and inspect minimum or fixed widths and wrapping. Zoom and enlarge default text to check that content and controls remain reachable. Compare normal and reduced-motion settings to check that decorative motion is reduced without losing feedback. A preset samples one configuration and can miss intermediate widths, content changes, and input behavior; use real devices and supported browsers for further checks.
+
+</details>

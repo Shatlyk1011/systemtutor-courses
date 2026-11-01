@@ -1,0 +1,544 @@
+---
+title: "CSS Tooling Approaches"
+---
+
+{/* Topics to cover: Sass Basics; CSS Build Tools; CSS Modules; CSS-in-JS. */}
+
+## Sass Basics
+
+**Sass** adds features such as variables, mixins, and modules to stylesheets. A compiler turns Sass into ordinary CSS before the browser loads it.
+
+This lesson uses **SCSS**, the Sass syntax with braces and semicolons. SCSS files use the `.scss` extension. See the [Sass basics guide](https://sass-lang.com/guide/).
+
+### Store values in Sass variables
+
+```scss
+// [!code word:$ink]
+// [!code word:$surface]
+$ink: #17352a;
+$surface: #e7f3ec;
+
+.profile-card {
+  color: $ink;
+  background: $surface;
+}
+```
+
+Sass replaces these variable references with their values in the compiled CSS. The output contains the colors, not `$ink` or `$surface`.
+
+A CSS custom property such as `--color-ink` stays in the CSS and follows the browser’s cascade. Choose Sass variables for values resolved during the build, or custom properties for values that can vary in the browser. See the [Sass variables documentation](https://sass-lang.com/documentation/variables/).
+
+### Combine nesting and a reusable mixin
+
+A **mixin** is a named group of declarations inserted with `@include`. It can accept arguments:
+
+```scss
+// [!code word:@mixin]
+@mixin panel($radius: 0.75rem) {
+  padding: 1.25rem;
+  border: 1px solid #17352a;
+  border-radius: $radius;
+}
+
+.profile-card {
+  @include panel;
+
+  &__title {
+    margin-block: 0 0.5rem;
+  }
+}
+
+.note {
+  @include panel(0.25rem);
+}
+```
+
+The card uses the default radius; the note supplies another value. Each `@include` adds the declarations to that rule. Using a mixin many times can make the output CSS larger.
+
+Sass expands `&__title` into `.profile-card__title`. This concatenation is a Sass feature; native CSS nesting does not support that same suffix pattern. Both nesting systems benefit from shallow, readable structures. See the [Sass nesting and mixin examples](https://sass-lang.com/guide/).
+
+### Split source files into modules
+
+A **partial** is a Sass source file named with a leading underscore. Create `_tokens.scss`:
+
+```scss
+$ink: #17352a;
+$surface: #e7f3ec;
+```
+
+Then create `styles.scss` beside it:
+
+```scss
+// [!code word:@use]
+@use "tokens";
+
+.profile-card {
+  color: tokens.$ink;
+  background: tokens.$surface;
+}
+```
+
+`@use` loads the module and gives its members a namespace, here `tokens`. The underscore and extension can be omitted from the module path. Put `@use` before style rules. This module example is separate from the earlier standalone snippets. See the [Sass module documentation](https://sass-lang.com/documentation/at-rules/use/).
+
+### Compile the entry file
+
+With Dart Sass installed and its `sass` command available, run this from the directory containing the two files:
+
+```bash
+sass styles.scss styles.css
+```
+
+Load `styles.css` in the page, and rebuild after editing the SCSS. Use `sass --watch styles.scss styles.css` to rebuild whenever you save. Edit the SCSS source rather than the generated CSS.
+
+Sass is useful when its build-time features simplify a real project need. Native CSS already provides custom properties and nesting, so identify what the extra compiler contributes before introducing it.
+
+### Trace source to compiled CSS
+
+For `.note { @include panel(0.25rem); }`, which radius does the mixin insert?
+
+<details>
+<summary>Check your reasoning</summary>
+
+It inserts `border-radius: 0.25rem`; the argument replaces the default radius.
+
+</details>
+
+Now take the next decision yourself: If `_tokens.scss` defines `$ink` and `styles.scss` uses `@use "tokens";`, how do you refer to that value?
+
+<details>
+<summary>Check your reasoning</summary>
+
+Write `tokens.$ink`, using the module namespace.
+
+</details>
+
+### Key Takeaways
+
+- **Compilation:** Sass source becomes ordinary CSS before browser use.
+- **Variables:** Sass values resolve at build time; CSS custom properties remain in CSS.
+- **Mixins:** Reuse declaration groups with optional arguments.
+- **Modules:** Organize partials with `@use` and access their members through namespaces.
+
+### Try it yourself
+
+A file `_theme.scss` contains `$accent: teal;`. Write a `styles.scss` entry file that loads it and sets `.notice` text color to that value. Show the resulting ordinary CSS and explain which file a browser loads after compilation.
+
+Check your work against these criteria:
+
+- Address each part of the scenario using the mechanism taught in this lesson.
+- Explain the decision and its effect, rather than only naming a tool or selector.
+- Compare your answer with the reasoning below; equivalent correct solutions are welcome.
+
+<details>
+<summary>Hint 1</summary>
+
+The module name is `theme`, without the leading underscore.
+
+</details>
+
+<details>
+<summary>Hint 2</summary>
+
+Use `@use "theme";` before the rule and access `theme.$accent`.
+
+</details>
+
+<details>
+<summary>Check your reasoning</summary>
+
+SCSS: `@use "theme";` followed by `.notice { color: theme.$accent; }`. Compiled CSS: `.notice { color: teal; }`. The browser loads the compiled CSS file.
+
+</details>
+
+## CSS Build Tools
+
+A **CSS build pipeline** runs tools on your source files to produce the CSS a browser loads. Tools can compile Sass, change CSS, add browser prefixes, or reduce file size.
+
+### Separate the jobs
+
+| Tool | Responsibility |
+| --- | --- |
+| Sass | Compiles Sass or SCSS source into CSS. |
+| PostCSS | Parses CSS and runs configured transformation plugins. |
+| Autoprefixer | Adds or removes vendor prefixes based on browser targets. |
+| cssnano | Minifies CSS through an optimization plugin preset. |
+
+PostCSS runs the plugins you choose. Those plugins decide how the CSS changes. See the [PostCSS architecture documentation](https://postcss.org/docs/postcss-architecture).
+
+A possible sequence is Sass → CSS → PostCSS plugins → output CSS. If you write ordinary CSS, the Sass step is unnecessary. Frameworks may already supply parts of this pipeline.
+
+### Configure a standalone example
+
+For a separate Node.js practice project with a `package.json`, install the tools:
+
+```bash
+npm install --save-dev postcss postcss-cli autoprefixer cssnano
+```
+
+Create `postcss.config.mjs` in that project's root:
+
+```js
+// [!code word:plugins]
+import autoprefixer from "autoprefixer";
+import cssnano from "cssnano";
+
+export default {
+  plugins: [autoprefixer(), cssnano()],
+};
+```
+
+This list adds prefixes first, then minifies the result. Order matters because each plugin receives the previous plugin’s output. `.mjs` marks the configuration as an ES module. See the [configuration loader documentation](https://github.com/postcss/postcss-load-config).
+
+Create `src/styles.css`:
+
+```css
+.status-label {
+  user-select: none;
+  padding: 0.5rem 1rem;
+  color: #17352a;
+}
+```
+
+Then build it:
+
+```bash
+npx postcss src/styles.css --output dist/styles.css
+```
+
+The command reads your source and configuration, then writes the output stylesheet. Load `dist/styles.css` in the practice page; continue editing the source file. See the [PostCSS CLI documentation](https://github.com/postcss/postcss-cli).
+
+### Understand browser targets
+
+Autoprefixer uses Browserslist configuration, commonly in `.browserslistrc` or a `browserslist` field in `package.json`. With no project configuration, Browserslist supplies its defaults.
+
+The prefixes emitted for `user-select` depend on those targets and the installed compatibility data. Do not assume every build must add the same prefixed declarations. Prefixing also does not implement every unsupported CSS feature; it cannot guarantee that a modern layout works in any old browser. See the [Autoprefixer documentation](https://github.com/postcss/autoprefixer).
+
+### Inspect the output
+
+Minification can remove whitespace, shorten equivalent values, and combine rules. It aims to preserve behavior while reducing file size. It is different from transfer compression such as gzip, and it does not automatically identify every unused component rule. See the [cssnano introduction](https://cssnano.github.io/cssnano/docs/introduction/).
+
+Compare the source and generated file, then check the page. A successful build confirms that tools ran; visual and interaction checks confirm that the output still behaves as intended. Avoid manually patching generated CSS, since the next build can replace it.
+
+### Follow a build from source to output
+
+In the example pipeline, which tool runs the configured plugins, and which plugin minifies the CSS?
+
+<details>
+<summary>Check your reasoning</summary>
+
+PostCSS runs the plugins; cssnano performs the minification.
+
+</details>
+
+Now take the next decision yourself: A team changes `dist/styles.css` by hand and then rebuilds. Why might the change disappear?
+
+<details>
+<summary>Check your reasoning</summary>
+
+The build writes the generated output again, so the source should be edited instead.
+
+</details>
+
+### Key Takeaways
+
+- **Pipeline:** Assign each tool a specific compilation or transformation job.
+- **Plugins:** PostCSS changes CSS according to its configured plugin list.
+- **Targets:** Autoprefixer output depends on the project's browser support settings.
+- **Output:** Edit source, rebuild, and verify the generated stylesheet.
+
+### Try it yourself
+
+A project writes `src/site.css` and loads `dist/site.css`. It uses PostCSS with Autoprefixer and cssnano. Describe where to make a color change, what to rebuild, and two checks after the build. Explain why a missing prefix alone does not prove the build failed.
+
+Check your work against these criteria:
+
+- Address each part of the scenario using the mechanism taught in this lesson.
+- Explain the decision and its effect, rather than only naming a tool or selector.
+- Compare your answer with the reasoning below; equivalent correct solutions are welcome.
+
+<details>
+<summary>Hint 1</summary>
+
+Start with the source file, not the generated file.
+
+</details>
+
+<details>
+<summary>Hint 2</summary>
+
+Check the output and the actual page; prefix output depends on browser targets.
+
+</details>
+
+<details>
+<summary>Check your reasoning</summary>
+
+Change `src/site.css`, rerun the project’s build, inspect `dist/site.css`, and check the page behavior. Autoprefixer only adds prefixes needed for configured targets and its compatibility data.
+
+</details>
+
+## CSS Modules
+
+In ordinary CSS, a `.title` rule can affect any element with that class. **CSS Modules** give classes and animation names local names by default, so components can use the same source names without clashing.
+
+Your build tool must support CSS Modules. The common `.module.css` filename tells the tool how to process the file; browsers do not handle modules themselves. See the [CSS Modules overview](https://github.com/css-modules/css-modules).
+
+### Import a component's class mapping
+
+In a React project configured for CSS Modules, create `ProfileCard.module.css`:
+
+```css
+.card {
+  padding: 1.25rem;
+  color: #17352a;
+  background: #ffffff;
+  border: 1px solid #64748b;
+  border-radius: 0.75rem;
+}
+
+.title {
+  margin-block: 0 0.5rem;
+  font-size: 1.25rem;
+}
+```
+
+Create `ProfileCard.jsx` beside it:
+
+```jsx
+// [!code word:styles.card]
+// [!code word:styles.title]
+import styles from "./ProfileCard.module.css";
+
+export default function ProfileCard() {
+  return (
+    <article className={styles.card}>
+      <h2 className={styles.title}>Alex Morgan</h2>
+      <p>Design lead based in London.</p>
+    </article>
+  );
+}
+```
+
+The build tool generates class names and makes them available through `styles`. Another module can use `.title` without sharing this heading’s generated class.
+
+Use the exported value rather than writing `className="title"`: the literal string does not refer to the module's generated class. The exact generated spelling is an implementation detail. See the [local scope documentation](https://github.com/css-modules/css-modules/blob/master/docs/local-scope.md).
+
+### Compose a variation from a base class
+
+Add this rule after `.card` in the same stylesheet:
+
+```css
+/* [!code word:composes] */
+.featured {
+  composes: card;
+  background: #e7f3ec;
+  border-color: #17352a;
+}
+```
+
+Then change the article's class to `styles.featured`:
+
+```jsx
+<article className={styles.featured}>
+  <h2 className={styles.title}>Alex Morgan</h2>
+  <p>Design lead based in London.</p>
+</article>
+```
+
+`styles.featured` contains both the featured and base class names. The element gets both classes; the base declarations are not copied into `.featured`. The cascade handles any conflicting styles.
+
+Put `composes` before the other declarations in its rule. Composition works with local single-class selectors; it is not ordinary browser CSS. Modules can also compose from another file, but avoid competing declarations whose outcome depends on cross-file order. See the [composition documentation](https://github.com/css-modules/css-modules/blob/master/docs/composition.md).
+
+### Know what local scope covers
+
+Local class names reduce naming collisions; they do not create an isolated document. Inherited fonts and custom properties still reach the component, and global rules can still affect its elements.
+
+A plain `h2` selector is still global inside a module file. Use a local class such as `.title`, or select headings inside a local class when that is what you intend.
+
+Keep shared tokens and document defaults in a clear shared location. CSS Modules can organize component names while the cascade continues to handle the final appearance.
+
+### Trace the exported class mapping
+
+Why does the example use `className={styles.title}` instead of `className="title"`?
+
+<details>
+<summary>Check your reasoning</summary>
+
+The imported mapping supplies the generated local class name; the literal string does not use that mapping.
+
+</details>
+
+Now take the next decision yourself: If `.featured` composes `card`, does it copy declarations into its own rule or add class names to the exported value?
+
+<details>
+<summary>Check your reasoning</summary>
+
+It adds class names to the exported value. The cascade still resolves conflicting declarations.
+
+</details>
+
+### Key Takeaways
+
+- **Local names:** CSS Modules transform names through a compatible build integration.
+- **Mapping:** Apply classes with their exported values rather than literal local names.
+- **Composition:** Combine class names while leaving conflict resolution to the cascade.
+- **Boundaries:** Local naming does not block inheritance or all global styles.
+
+### Try it yourself
+
+In a React project configured for CSS Modules, `Badge.module.css` defines `.badge` and `.label`. Write the import and JSX for a badge containing a label. Explain whether the module stops an inherited font or a global element rule from affecting the label.
+
+Check your work against these criteria:
+
+- Address each part of the scenario using the mechanism taught in this lesson.
+- Explain the decision and its effect, rather than only naming a tool or selector.
+- Compare your answer with the reasoning below; equivalent correct solutions are welcome.
+
+<details>
+<summary>Hint 1</summary>
+
+Import the module as a mapping, then use its properties in `className`.
+
+</details>
+
+<details>
+<summary>Hint 2</summary>
+
+Local class names prevent name collisions; they are not an isolation boundary.
+
+</details>
+
+<details>
+<summary>Check your reasoning</summary>
+
+For example: `import styles from "./Badge.module.css";` and `<span className={styles.badge}><span className={styles.label}>New</span></span>`. Inherited fonts and applicable global element rules can still affect the label.
+
+</details>
+
+## CSS-in-JS
+
+**CSS-in-JS** lets you write styles through JavaScript or TypeScript, often alongside components. The tool turns those definitions into CSS for the browser.
+
+### Recognize different delivery models
+
+| Approach | How styles reach the page |
+| --- | --- |
+| Runtime styling | A library generates or manages styles as application code runs. |
+| Build-time extraction | A compiler generates static CSS from authored JavaScript or TypeScript. |
+
+Do not assume every CSS-in-JS tool adds the same runtime work. For example, vanilla-extract generates static CSS files at build time. Its integration and constraints differ from runtime style generation. See the [vanilla-extract overview](https://vanilla-extract.style/).
+
+### Define a styled component
+
+To try this example, use a React project with styled-components installed and configured. Define the styled component outside the render function:
+
+```jsx
+import styled from "styled-components";
+
+// [!code word:styled.button]
+const Button = styled.button`
+  padding: 0.75rem 1rem;
+  font: inherit;
+  color: #17352a;
+  background: #ffffff;
+  border: 2px solid #17352a;
+  border-radius: 0.5rem;
+
+  &[data-featured="true"] {
+    color: #ffffff;
+    background: #17352a;
+  }
+
+  &:focus-visible {
+    outline: 3px solid #1d4ed8;
+    outline-offset: 3px;
+  }
+`;
+
+export default function Actions() {
+  return (
+    <div>
+      <Button type="button">View projects</Button>
+      <Button type="button" data-featured="true">
+        Create project
+      </Button>
+    </div>
+  );
+}
+```
+
+`styled.button` creates a component that renders a button with library-managed classes. The tagged template contains CSS declarations and nested selectors. A data attribute selects the featured appearance without defining a second styled component. These buttons demonstrate presentation; application code must implement their actions.
+
+Define styled components outside render functions so they are not recreated on each render. The library also supports prop-based style functions, but ordinary CSS selectors are sufficient for these two fixed variants. See the [styled-components basics](https://styled-components.com/docs/basics).
+
+### Match dynamic values to their needs
+
+For a few fixed variations, use classes or attributes. For a value that changes often, such as a color adjusted by the user, a CSS custom property can avoid creating a new rule for every value.
+
+In styled-components, different interpolation results can generate additional classes. Prefer stable definitions and measure dynamic styling in the real interface. This behavior is library-specific; do not generalize its costs to every CSS-in-JS implementation. See the [performance documentation](https://styled-components.com/docs/advanced#performance).
+
+### Weigh the project needs
+
+Keeping styles next to a component can make ownership and deletion easier to understand. It also makes the styling workflow depend on the chosen library, compiler, or framework integration.
+
+Before adopting an approach, check how it handles browser delivery, server rendering, initial styles, and theming. Follow documentation for the specific library version and framework; server integration is not identical across tools. See the [styled-components server-rendering guide](https://styled-components.com/docs/advanced#server-side-rendering).
+
+CSS Modules keep component styles in separate CSS files, while BEM organizes ordinary class names. Choose an approach that fits how your project loads styles and how the team will maintain them.
+
+### Compare delivery and changing values
+
+Does build-time extraction necessarily generate styles while the application runs?
+
+<details>
+<summary>Check your reasoning</summary>
+
+No. In a build-time extraction approach the compiler produces static CSS during the build.
+
+</details>
+
+Now take the next decision yourself: A button has two fixed appearances. Why might an attribute selector be sufficient instead of generating a new rule for each render?
+
+<details>
+<summary>Check your reasoning</summary>
+
+A stable rule can select each fixed state by its attribute; it does not need a distinct generated rule for every render.
+
+</details>
+
+### Key Takeaways
+
+- **Models:** CSS-in-JS includes different runtime and build-time strategies.
+- **Components:** Keep styled definitions stable and use CSS states where appropriate.
+- **Dynamic values:** Avoid unnecessary rule generation for frequently changing values.
+- **Trade-offs:** Evaluate delivery, integration, and maintenance for the specific tool.
+
+### Try it yourself
+
+A team needs a button with two fixed variants and a preview whose color changes continuously. Propose a styling approach for each and identify one delivery or integration question to investigate before adopting a CSS-in-JS library. Explain why the library’s actual model matters.
+
+Check your work against these criteria:
+
+- Address each part of the scenario using the mechanism taught in this lesson.
+- Explain the decision and its effect, rather than only naming a tool or selector.
+- Compare your answer with the reasoning below; equivalent correct solutions are welcome.
+
+<details>
+<summary>Hint 1</summary>
+
+Separate a small set of named states from a frequently changing value.
+
+</details>
+
+<details>
+<summary>Hint 2</summary>
+
+Consider a stable attribute selector for variants and a custom property for the changing color.
+
+</details>
+
+<details>
+<summary>Check your reasoning</summary>
+
+Use stable classes or attribute selectors for the two variants and a CSS custom property for the changing color. Check how the specific library delivers initial styles and integrates with the framework or server rendering. Runtime generation and build-time extraction have different integration and performance characteristics.
+
+</details>

@@ -1,0 +1,219 @@
+---
+title: "Typography"
+description: "Choose and style fonts to create readable, responsive text with a clear hierarchy."
+---
+
+Typography is the arrangement of type to make written language legible, readable, and visually appealing. On a web page, choices such as font, size, weight, and spacing affect both how easily people read the content and the mood it conveys.
+
+A page also needs a **hierarchy**: an arrangement that guides the reader toward the most important information. A larger, bolder heading can stand apart from a paragraph, while consistent alignment and spacing help the text feel connected. CSS gives you controls for these choices, and HTML gives the text its structure and meaning.
+
+## Typefaces, fonts, and families
+
+![Typeface categories](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/f9084698-1298-4088-8de0-88014231d24a/gallery/0f74f129-0e4c-41e7-9e1a-71a580335d12)
+
+A **typeface** is the design of the lettering. A **font** is a set of characters, including letters, numbers, and symbols, in a particular design and style. The terms are often used interchangeably. A font family groups related fonts, which can vary in weight, slant, or width while sharing a design.
+
+Some common kinds of type have recognizable features:
+
+- **Serif** typefaces have small lines at the ends of characters. Georgia and Times New Roman are examples.
+- **Sans-serif** typefaces lack those small lines. Arial and Helvetica are examples.
+- **Monospace** fonts give each character the same amount of space. Courier New is an example.
+- **Display** fonts are decorative fonts often used for titles or headlines.
+
+These choices contribute to a page's visual voice. For example, a luxury brand might choose a serif typeface to suggest elegance, use large bold headings for emphasis, and leave ample space around text. The choice should also keep the content readable for its intended audience.
+
+## Choose a font family and fallbacks
+
+![Font fallback order](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/f9084698-1298-4088-8de0-88014231d24a/gallery/ddbf75b9-094c-46a9-b9f0-a18cb75fe8cf)
+
+The CSS `font-family` property accepts a prioritized, comma-separated list of families, often called a font stack:
+
+```css
+p {
+  font-family: Arial, Helvetica, sans-serif;
+}
+```
+
+The browser tries Arial first, then Helvetica if Arial is unavailable. The final value, `sans-serif`, is a **generic family**: it lets the browser use an available font with that general style. Include a generic family so there is an alternative when the named choices are unavailable. Put names containing spaces in quotes, such as `"Times New Roman"`.
+
+### Load a custom font
+
+![Custom font loading](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/f9084698-1298-4088-8de0-88014231d24a/gallery/1cf70459-981f-4418-994a-80e3baef92cf)
+
+A font can also come from a file. The `@font-face` rule gives the font a name and identifies its resources:
+
+```css
+@font-face {
+  font-family: "MyFont";
+  src: url("myfont.woff2") format("woff2"),
+       url("myfont.woff") format("woff");
+  font-weight: normal;
+  font-style: normal;
+}
+
+body {
+  font-family: "MyFont", Arial, sans-serif;
+}
+```
+
+The first rule names the font and lists files in two formats. The second uses that name and supplies fallbacks. If the custom font cannot load, the browser can move to the next choice, keeping the text legible. Font loading can affect performance, so check load times and test the fallback under different network conditions. Ensure you have the right to use and distribute a font file.
+
+## Set size, weight, and style
+
+![Font hierarchy](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/f9084698-1298-4088-8de0-88014231d24a/gallery/f1d725bb-7b88-47bf-a090-5999fe47bee5)
+
+The family selects a design; size, weight, and style help give text its role within the page.
+
+```css
+p {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 16px;
+  font-weight: normal;
+}
+
+h1 {
+  font-family: Georgia, serif;
+  font-size: 2em;
+  font-weight: 700;
+}
+
+em {
+  font-style: italic;
+}
+```
+
+Here the heading uses a serif family, a larger size, and a bold weight to distinguish it from the paragraph. The emphasized text uses italics. Check the result together: a hierarchy should make important text easy to find while leaving the paragraph comfortable to read.
+
+`font-size` accepts several kinds of values:
+
+| Value | Relative to | Example |
+| --- | --- | --- |
+| `px` | A fixed pixel size | `16px` sets the font size to 16 pixels. |
+| `em` | The parent element's font size | `2em` makes the text twice its parent's font size. |
+| `rem` | The root element's font size | `1rem` uses the root element's font size. |
+| `%` | The parent element's font size | `200%` makes the text twice its parent's font size. |
+
+Keywords such as `small`, `medium`, and `large` are also available.
+
+`font-weight` controls the thickness of text:
+
+| Value | Meaning |
+| --- | --- |
+| `normal` or `400` | Normal weight. |
+| `bold` or `700` | Bold weight. |
+| Numeric values | Request a particular weight, such as `100`, `400`, or `700`. |
+| `bolder` | A heavier weight relative to the inherited weight. |
+| `lighter` | A lighter weight relative to the inherited weight. |
+
+A font may not support every requested weight, so inspect the result.
+
+`font-style` controls whether text is upright or slanted:
+
+| Value | Meaning |
+| --- | --- |
+| `normal` | Displays text in its normal style. |
+| `italic` | Selects an italic style, which may be designed as a distinct face. |
+| `oblique` | Selects an oblique style, which is typically slanted. |
+
+Use italic and oblique styles with readability in mind.
+
+### Variable fonts
+
+![Variable font weight axis](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/f9084698-1298-4088-8de0-88014231d24a/gallery/5c5ae477-e050-42a5-b1b2-0433890e3332)
+
+A variable font can offer multiple variations from one file. Its **axes** describe adjustable features such as weight or width. For a variable font that supports a weight axis, the following requests different weights for body text and a heading:
+
+```css
+body {
+  font-variation-settings: "wght" 400;
+}
+
+h1 {
+  font-variation-settings: "wght" 700;
+}
+```
+
+The values select positions on the font's weight axis. This provides flexibility without switching between separate files for those variations; the actual options depend on the font.
+
+## Arrange and decorate text
+
+![Letter and word spacing](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/f9084698-1298-4088-8de0-88014231d24a/gallery/673ffb02-786a-49c3-a861-7d0eb8e91ab5)
+
+Spacing affects how easily words and lines can be read. `letter-spacing` adjusts spacing across letters, while `word-spacing` changes the space between words:
+
+```css
+p {
+  letter-spacing: 0.05em;
+  word-spacing: 0.1em;
+  text-indent: 20px;
+}
+```
+
+The first two declarations adjust spacing throughout the paragraph. The last indents its first line by 20 pixels. Letter spacing is distinct from **kerning**, which adjusts spacing between specific pairs of letters, such as the “T” and “y” in “Typography.” Too little word spacing can make words hard to distinguish; too much can make them feel disconnected. Preview the result on different screens and consider it alongside line spacing.
+
+Use `text-align` to align inline content within a block. For example, `text-align: center` centers the text inside its container; it does not center the container itself. Other values include `left`, `right`, and `justify`.
+
+`text-decoration` adds lines such as `underline`, `overline`, or `line-through`; `none` removes decoration. You can combine line values, as in `text-decoration: underline overline`. `text-transform` changes the displayed case with values such as `uppercase`, `lowercase`, and `capitalize`. The underlying text remains unchanged.
+
+## Adapt text to screen size
+
+![Responsive typography](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/f9084698-1298-4088-8de0-88014231d24a/gallery/708487ae-b768-43ca-8293-4cf9cf063a3f)
+
+A **media query** applies styles when a condition is met. The following example starts with one body text size and changes it as the viewport gets wider:
+
+```css
+body {
+  font-size: 16px;
+  line-height: 1.4;
+}
+
+@media (min-width: 768px) {
+  body {
+    font-size: 18px;
+    line-height: 1.5;
+  }
+}
+
+@media (min-width: 1024px) {
+  body {
+    font-size: 20px;
+    line-height: 1.6;
+  }
+}
+```
+
+At 768 pixels wide or more, the first query increases the font size and line height. At 1024 pixels or more, the later query sets them again. These widths are **breakpoints**: points where the styling changes. Adjusting line height along with size helps maintain spacing between lines.
+
+For a size that changes smoothly between limits, use `clamp()`:
+
+```css
+h1 {
+  font-size: clamp(1.5rem, 2vw + 1rem, 3rem);
+}
+```
+
+The three arguments set a minimum, a preferred value, and a maximum. The preferred value combines a viewport-width-based amount with `1rem`; the result stays between `1.5rem` and `3rem`. Unlike the breakpoint example, the heading can scale between those bounds without a separate rule for each screen width.
+
+## Give text meaning and enough contrast
+
+![Text contrast](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/f9084698-1298-4088-8de0-88014231d24a/gallery/daa7c572-475c-47d2-8345-f48247a6951f)
+
+Semantic HTML describes the role of content. Headings from `<h1>` through `<h6>` establish a heading hierarchy, and `<p>` identifies a paragraph. Use `<strong>` for importance and `<em>` for emphasis. These meanings help assistive technologies interpret and navigate the content; CSS can then control its appearance.
+
+Text must also be distinguishable from its background. A **contrast ratio** expresses the difference in luminance between two colors. The Web Content Accessibility Guidelines (WCAG) give minimum ratios for text:
+
+| Level | Normal text | Large text |
+| --- | --- | --- |
+| AA | 4.5:1 | 3:1 |
+| AAA | 7:1 | 4.5:1 |
+
+Large text is at least 18pt, or at least 14pt when bold. For example, you can check dark gray `#333333` text on a white `#FFFFFF` background against the AA minimum for normal text. Use a tool such as the [WebAIM Contrast Checker](https://webaim.org/resources/contrastchecker/) to calculate the ratio for your text and background colors.
+
+## Key Takeaways
+
+- **Typography:** Font choice, hierarchy, alignment, and spacing shape both readability and visual voice.
+- **Font stacks:** List preferred families in order and end with a generic family so text has a fallback.
+- **Font properties:** Size, weight, and style distinguish text roles; available variations depend on the font.
+- **Text layout:** Adjust spacing, alignment, decoration, and case to support the content's presentation.
+- **Responsive text:** Media queries change styles at breakpoints, while `clamp()` scales a value within limits.
+- **Meaning and contrast:** Semantic HTML communicates text roles, and sufficient contrast helps people perceive text.

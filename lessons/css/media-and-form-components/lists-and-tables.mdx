@@ -1,0 +1,175 @@
+---
+title: "Lists and Tables"
+description: "Style lists and tables for readable content."
+---
+
+Lists group related items. Tables show relationships across rows and columns. Keep that structure in HTML, then use CSS to make the content easier to scan.
+
+## Give lists readable spacing
+
+Use an unordered list when item order does not matter and an ordered list when the sequence matters:
+
+```html
+<ul class="checkout-list">
+  <li>Review the order details.</li>
+  <li>Choose a delivery option.</li>
+  <li>Confirm the shipping address.</li>
+</ul>
+```
+
+```css
+/* [!code word:list-style-type] */
+/* [!code word:list-style-position] */
+.checkout-list {
+  padding-inline-start: 1.5rem;
+  line-height: 1.6;
+  list-style-type: square;
+  list-style-position: outside;
+}
+
+.checkout-list li + li {
+  margin-block-start: 0.5rem;
+}
+```
+
+`list-style-type` chooses the bullets or numbering. With `outside`, wrapped lines line up with the text rather than the marker. The start padding leaves room for the markers.
+
+The sibling selector adds spacing only between items. It avoids adding another margin before the first item. For an ordered list, changing the marker to `lower-alpha` would produce lettered items without replacing the `<ol>` structure.
+
+## Add a caption and headers
+
+Use a table when a reader needs to compare values by both row and column:
+
+```html
+<table class="schedule-table">
+  <caption>Project schedule</caption>
+  <thead>
+    <tr>
+      <th scope="col">Project</th>
+      <th scope="col">Status</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th scope="row">Website</th>
+      <td>In progress</td>
+    </tr>
+    <tr>
+      <th scope="row">Mobile app</th>
+      <td>Ready for review</td>
+    </tr>
+  </tbody>
+</table>
+```
+
+The caption names the table. Header cells label its rows and columns. Use real header cells in HTML; making an ordinary cell bold does not give it that role.
+
+## Separate rows without visual clutter
+
+```css
+/* [!code word:border-collapse] */
+/* [!code word:nth-child(even)] */
+.schedule-table {
+  width: 100%;
+  border-collapse: collapse;
+  line-height: 1.5;
+}
+
+.schedule-table caption {
+  text-align: start;
+  font-weight: 700;
+  margin-block-end: 0.75rem;
+}
+
+.schedule-table th,
+.schedule-table td {
+  padding: 0.75rem;
+  text-align: start;
+  vertical-align: top;
+  border-bottom: 1px solid #cbd5e1;
+}
+
+.schedule-table thead {
+  color: #ffffff;
+  background: #17352a;
+}
+
+.schedule-table tbody tr:nth-child(even) {
+  background: #f1f5f9;
+}
+```
+
+`border-collapse: collapse` makes neighboring cell borders share an edge. Padding separates text from cell boundaries. Alternating row backgrounds, called **zebra striping**, help the eye follow a row across the table.
+
+Restrict the stripe selector to `tbody` so the header keeps its own appearance. Keep long cell contents able to wrap, and check the table at narrow widths.
+
+## Trace a stripe
+
+In the schedule example, why does `tbody tr:nth-child(even)` leave the header row unchanged?
+
+<details>
+<summary>Check your reasoning</summary>
+
+The selector only matches rows inside `tbody`; the header row is inside `thead`.
+
+</details>
+
+Would bold text in a `td` replace a column header?
+
+<details>
+<summary>Check your reasoning</summary>
+
+No. Use a `th` with the appropriate scope so the header relationship exists in the markup, not just its appearance.
+
+</details>
+
+## Key Takeaways
+
+- **Structure:** Choose lists for grouped items and tables for tabular relationships.
+- **List markers:** Control their appearance and position while leaving space for them.
+- **Table headers:** Use captions and header cells to describe the data.
+- **Readability:** Cell padding, shared borders, and row stripes support scanning.
+
+## Try it yourself
+
+Create a two-column table comparing two workshops and their start times. Give it a caption, column headers, and a row header for each workshop. Add CSS that gives cells `0.75rem` padding, collapses borders, and stripes even body rows without changing the header. Explain why the caption and headers cannot be replaced by CSS alone.
+
+Check the relationships in the HTML, then inspect the table at a narrow width with long workshop names.
+
+<details>
+<summary>Hint 1</summary>
+
+Place column headers in `thead` and data rows in `tbody`. Use `scope` to identify each header's direction.
+
+</details>
+
+<details>
+<summary>Hint 2</summary>
+
+Target both `th` and `td` for padding; limit the even-row selector to `tbody`.
+
+</details>
+
+<details>
+<summary>Check your work and reasoning</summary>
+
+```html
+<table class="workshops">
+  <caption>Workshop start times</caption>
+  <thead><tr><th scope="col">Workshop</th><th scope="col">Time</th></tr></thead>
+  <tbody>
+    <tr><th scope="row">Drawing</th><td>10:00</td></tr>
+    <tr><th scope="row">Printing</th><td>11:00</td></tr>
+  </tbody>
+</table>
+```
+
+```css
+.workshops { border-collapse: collapse; }
+.workshops th, .workshops td { padding: 0.75rem; }
+.workshops tbody tr:nth-child(even) { background: #f1f5f9; }
+```
+
+The caption names the table and header cells express relationships in the HTML; visual styling alone does not supply those relationships. Equivalent valid markup and colors are fine.
+
+</details>

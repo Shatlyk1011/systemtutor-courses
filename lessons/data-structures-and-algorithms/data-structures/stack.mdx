@@ -1,0 +1,184 @@
+---
+title: "Stack"
+description: "Understand the LIFO principle, implement a stack, and explore common stack applications."
+---
+
+A **stack** is a linear data structure that follows **LIFO: Last In, First Out**. The last item added is the first item removed.
+
+Think of a stack of plates. A clean plate is placed on top, and the next plate is also removed from the top. Reaching a plate in the middle requires removing every plate above it first.
+
+![](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/d6728834-bda9-4849-9f64-fc67a890e1a8/gallery/9184e593-884f-4349-9bd0-8ac3361dd4d4)
+
+
+<Callout title="One Point of Access" type="info">
+A stack adds, removes, and reads items at one end, called the **top**.
+</Callout>
+
+---
+
+## How LIFO Works
+
+Start with an empty stack and follow three operations:
+
+| Operation | Stack State | What Happened |
+|---|---|---|
+| `push(10, 20)` | `[10, 20]` | `20` becomes the top item. |
+| `push(30)` | `[10, 20, 30]` | `30` is placed above `20`. |
+| `pop()` | `[10, 20]` | `30`, the last item added, is removed first. |
+
+![](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/d6728834-bda9-4849-9f64-fc67a890e1a8/gallery/36c73001-04cc-4494-80a2-7f8be53b0029)
+
+
+The order of insertion is `10` and `20`, then `30`. The order of removal is reversed: `30`, `20`, `10`.
+
+## Core Operations
+
+| Operation | Purpose |
+|---|---|
+| **Push** | Add an item to the top. |
+| **Pop** | Remove and return the top item. |
+| **Peek** | Read the top item without removing it. |
+| **Is Empty** | Check whether the stack contains any items. |
+
+Push and pop define the stack's LIFO behavior. Peek and empty checks make the structure safer and easier to use.
+
+---
+
+## Implementing a Stack with an Array
+
+JavaScript arrays and Python lists already provide operations for adding and removing items at the end, so either can act as a stack without a separate class.
+
+### 1. Create an Empty Stack
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```javascript
+    const stack = [];
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    stack = []
+    ```
+  </Tab>
+</Tabs>
+
+### 2. Push Items
+
+`push` adds each new item to the top, represented by the end of the array.
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```javascript
+    stack.push("first");  // ["first"]
+    stack.push("second"); // ["first", "second"]
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    stack.append("first")   # ["first"]
+    stack.append("second")  # ["first", "second"]
+    ```
+  </Tab>
+</Tabs>
+
+### 3. Pop Items
+
+`pop` removes and returns the most recently added item.
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```javascript
+    console.log(stack.pop()); // "second"
+    console.log(stack.pop()); // "first"
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    print(stack.pop())  # "second"
+    print(stack.pop())  # "first"
+    ```
+  </Tab>
+</Tabs>
+
+The values come out in the reverse of their insertion order, which confirms the LIFO rule.
+
+### Complete Array Example
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```javascript
+    const stack = [];
+
+    stack.push(1);
+    stack.push(2);
+    stack.push(3);
+
+    const topItem = stack[stack.length - 1];
+    const isEmpty = stack.length === 0;
+
+    console.log(topItem);     // 3
+    console.log(isEmpty);     // false
+    console.log(stack.pop()); // 3
+    console.log(stack);       // [1, 2]
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    stack = []
+
+    stack.append(1)
+    stack.append(2)
+    stack.append(3)
+
+    top_item = stack[-1]
+    is_empty = len(stack) == 0
+
+    print(top_item)    # 3
+    print(is_empty)    # False
+    print(stack.pop()) # 3
+    print(stack)       # [1, 2]
+    ```
+  </Tab>
+</Tabs>
+
+## Performance
+
+| Operation | How It Works |
+|---|---|
+| Push | Add an item at the end. |
+| Pop | Remove the item at the end. |
+| Peek | Read the last item without removing it. |
+| Is empty | Check whether the collection has any items. |
+
+---
+
+## Applications of Stacks
+
+### Function Call Management
+
+When a function is called, its execution context—including local variables and the return address—is pushed onto the call stack. When the function finishes, that context is popped so execution can resume at the correct point. The same process helps manage recursive calls.
+
+### Undo Mechanisms
+
+Applications such as text editors push each action onto a stack. Undo pops the most recent action so changes are reversed in the opposite order from which they occurred.
+
+1. Perform an action and push it.
+2. Choose undo and pop the latest action.
+3. Reverse that action.
+
+### Browser Page History
+
+Each visited page can be pushed onto a history stack. Going back removes the current page and reveals the previously visited page.
+
+### Other Uses
+
+Stacks are also useful for reversing data and parsing expressions because both tasks need the most recently stored item first.
+
+## Key Takeaways
+
+- A stack follows Last In, First Out order.
+- All interaction happens at the top of the stack.
+- `push` adds, `pop` removes, `peek` reads, and `isEmpty` checks the stack.
+- Arrays provide a direct stack implementation through end-based operations.
+- Call stacks, undo systems, and browser history all rely on LIFO ordering.

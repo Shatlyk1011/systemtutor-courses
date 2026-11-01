@@ -1,0 +1,133 @@
+---
+title: "HTML for CSS"
+description: "Identify elements, attributes, classes, and IDs used for styling."
+---
+
+CSS selects HTML elements by their type, class, or ID. These give you ways to choose which elements to style.
+
+A **selector** is the part of a CSS rule that chooses elements. First, let’s look at the HTML it can match.
+
+## Read an HTML element
+
+An **HTML element** marks a piece of page content. For example, `h1` marks a heading and `p` marks a paragraph:
+
+```html
+<!-- [!code word:<h1>] -->
+<!-- [!code word:</h1>] -->
+<!-- [!code word:<p>] -->
+<!-- [!code word:</p>] -->
+<h1>Project overview</h1>
+<p>Track progress and review upcoming milestones.</p>
+```
+
+This paragraph has three parts:
+
+- **Opening tag:** `<p>` starts the element.
+- **Content:** The sentence is the paragraph's text.
+- **Closing tag:** `</p>` ends the element.
+
+Together, the opening tag, content, and closing tag form the paragraph element. The tags name the element; CSS uses that name, without the angle brackets, to select every element of that type:
+
+```css
+p { /* [!code word:p:1] */
+  color: green;
+}
+```
+
+This rule selects every `p` element. It does not distinguish one paragraph from another.
+
+## Read an attribute
+
+An **attribute** adds information to an element. It appears inside the opening tag, separated from the element name by a space:
+
+```html
+<!-- [!code word:class] -->
+<!-- [!code word:"highlight"] -->
+<p class="highlight">Track progress and review upcoming milestones.</p>
+```
+
+The attribute has two parts:
+
+- **Name:** `class` identifies the attribute.
+- **Value:** `"highlight"` supplies its value.
+
+The attribute is separate from the paragraph's text. It gives CSS a way to identify this paragraph without changing its element type.
+
+## Use classes for shared styles
+
+![Class selector matching](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/e14888a7-fc1d-46bc-8752-868336e60891/gallery/5b0dc01d-42fc-4dd5-a59f-d28c463e6c13)
+
+A **class** is a name in the `class` attribute. Multiple elements can share the same class. Add the same class wherever the same styling should apply:
+
+```html
+<!-- index.html -->
+<!-- [!code word:class="highlight"] -->
+<h1 class="highlight">Project overview</h1>
+<p class="highlight">Track progress and review upcoming milestones.</p>
+<p>See recent activity.</p>
+```
+
+```css
+/* style.css */
+/* [!code word:.highlight] */
+.highlight {
+  background-color: yellow;
+}
+```
+
+The dot in `.highlight` tells CSS to match a class:
+
+- **Heading and first paragraph:** Both have the class, so they get a yellow background.
+- **Last paragraph:** It does not have the class, so it does not match this rule.
+
+In HTML, write `class="highlight"`, without the dot.
+
+One element can have several classes, separated by spaces:
+
+```html
+<!-- [!code word:note] -->
+<!-- [!code word:editorial] -->
+<p class="note editorial">Track progress and review upcoming milestones.</p>
+```
+
+This paragraph has two classes: `note` and `editorial`. A `.note` rule and an `.editorial` rule can both select it. The space separates class names; it is not part of either name.
+
+## Use an ID for one element
+
+![ID selector matching](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/e14888a7-fc1d-46bc-8752-868336e60891/gallery/e41c4876-71ff-4785-ab39-5d2d0c337469)
+
+An **ID** identifies one particular element. Its value must be unique within the document, and an element can have only one ID:
+
+```html
+<!-- [!code word:id="title"] -->
+<h1 id="title" class="highlight">Project overview</h1>
+```
+
+```css
+/* [!code word:#title] */
+#title {
+  color: green;
+}
+```
+
+The `#` introduces an ID selector. Write `id="title"` in HTML and `#title` in CSS. An element can have both an ID and classes, as this heading does. Unlike classes, an ID value cannot be a list of names separated by spaces.
+
+## Check your reading
+
+Try to identify the element name, attribute name, attribute value, and two matching selectors before reading the answer:
+
+```html
+<h2 id="summary" class="note">Release summary</h2>
+```
+
+The element name is `h2`. The attribute names are `id` and `class`; their values are `summary` and `note`. `.note` matches the reusable class, and `#summary` matches the unique ID. The same element can have both because the class and ID give CSS different ways to identify it.
+
+Now decide which hook fits before writing any CSS: if a heading and a paragraph should share the same style, give both the same class. If one element needs its own name, use an ID. The next lesson shows how to turn those hooks into complete CSS rules.
+
+## Key Takeaways
+
+- **Elements:** Tags mark content and structure; a type selector such as `p` selects elements by name.
+- **Attributes:** Information such as `class` and `id` belongs inside an element's opening tag.
+- **Classes:** Reusable names connect elements to shared styles; CSS selects them with a dot.
+- **IDs:** A unique identifier names one element in a document; CSS selects it with `#`.
+- **Multiple hooks:** One element can have several space-separated classes and one ID.

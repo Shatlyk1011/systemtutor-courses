@@ -1,0 +1,203 @@
+---
+title: "Selection Sort"
+description: "Learn how selection sort finds the minimum value in an unsorted region, swaps it into place, and grows a sorted region from left to right."
+---
+
+Selection sort is an in-place comparison sorting algorithm that divides the input array into a sorted and an unsorted region, repeatedly selecting the smallest element from the unsorted region and moving it to the end of the sorted region.
+
+<Callout title="The Core Idea" type="info">
+Selection sort repeatedly finds the **smallest value** in the unsorted part of an array and places it at the next sorted position.
+</Callout>
+
+## Track the Minimum
+
+Start at the first position. Treat its value as the current minimum, then scan every value to its right.
+
+- If a smaller value appears, update the minimum.
+- After the scan finishes, swap the minimum with the value at the starting position.
+
+![](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/8cf4a4c6-e776-4c97-aae1-bff7cf629553/gallery/edb072bc-db24-4a44-b162-7fe117d9dd7b)
+
+After this swap, the first position is correct: no value in the array is smaller than `1`.
+
+---
+
+## Shrink the Unsorted Region
+
+Once the minimum is placed, it belongs to the sorted region and does not need to be checked again.
+
+```text
+[1 | 3, 4, 5, 2]
+ sorted   unsorted
+```
+
+Now repeat the process beginning at the first unsorted position:
+
+1. Find the minimum in the unsorted region.
+2. Swap it into that region's first position.
+3. Move the boundary one position right.
+
+![](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/8cf4a4c6-e776-4c97-aae1-bff7cf629553/gallery/dc4a2e9b-cb5b-448e-985d-086b391d2e27)
+
+
+<Callout title="Key pattern" type="info">
+Each pass grows the sorted region by one value and shrinks the unsorted region by one position.
+</Callout>
+
+### Selection sort outline
+
+```text
+for each position from left to right:
+    find the minimum value from this position to the end
+    swap that minimum into the current position
+```
+
+The final position needs no work: when every earlier minimum has been placed, the remaining value is already in the correct position.
+
+---
+
+## Implementing Selection Sort
+
+Selection sort repeatedly finds the smallest value in the unsorted part of a list and moves it into the next sorted position.
+
+### Nested-loop structure
+
+Use two loops:
+
+1. The **outer loop** (`i`) chooses the position to fill, moving from the start to the second-to-last element.
+2. The **inner loop** (`j`) searches the remaining unsorted values for the smallest one.
+3. Swap that smallest value into the chosen position `i`.
+
+### Implementation
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```javascript
+    function selectionSort(array) {
+      for (let i = 0; i < array.length - 1; i++) {
+        let smallestIndex = i;
+
+        for (let j = i + 1; j < array.length; j++) {
+          if (array[j] < array[smallestIndex]) {
+            smallestIndex = j;
+          }
+        }
+
+        // Swap if a smaller element was found
+        if (smallestIndex !== i) {
+          const temporary = array[i];
+          array[i] = array[smallestIndex];
+          array[smallestIndex] = temporary;
+        }
+      }
+
+      return array;
+    }
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    def selection_sort(array):
+        n = len(array)
+        for i in range(n - 1):
+            smallest_index = i
+
+            for j in range(i + 1, n):
+                if array[j] < array[smallest_index]:
+                    smallest_index = j
+
+            # Swap if a smaller element was found
+            if smallest_index != i:
+                array[i], array[smallest_index] = array[smallest_index], array[i]
+
+        return array
+    ```
+  </Tab>
+</Tabs>
+
+### Swap logic
+
+A swap exchanges the value at the current position with the smallest value found by the inner loop.
+
+![](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/55e77424-3054-409c-a931-e158d18008d8/gallery/c10f62d2-0e8d-40fe-baf3-a6276ccc2b28)
+
+
+If `smallestIndex` is already `i`, the current value is already the smallest remaining value, so no meaningful move is needed (avoiding a redundant self-swap).
+
+---
+
+## Examples
+
+### Basic usage
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```javascript
+    const numbers = [29, 10, 14, 37, 13];
+    console.log(selectionSort(numbers)); // [10, 13, 14, 29, 37]
+
+    const fruits = ["banana", "apple", "orange", "grape"];
+    console.log(selectionSort(fruits)); // ["apple", "banana", "grape", "orange"]
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    numbers = [29, 10, 14, 37, 13]
+    print(selection_sort(numbers))  # [10, 13, 14, 29, 37]
+
+    fruits = ["banana", "apple", "orange", "grape"]
+    print(selection_sort(fruits))  # ['apple', 'banana', 'grape', 'orange']
+    ```
+  </Tab>
+</Tabs>
+
+### Step-by-step trace
+
+For the array `[29, 10, 14, 37, 13]`:
+
+| Pass | Unsorted region | Minimum found | Swap performed | Array state after pass |
+|---|---|---|---|---|
+| **Pass 1** (`i = 0`) | `[29, 10, 14, 37, 13]` | `10` (index `1`) | Swap index `0` and `1` | `[10 \| 29, 14, 37, 13]` |
+| **Pass 2** (`i = 1`) | `[29, 14, 37, 13]` | `13` (index `4`) | Swap index `1` and `4` | `[10, 13 \| 14, 37, 29]` |
+| **Pass 3** (`i = 2`) | `[14, 37, 29]` | `14` (index `2`) | None (`smallestIndex === i`) | `[10, 13, 14 \| 37, 29]` |
+| **Pass 4** (`i = 3`) | `[37, 29]` | `29` (index `4`) | Swap index `3` and `4` | `[10, 13, 14, 29 \| 37]` |
+
+Array is fully sorted: `[10, 13, 14, 29, 37]`.
+
+---
+
+## Evaluating Selection Sort
+
+The inner loop scans the remaining unsorted values for every outer-loop position. Regardless of the initial arrangement of data, selection sort always scans the entire unsorted partition to ensure it has found the absolute minimum.
+
+### Complexity analysis
+
+| Case | Time complexity | Why |
+|---|---|---|
+| **Best Case** | **O(n²)** | Must scan through the entire unsorted region even if already sorted. |
+| **Average Case** | **O(n²)** | Nested loops perform $\approx \frac{n(n - 1)}{2}$ total comparisons. |
+| **Worst Case** | **O(n²)** | Reverse sorted input requires scanning every pair on every pass. |
+| **Space Complexity** | **O(1)** | Sorts in-place with constant auxiliary memory. |
+
+### Comparison with Bubble Sort
+
+| Property | Bubble Sort | Selection Sort |
+|---|---|---|
+| **Main action** | Push maximum to end via adjacent swaps | Find minimum in unsorted region, swap once |
+| **Comparisons** | $O(n^2)$ | $O(n^2)$ |
+| **Swaps** | Up to $O(n^2)$ swaps | At most $O(n)$ swaps (at most 1 swap per pass) |
+| **Best case** | $O(n)$ (with early-stop check) | $O(n^2)$ (always scans all elements) |
+
+<Callout title="Key trade-off" type="info">
+Selection sort still takes O(n²) time, but it can use significantly fewer swaps than bubble sort because it selects one smallest value for each position rather than repeatedly swapping neighboring values. This makes selection sort advantageous in environments where memory writes or swaps are costly.
+</Callout>
+
+---
+
+## Key Takeaways
+
+- **Find and Place Minimum:** Selection sort operates by scanning the unsorted region to find the smallest value, then placing it at the beginning of that region.
+- **Growing Sorted Region:** The array is partitioned into a sorted prefix on the left and an unsorted suffix on the right; each pass increases the sorted prefix by one element.
+- **Minimal Swaps:** Unlike bubble sort, selection sort performs at most one swap per outer-loop pass ($O(n)$ total swaps), minimizing costly write operations.
+- **Consistent Quadratic Time:** Because it must scan all remaining elements to confirm the minimum, selection sort always runs in $O(n^2)$ time across best, average, and worst cases.
+- **In-Place:** Selection sort operates directly on the input array, requiring only $O(1)$ constant extra space.

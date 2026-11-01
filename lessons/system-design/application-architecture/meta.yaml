@@ -1,0 +1,7 @@
+title: Application architecture
+description: Understand how applications run, scale, and stay observable.
+pages:
+  - application-foundations
+  - scaling-and-traffic-distribution
+  - observability-and-operations
+  - the-system-design-mindset

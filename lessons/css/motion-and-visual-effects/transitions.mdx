@@ -1,0 +1,166 @@
+---
+title: "Transitions"
+description: "Animate property changes with timing, delays, and easing."
+---
+
+A **transition** makes a property change gradually. For example, a button’s background can fade from one color to another.
+
+The transition describes how a change happens. Another rule, such as `:hover`, supplies the new value.
+
+## Transition a button between states
+
+```html
+<button class="save-button" type="button">Save item</button>
+```
+
+```css
+.save-button {
+  padding: 0.75rem 1rem;
+  font: inherit;
+  color: #ffffff;
+  background-color: #17352a;
+  border: 2px solid #17352a;
+  border-radius: 0.5rem;
+}
+
+.save-button:focus-visible {
+  outline: 3px solid #1d4ed8;
+  outline-offset: 3px;
+}
+
+@media (hover: hover) {
+  .save-button:hover {
+    background-color: #285b46;
+  }
+}
+
+/* [!code word:transition] */
+@media (prefers-reduced-motion: no-preference) {
+  .save-button {
+    transition: background-color 180ms ease-out;
+  }
+}
+```
+
+The hover rule changes the target color. The transition makes that change take 180 milliseconds when no reduced-motion preference is reported. Without the transition, the same feedback appears immediately.
+
+Put the transition on the base selector rather than only on `:hover`. It then remains defined when the pointer leaves, allowing the return to the resting color to animate too. The focus outline appears immediately because it is not a transitioned property.
+
+## Read the shorthand
+
+```css
+/* [!code word:250ms] */
+/* [!code word:100ms] */
+.sample {
+  transition: transform 250ms ease-out 100ms;
+}
+```
+
+This separate declaration can be read as four settings:
+
+| Part | Setting | Meaning |
+| --- | --- | --- |
+| Property | `transform` | Which property can transition. |
+| Duration | `250ms` | How long the change takes. |
+| Timing function | `ease-out` | How progress varies during the change. |
+| Delay | `100ms` | How long to wait before starting. |
+
+The first time value is the duration; the second is the delay. With this positive delay, an uninterrupted transition reaches the target 350 milliseconds after the change. The default duration is zero, so declaring only a property does not create a visible transition.
+
+`linear` keeps a steady pace. `ease-in` starts slowly, `ease-out` slows at the end, and `ease-in-out` does both. Easing changes the pace, not the total duration.
+
+## Read and complete a transition
+
+In `transition: background-color 200ms linear 50ms`, which value is the delay, and when does an uninterrupted change reach its target?
+
+<details>
+<summary>Check your reasoning</summary>
+
+The second time, `50ms`, is the delay. After that wait, the 200ms transition runs, reaching the target 250ms after the change if it is not interrupted.
+
+</details>
+
+A button has a hover color and a base rule. Add a 200ms `ease-out` transition for `background-color` to the base rule. Why is a hover color still necessary?
+
+```css
+.button { background-color: #17352a; /* Add the transition. */ }
+.button:hover { background-color: #285b46; }
+```
+
+<details>
+<summary>Check your reasoning</summary>
+
+Add `transition: background-color 200ms ease-out;` to `.button`. The hover rule supplies a different target value; a transition declaration does not itself change the color.
+
+</details>
+
+## Choose properties deliberately
+
+Separate multiple transitions with commas:
+
+```css
+.sample {
+  transition:
+    transform 250ms ease-out,
+    opacity 150ms linear;
+}
+```
+
+These declarations set the timing. To see a transition, change `transform` or `opacity`, for example in a hover rule.
+
+Name the properties you intend to animate instead of using `transition: all`. That keeps future changes from unexpectedly acquiring motion. Properties also have different animation behavior; do not assume every pair of CSS values has smooth intermediate steps.
+
+## Key Takeaways
+
+- **Trigger:** Another style change supplies the transition's target value.
+- **Timing:** Duration, easing, and delay control different parts of the change.
+- **Placement:** A base transition can animate both entering and leaving a state.
+- **Scope:** List the intended properties and preserve immediate feedback without motion.
+
+
+## Try it yourself
+
+In a local HTML file, use the button and styles below. Add a transition only for `background-color`, lasting 300ms with `ease-out` and no delay. Put it inside the existing preference query on the base button selector. The hover color and keyboard focus indicator must remain available even when there is no transition.
+
+```html
+<button class="action" type="button">Save item</button>
+```
+
+```css
+.action {
+  padding: 0.75rem 1rem;
+  color: white;
+  background-color: #17352a;
+  border: 2px solid #17352a;
+}
+.action:focus-visible { outline: 3px solid #1d4ed8; outline-offset: 3px; }
+@media (hover: hover) {
+  .action:hover { background-color: #285b46; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .action { /* Add the transition. */ }
+}
+```
+
+Open the file in a browser with a hover-capable pointer. Move the pointer onto and off the button, allowing each change to finish. Check that both directions change gradually. Tab to the button and check the focus indicator. With reduced motion enabled or emulated, check that the hover color still changes immediately. Explain why the transition belongs on the base selector and why the focus outline is not animated.
+
+<details>
+<summary>Hint 1</summary>
+
+The first part of the shorthand names the property; the next time value sets its duration.
+
+</details>
+
+<details>
+<summary>Hint 2</summary>
+
+The preference query already limits when the transition is applied. Leave the hover and focus rules outside it.
+
+</details>
+
+<details>
+<summary>Check your work and reasoning</summary>
+
+Add `transition: background-color 300ms ease-out;` inside the `.action` rule in the query. The base selector still matches when hover ends, so its transition can describe the return as well. Only `background-color` is listed, so the outline is not transitioned. The reduced-motion version retains the state change but does not apply this optional transition.
+
+</details>

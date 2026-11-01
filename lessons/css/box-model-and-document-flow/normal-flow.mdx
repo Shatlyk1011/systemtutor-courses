@@ -1,0 +1,107 @@
+---
+title: "Normal Flow"
+description: "Understand how elements occupy space in normal flow."
+---
+
+**Normal flow** is the browser’s default layout. Block elements stack one after another, while text and inline elements share lines.
+
+The examples here use horizontal writing, with text read from left to right.
+
+## Follow the document order
+
+```html
+<!-- [!code word:<h2>] -->
+<!-- [!code word:<p>] -->
+<!-- [!code word:<a] -->
+<section class="notes">
+  <h2>Article overview</h2>
+  <p>Read the <strong>key points</strong>.</p>
+  <p>Read the <a href="/guides/layout">layout guide</a> for more advice.</p>
+</section>
+```
+
+With the browser's usual display styles:
+
+- **Block boxes:** The heading and paragraphs stack vertically in their document order.
+- **Inline boxes:** Text, `strong`, and the link share lines inside those blocks.
+- **Line wrapping:** When a line runs out of width, text continues on the next line.
+
+The layout follows the content's structure. You do not need to give each paragraph a coordinate.
+
+## Let content determine height
+
+```css
+/* [!code word:max-width] */
+/* [!code word:padding] */
+.notes {
+  max-width: 36rem;
+  padding: 1rem;
+  border: 1px solid green;
+}
+```
+
+The section has no set height, so it grows with its content. If its available width shrinks, the paragraphs wrap onto more lines and become taller. Later blocks move downward to make room.
+
+This is a useful default for articles and cards with variable text. Test the example with a longer heading or another paragraph before deciding that the section needs a fixed height.
+
+## Understand the containing block
+
+A **containing block** is the box CSS uses to calculate sizes and positions. Here, the paragraphs use the parent section’s content area as their reference.
+
+```css
+/* [!code word:50%] */
+.notes p {
+  width: 50%;
+}
+```
+
+If the section's content width is 600 pixels, each paragraph's content width is 300 pixels, assuming the initial `content-box` sizing and no added paragraph padding or borders. They still stack: making blocks narrower does not automatically place them side by side.
+
+The containing block is not always the immediate parent. Positioning can change which ancestor supplies it, as the next lesson explains.
+
+## Recognize collapsing margins
+
+In a separate example, use two adjacent paragraphs in ordinary block flow:
+
+```html
+<p class="first-note">Review the order.</p>
+<p class="second-note">Confirm the address.</p>
+```
+
+```css
+/* [!code word:margin] */
+.first-note {
+  margin: 0 0 24px;
+}
+
+.second-note {
+  margin: 16px 0 0;
+}
+```
+
+Their adjoining vertical margins **collapse** into one margin. Because both are positive, the gap is 24 pixels, the larger value, rather than 40 pixels.
+
+Margin collapse has boundaries and conditions:
+
+- Horizontal margins do not collapse.
+- Padding and borders do not collapse.
+- A parent’s top or bottom margin can combine with its first or last child’s margin when nothing separates them, such as a border or padding.
+- Margins between flex or grid items do not collapse.
+
+If the section has a top border or top padding, its first child's top margin cannot collapse through that edge.
+
+When collapsing margins include negative values, combine the largest positive value with the most negative value. If the second paragraph's top margin changes from `16px` to `-8px`, the collapsed margin becomes `24px - 8px = 16px`. If all the collapsing margins are negative, use the most negative value: `-24px` and `-8px` collapse to `-24px`.
+
+## Notice when content leaves normal flow
+
+Absolute and fixed positioning remove a box from normal flow: its former place is not reserved for neighboring content. Relative positioning keeps the original space even when the box is visually offset. Floats allow surrounding inline content to wrap around them.
+
+Those behaviors solve particular layout problems. Begin with normal flow, then choose another behavior when the content needs it.
+
+## Key Takeaways
+
+- **Normal flow:** Blocks stack in document order while inline content forms wrapping lines.
+- **Content height:** In-flow content can expand an automatically sized parent and move later content.
+- **Containing block:** Reference dimensions determine how values such as percentage widths resolve.
+- **Margin collapse:** Adjoining vertical margins can combine instead of adding together.
+- **Placement:** A narrower block does not automatically move beside another block.

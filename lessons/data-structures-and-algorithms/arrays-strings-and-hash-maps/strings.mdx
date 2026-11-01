@@ -1,0 +1,273 @@
+---
+title: "Strings"
+description: "Learn to compare and traverse strings, transform characters, and recognize subsequences before using string patterns."
+---
+
+A **string** is an ordered sequence of text. Like an array, it has zero-based indexes, so you can read a value at a known position or visit the whole sequence one position at a time.
+
+```text
+Text:     "c a t"
+Index:     0 1 2
+```
+
+Strings are useful for names, messages, and any problem where the order of text matters. In the examples below, `n` means the length of the string.
+
+## Length and Indexing
+
+For a nonempty string, the first position is index `0` and the last is index `n - 1`. JavaScript uses `.length`, while Python uses `len()`.
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```js
+    const word = "cat";
+
+    console.log(word.length); // 3
+    console.log(word[0]);     // "c"
+    console.log(word[2]);     // "t"
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    word = "cat"
+
+    print(len(word))  # 3
+    print(word[0])    # "c"
+    print(word[2])    # "t"
+    ```
+  </Tab>
+</Tabs>
+
+<Callout title="Indexing and Unicode" type="info">
+These examples use simple ASCII text. JavaScript indexes UTF-16 code units, while Python indexes Unicode code points. A visible character such as an emoji or a letter with a combining mark may not fit in one indexed position.
+</Callout>
+
+### Big O: Checking by Index
+
+Reading `word[2]` is **`O(1)` time**: it accesses one known position, regardless of how long the string is. Finding an unknown position by searching for a character can require checking all `n` positions, so a full scan is **`O(n)` time**.
+
+## Traversing a String
+
+**Traversal** visits the text from beginning to end. Use indexes when you need positions; iterate over values when you only need the characters.
+
+### When the Index Matters
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```js
+    const word = "cat";
+
+    for (let index = 0; index < word.length; index++) {
+      console.log(index, word[index]);
+    }
+    // 0 c
+    // 1 a
+    // 2 t
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    word = "cat"
+
+    for index in range(len(word)):
+        print(index, word[index])
+    # 0 c
+    # 1 a
+    # 2 t
+    ```
+  </Tab>
+</Tabs>
+
+### When Only the Characters Matter
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```js
+    for (const character of "cat") {
+      console.log(character);
+    }
+    // c
+    // a
+    // t
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    for character in "cat":
+        print(character)
+    # c
+    # a
+    # t
+    ```
+  </Tab>
+</Tabs>
+
+### Big O: Traversal
+
+For the ASCII text in these examples, each loop visits `n` positions once, so a complete traversal takes **`O(n)` time**. An indexed read inside the loop is `O(1)`, but the loop performs that read `n` times. These examples use **`O(1)` extra space** because they keep only a loop variable.
+
+---
+
+## Comparing Strings
+
+**Equality** checks whether two strings have the same text in the same order. Comparison is case-sensitive: `"Cat"` and `"cat"` are different. Ordering comparisons examine the first position where the strings differ.
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```js
+    console.log("cat" === "cat");   // true
+    console.log("Cat" === "cat");   // false
+    console.log("apple" < "banana"); // true
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    print("cat" == "cat")       # True
+    print("Cat" == "cat")       # False
+    print("apple" < "banana")   # True
+    ```
+  </Tab>
+</Tabs>
+
+The ordering example uses plain lowercase English letters. For general text, comparison follows each language's string ordering rules, which may not match dictionary or locale-specific order. Equality can check up to every position, so its worst-case time is `O(n)` for strings of length `n`.
+
+## Slicing and Transforming Strings
+
+Both JavaScript and Python strings are **immutable**: changing text produces a new string instead of editing the original one in place.
+
+### Take a Contiguous Part
+
+A **substring** contains consecutive positions. The start index is included and the end index is excluded:
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```js
+    const word = "program";
+    const part = word.slice(1, 4);
+
+    console.log(part); // "rog"
+    console.log(word); // "program"
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    word = "program"
+    part = word[1:4]
+
+    print(part)  # "rog"
+    print(word)  # "program"
+    ```
+  </Tab>
+</Tabs>
+
+Copying a part of length `k` takes `O(k)` time and creates a new string.
+
+### Change Part of the Text
+
+To capitalize the first character, build a new string from the transformed first character and the unchanged remainder:
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```js
+    const word = "cat";
+    const updated = word[0].toUpperCase() + word.slice(1);
+
+    console.log(updated); // "Cat"
+    console.log(word);    // "cat"
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    word = "cat"
+    updated = word[0].upper() + word[1:]
+
+    print(updated)  # "Cat"
+    print(word)     # "cat"
+    ```
+  </Tab>
+</Tabs>
+
+The examples assume a nonempty string. Copying the remainder makes this transformation `O(n)` time and `O(n)` extra space.
+
+---
+
+## Substrings and Subsequences
+
+![Substring versus subsequence](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/63971361-6f04-4a9f-a7d2-538fc84c4adc/gallery/a4e9866f-f5a8-4dbc-8686-9fd5a9ac6241)
+
+A **substring** keeps characters together. A **subsequence** keeps their order but may skip characters.
+
+For `"abcde"`:
+
+| Selection | Result | Why |
+| --- | --- | --- |
+| `"bcd"` | Substring and subsequence | `b`, `c`, and `d` are consecutive. |
+| `"ace"` | Subsequence only | `a`, `c`, and `e` stay in order but have gaps. |
+| `"aec"` | Neither | `e` appears after `c`, so this order is impossible. |
+
+To check for a subsequence, scan the source from left to right. Keep an index into the candidate. Advance that index whenever the current source character matches the next needed character.
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```js
+    function isSubsequence(candidate, text) {
+      let matched = 0;
+
+      for (let index = 0; index < text.length; index++) {
+        if (matched < candidate.length && text[index] === candidate[matched]) {
+          matched++;
+        }
+      }
+
+      return matched === candidate.length;
+    }
+
+    console.log(isSubsequence("ace", "abcde")); // true
+    console.log(isSubsequence("aec", "abcde")); // false
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    def is_subsequence(candidate, text):
+        matched = 0
+
+        for character in text:
+            if matched < len(candidate) and character == candidate[matched]:
+                matched += 1
+
+        return matched == len(candidate)
+
+
+    print(is_subsequence("ace", "abcde"))  # True
+    print(is_subsequence("aec", "abcde"))  # False
+    ```
+  </Tab>
+</Tabs>
+
+For `"ace"`, the scan matches `a`, skips `b`, matches `c`, skips `d`, then matches `e`. Each source position is visited once, so the check takes `O(n)` time and `O(1)` extra space. The empty string is a subsequence of any string.
+
+<Callout title="Keep the distinction clear" type="info">
+A substring must be contiguous. A subsequence may have gaps, but its characters must remain in their original order. This distinction matters when choosing later string patterns.
+</Callout>
+
+## Big O Notation: Operation Summary
+
+Here `n` is the string length, and `k` is the length of a substring being copied.
+
+| Operation | Time | Why |
+| --- | ---: | --- |
+| Read a known index | `O(1)` | Go directly to that position. |
+| Traverse the string | `O(n)` | Visit each position once. |
+| Compare equal-length strings | `O(n)` worst case | Check positions until a difference appears or both end. |
+| Extract a substring of length `k` | `O(k)` | Copy `k` positions into a new string. |
+| Transform a whole string | `O(n)` | Build new text from the original. |
+| Check a subsequence | `O(n)` | Scan the source once. |
+
+---
+
+## Key Takeaways
+
+- Strings are ordered text sequences with zero-based indexes.
+- Use indexed traversal when positions matter and direct iteration when only the text values matter.
+- Comparisons are case-sensitive; equality may need to inspect the entire string.
+- JavaScript and Python strings are immutable, so slicing and transformations produce new strings.
+- Substrings are contiguous; subsequences can skip positions while preserving order.

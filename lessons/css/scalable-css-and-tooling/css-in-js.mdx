@@ -1,0 +1,130 @@
+---
+title: "CSS-in-JS"
+description: "Compare CSS-in-JS trade-offs and use cases."
+---
+
+**CSS-in-JS** lets you write styles through JavaScript or TypeScript, often alongside components. The tool turns those definitions into CSS for the browser.
+
+## Recognize different delivery models
+
+| Approach | How styles reach the page |
+| --- | --- |
+| Runtime styling | A library generates or manages styles as application code runs. |
+| Build-time extraction | A compiler generates static CSS from authored JavaScript or TypeScript. |
+
+Do not assume every CSS-in-JS tool adds the same runtime work. For example, vanilla-extract generates static CSS files at build time. Its integration and constraints differ from runtime style generation. See the [vanilla-extract overview](https://vanilla-extract.style/).
+
+## Define a styled component
+
+To try this example, use a React project with styled-components installed and configured. Define the styled component outside the render function:
+
+```jsx
+import styled from "styled-components";
+
+// [!code word:styled.button]
+const Button = styled.button`
+  padding: 0.75rem 1rem;
+  font: inherit;
+  color: #17352a;
+  background: #ffffff;
+  border: 2px solid #17352a;
+  border-radius: 0.5rem;
+
+  &[data-featured="true"] {
+    color: #ffffff;
+    background: #17352a;
+  }
+
+  &:focus-visible {
+    outline: 3px solid #1d4ed8;
+    outline-offset: 3px;
+  }
+`;
+
+export default function Actions() {
+  return (
+    <div>
+      <Button type="button">View projects</Button>
+      <Button type="button" data-featured="true">
+        Create project
+      </Button>
+    </div>
+  );
+}
+```
+
+`styled.button` creates a component that renders a button with library-managed classes. The tagged template contains CSS declarations and nested selectors. A data attribute selects the featured appearance without defining a second styled component. These buttons demonstrate presentation; application code must implement their actions.
+
+Define styled components outside render functions so they are not recreated on each render. The library also supports prop-based style functions, but ordinary CSS selectors are sufficient for these two fixed variants. See the [styled-components basics](https://styled-components.com/docs/basics).
+
+## Match dynamic values to their needs
+
+For a few fixed variations, use classes or attributes. For a value that changes often, such as a color adjusted by the user, a CSS custom property can avoid creating a new rule for every value.
+
+In styled-components, different interpolation results can generate additional classes. Prefer stable definitions and measure dynamic styling in the real interface. This behavior is library-specific; do not generalize its costs to every CSS-in-JS implementation. See the [performance documentation](https://styled-components.com/docs/advanced#performance).
+
+## Weigh the project needs
+
+Keeping styles next to a component can make ownership and deletion easier to understand. It also makes the styling workflow depend on the chosen library, compiler, or framework integration.
+
+Before adopting an approach, check how it handles browser delivery, server rendering, initial styles, and theming. Follow documentation for the specific library version and framework; server integration is not identical across tools. See the [styled-components server-rendering guide](https://styled-components.com/docs/advanced#server-side-rendering).
+
+CSS Modules keep component styles in separate CSS files, while BEM organizes ordinary class names. Choose an approach that fits how your project loads styles and how the team will maintain them.
+
+## Compare delivery and changing values
+
+Does build-time extraction necessarily generate styles while the application runs?
+
+<details>
+<summary>Check your reasoning</summary>
+
+No. In a build-time extraction approach the compiler produces static CSS during the build.
+
+</details>
+
+Now take the next decision yourself: A button has two fixed appearances. Why might an attribute selector be sufficient instead of generating a new rule for each render?
+
+<details>
+<summary>Check your reasoning</summary>
+
+A stable rule can select each fixed state by its attribute; it does not need a distinct generated rule for every render.
+
+</details>
+
+## Key Takeaways
+
+- **Models:** CSS-in-JS includes different runtime and build-time strategies.
+- **Components:** Keep styled definitions stable and use CSS states where appropriate.
+- **Dynamic values:** Avoid unnecessary rule generation for frequently changing values.
+- **Trade-offs:** Evaluate delivery, integration, and maintenance for the specific tool.
+
+## Try it yourself
+
+A team needs a button with two fixed variants and a preview whose color changes continuously. Propose a styling approach for each and identify one delivery or integration question to investigate before adopting a CSS-in-JS library. Explain why the library’s actual model matters.
+
+Check your work against these criteria:
+
+- Address each part of the scenario using the mechanism taught in this lesson.
+- Explain the decision and its effect, rather than only naming a tool or selector.
+- Compare your answer with the reasoning below; equivalent correct solutions are welcome.
+
+<details>
+<summary>Hint 1</summary>
+
+Separate a small set of named states from a frequently changing value.
+
+</details>
+
+<details>
+<summary>Hint 2</summary>
+
+Consider a stable attribute selector for variants and a custom property for the changing color.
+
+</details>
+
+<details>
+<summary>Check your reasoning</summary>
+
+Use stable classes or attribute selectors for the two variants and a CSS custom property for the changing color. Check how the specific library delivers initial styles and integrates with the framework or server rendering. Runtime generation and build-time extraction have different integration and performance characteristics.
+
+</details>

@@ -1,0 +1,240 @@
+---
+title: "DNS"
+description: Learn how DNS resolves names, caches results, and routes traffic.
+---
+
+<Callout title="Lesson goal" type="info">
+  By the end of this lesson, you will understand why DNS exists, how recursive and iterative lookups traverse the DNS hierarchy, how DNS operates over UDP and TCP port 53, common DNS records and the CNAME apex rule, how caching and TTL optimize performance, how DNS enables traffic routing and load balancing in distributed systems, modern security extensions (DNSSEC, DoH), and how URL structure connects to public web servers.
+</Callout>
+
+**The Domain Name System (DNS)** is the phonebook of the Internet. Humans access information online through memorable domain names, like `nytimes.com` or `espn.com`. Web browsers and network hardware interact through **Internet Protocol (IP) addresses**. DNS bridges this gap by translating human-readable domain names into machine-routable IP addresses so browsers can load Internet resources.
+
+---
+
+## Why DNS Exists
+
+Computers connect to servers using **IP addresses**, while people prefer readable, recognizable names such as `google.com`. DNS exists to connect these two forms seamlessly.
+
+### What DNS does
+
+**DNS** maps a domain name to DNS records. An address record is a common result, but DNS can also return aliases, mail-routing information, and other records:
+
+```text
+google.com ──(DNS Translation)──> 142.250.190.46
+```
+
+When a user enters a domain name into a browser, DNS resolves the corresponding IP address so network packets can be addressed and routed to the correct server.
+
+### A phone-book analogy
+
+DNS operates very similarly to a traditional phone book:
+
+![](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/af575a14-6ed7-4757-899d-6f51436eee35/gallery/8fd0a9f5-04ae-4f0d-a7cd-a446a4344474)
+
+| Phone book | DNS |
+|---|---|
+| **Person’s name** | Domain name (e.g., `nytimes.com`) |
+| **Phone number** | Server’s IP address (e.g., `151.101.1.164`) |
+
+Just as you look up a person's name in a phone book to find their phone number, a computer queries DNS with a domain name to discover the server's numeric IP address.
+
+### Why this matters
+
+Without DNS, users would need to memorize and type numeric server IP addresses (like `142.250.190.46` or IPv6 hex strings like `2607:f8b0:4005:805::200e`) directly into browser address bars. 
+
+DNS abstracts these underlying network numbers behind friendly names, allowing servers to change IP addresses without breaking user-facing bookmarks and links.
+
+---
+
+## The DNS Lookup Process
+
+A DNS lookup translates a domain name into an IP address. The lookup travels through several layers of internet infrastructure: the client, the local resolver / Internet Service Provider (ISP), and hierarchical DNS servers.
+
+![DNS lookup journey](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/54de4736-cbfb-4ca3-add4-542a111f11df/gallery/a6135d41-073c-4df4-944d-6a088a21f657)
+
+### The resolution flow
+
+The step-by-step resolution path:
+
+1. **Client:** The browser and operating system check their local caches. If missing, the operating system requests the IP address for the domain from the **Recursive Resolver** (typically hosted by the ISP or public resolvers like Cloudflare `1.1.1.1` or Google `8.8.8.8`).
+2. **Root Nameserver (`.`):** If the recursive resolver does not have the answer cached, it queries a Root server to find who handles the Top-Level Domain (e.g., `.com`).
+3. **TLD Nameserver (`.com`):** The resolver queries the `.com` TLD server, which directs it to the authoritative nameserver for `google.com`.
+4. **Authoritative Nameserver:** The authoritative server holds the official DNS records for `google.com` and returns the requested record or an alias that requires another lookup.
+5. **Client receives the answer:** The recursive resolver caches the answer according to its TTL and returns it to the client. The client can then start the appropriate transport connection—for example, TCP for HTTP/1.1 or HTTP/2, or QUIC for HTTP/3.
+
+### Observe a lookup with `nslookup` and `dig`
+
+You can inspect DNS lookups directly from your terminal using standard network diagnostic tools:
+
+<Tabs items={["nslookup", "dig", "dig trace"]}>
+  <Tab value="nslookup">
+    ```bash
+    nslookup google.com
+    ```
+
+    ```text
+    Server:		192.168.1.1
+    Address:	192.168.1.1#53
+
+    Non-authoritative answer:
+    Name:	google.com
+    Address: 142.250.190.46
+    ```
+  </Tab>
+  <Tab value="dig">
+    ```bash
+    dig google.com +short
+    ```
+
+    ```text
+    142.250.190.46
+    ```
+  </Tab>
+  <Tab value="dig trace">
+    ```bash
+    # Step-by-step trace through Root, TLD, and Authoritative servers
+    dig google.com +trace
+    ```
+
+    ```text
+    .                   518400  IN  NS  a.root-servers.net.
+    com.                172800  IN  NS  a.gtld-servers.net.
+    google.com.         172800  IN  NS  ns1.google.com.
+    google.com.         300     IN  A   142.250.190.46
+    ```
+  </Tab>
+</Tabs>
+
+The output reveals the domain-to-IP translation reported by the DNS server.
+
+---
+
+## DNS Ownership and Records
+
+### Who coordinates domain ownership?
+
+Domain names are managed through a global hierarchical governance model:
+
+- **ICANN (Internet Corporation for Assigned Names and Numbers):** Coordinates global domain ownership and IP address allocation, managing the top-level root zone.
+- **Registries:** Organizations managing specific TLDs (e.g., Verisign manages `.com` and `.net`).
+- **Registrars:** Accredited commercial companies (e.g., Namecheap, Cloudflare Registrar, GoDaddy) that resell domains to individuals and organizations, managing their registration records.
+
+| Entity | Primary Responsibility | Example |
+|---|---|---|
+| **ICANN** | Coordinates global domain root policies & allocations | Global oversight |
+| **Registry** | Operates and maintains the master TLD database | Verisign (`.com`), PIR (`.org`) |
+| **Registrar** | Commercial storefront for buying and configuring domains | Cloudflare, Namecheap |
+| **Registrant** | The individual or organization owning the domain | You or your company |
+
+### What are DNS records?
+
+**DNS records** are configuration instructions stored in authoritative DNS servers. They map human-readable domain names to IP addresses and other services:
+
+| Record Type | Name | Purpose | Example |
+|---|---|---|---|
+| **A** | Address Record | Maps a domain or subdomain to an **IPv4** address | `example.com → 203.0.113.10` |
+| **AAAA** | IPv6 Address Record | Maps a domain or subdomain to an **IPv6** address | `example.com → 2001:db8::1` |
+| **CNAME** | Canonical Name | Makes a name an alias of another domain name | `www.example.com → example.com` |
+| **MX** | Mail Exchange | Directs emails to the domain's mail servers (with priority) | `example.com → 10 mail.google.com` |
+| **TXT** | Text Record | Carries arbitrary text (SPF, DKIM, domain verification) | `v=spf1 include:_spf.google.com ~all` |
+| **NS** | Name Server | Specifies the authoritative DNS servers for the domain | `ns1.cloudflare.com` |
+| **PTR** | Pointer Record | Reverse DNS: maps an IP address back to a hostname | `10.113.0.203.in-addr.arpa → example.com` |
+| **SOA** | Start of Authority | Core metadata about the zone (admin email, serial, refresh) | `ns1.example.com hostmaster.example.com ...` |
+
+#### A records in practice
+
+The **A record** is the most common record type, directly translating names into IPv4 addresses:
+
+```text
+example.com.     300  IN  A   203.0.113.10
+www.example.com. 300  IN  A   203.0.113.10
+api.example.com. 300  IN  A   203.0.113.25
+```
+
+In this setup, root queries and `www` queries point to the primary web server, while `api` directs to a dedicated backend server.
+
+#### The CNAME apex rule
+
+A CNAME makes its owner name an alias, so that name cannot also hold other record types. The zone apex (for example, `example.com`) must normally hold records such as `SOA` and `NS`; therefore a standard DNS zone cannot place a CNAME at the apex. DNS providers may offer alias-like features, but those are provider-specific rather than standard CNAME records.
+
+<Callout title="Key idea" type="success">
+ICANN coordinates root policy, registrars resell domains to users, and DNS records (like A and CNAME) map domains and subdomains to server destinations.
+</Callout>
+
+---
+
+## DNS Caching and Time-to-Live (TTL)
+
+Resolving a domain from authoritative servers for every lookup would add work and delay. **DNS caching** reduces that work by reusing answers until their TTL expires.
+
+![DNS cache and TTL](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/54de4736-cbfb-4ca3-add4-542a111f11df/gallery/d8968cb5-bb41-4fe4-a988-73a2a38f2d8a)
+
+### What DNS caching does
+
+DNS caching stores resolved IP addresses temporarily at multiple layers so future requests can reuse the result instantly:
+
+![DNS caching](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/54de4736-cbfb-4ca3-add4-542a111f11df/gallery/5ad71e6f-7754-48af-8960-13dc16eeccaa)
+
+### Time-to-Live (TTL)
+
+Every DNS record specifies a **TTL (Time-to-Live)** value in seconds:
+- A **high TTL** (e.g., `86400` seconds / 24 hours) reduces DNS query traffic and speeds up lookups, ideal for stable, static infrastructure.
+- A **low TTL** (e.g., `60` or `300` seconds) lets resolvers learn changes sooner when migrating servers or updating IP addresses, although it cannot instantly replace answers that are already cached.
+
+### Static vs. dynamic server addresses
+
+- **Static IP addresses:** The server’s IP address remains fixed. Caching works best with static IPs because the cached result remains valid throughout the TTL window.
+- **Dynamic IP addresses:** Some servers (e.g., residential home servers or ephemeral cloud instances) receive changing IPs. 
+
+When an IP changes before a cache expires, clients with stale answers may fail to connect. **Dynamic DNS (DDNS)** can update a DNS record automatically when a changing public IP changes, but existing cached answers remain valid until their TTL expires.
+
+<Callout title="Important relationship" type="info">
+A cached IP address is fast and efficient, but it remains useful only while it accurately represents the target server.
+</Callout>
+
+---
+
+## Public Servers and URL Structure
+
+A public server is accessed across the internet through a **Uniform Resource Locator (URL)**. DNS connects the domain portion of that URL to the physical server IP. Understanding URL anatomy clarifies how DNS fits into the broader web architecture.
+
+### The anatomy of a URL
+
+A standard web URL consists of structured components:
+
+![The anatomy of a URL](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/54de4736-cbfb-4ca3-add4-542a111f11df/gallery/597ed7db-54e5-4063-8bcc-7bb197022602)
+
+### Component breakdown
+
+| Component | Example | Role in the URL Structure |
+|---|---|---|
+| **Scheme** | `https` | Identifies how the resource should be accessed; `https` means HTTP secured with TLS. |
+| **Subdomain** | `api` or `blog` | A designated subsection under the primary domain, routed by DNS or reverse proxies. |
+| **Primary Domain** | `example` | The unique name registered with a registrar (Second-Level Domain / SLD). |
+| **Top-Level Domain (TLD)** | `.com` or `.org` | The extension at the end of the domain name managed by registry authorities. |
+| **Port** | `:443` or `:8080` | Specifies the network port endpoint on the destination host (defaults to `80` for HTTP, `443` for HTTPS). |
+| **Path** | `/v1/users` | Identifies the specific resource or endpoint on the destination server. |
+| **Query Parameters** | `?sort=desc&limit=10` | Key-value pairs providing additional parameters or filters to the server. |
+| **Anchor / Fragment** | `#section-2` | Internal client-side reference (never sent to the server). |
+
+### Reading a URL systematically
+
+When examining a URL, parse its sections in order:
+
+1. **Protocol (`https://`):** Determines how data is framed and encrypted.
+2. **Domain & Subdomain (`api.example.com`):** Extracted and resolved by **DNS** into the server's IP address.
+3. **Port (`:443`):** Selects the destination port for the transport connection. HTTPS commonly uses `443`.
+4. **Path (`/v1/users`):** Sent in the HTTP request line to target the specific route.
+5. **Query Parameters (`?sort=desc`):** Passed to the application logic to filter or modify data.
+
+---
+
+## Key Takeaways
+
+- **The Internet's Phonebook:** DNS translates human-memorable domain names (like `google.com`) into machine-routable IP addresses (like `142.250.190.46`).
+- **Hierarchical Lookup:** When a cache misses, lookups flow through Recursive Resolvers → Root Nameservers (`.`) → TLD Nameservers (`.com`) → Authoritative Nameservers.
+- **Record Types:** `A` records map to IPv4, `AAAA` to IPv6, `CNAME` creates domain aliases, `MX` routes email, and `TXT` holds verification metadata.
+- **Domain Governance:** ICANN oversees root policy, registries operate top-level domains, and registrars sell domains to registrants.
+- **Caching & TTL:** DNS records are cached across browsers, operating systems, and resolvers for the duration of their TTL to minimize latency and server load.
+- **Security & Privacy:** **DNSSEC** uses cryptographic signatures to prevent cache poisoning, while **DoH** and **DoT** encrypt the client-to-resolver channel against eavesdropping.
+- **URL Connection:** DNS resolves only the host/domain portion of a URL; the protocol, path, port, and query parameters are processed directly by client and server during the HTTP transaction.

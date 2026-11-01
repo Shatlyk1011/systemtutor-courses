@@ -1,0 +1,124 @@
+---
+title: "Stylesheets and Debugging"
+---
+
+When more than one CSS declaration tries to set the same property on an element, the browser must decide which one to apply. The order of the declarations can decide the result, but only after other priority rules have been considered.
+
+Browser developer tools help you investigate these conflicts and find other reasons why a style may not work as expected.
+
+## How source order affects styles
+
+Suppose a stylesheet contains two rules for paragraphs:
+
+```css
+p {
+  color: blue;
+}
+
+p {
+  color: red;
+}
+```
+
+Both rules target paragraphs and set the `color` property. Because these declarations have equal priority under the other CSS rules, the later declaration wins. The paragraph text appears red.
+
+This is called **source order**: the order in which CSS declarations appear. Source order helps resolve a conflict when the declarations are otherwise equal in priority.
+
+## Order across stylesheets
+
+![Stylesheet order](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/30fa637c-4f12-4ae2-8a3e-cc3e26e003cc/gallery/17814e22-3dc7-4ae7-9cdc-969c534c2c4d)
+
+Source order also matters when a page links to more than one stylesheet:
+
+```html
+<link rel="stylesheet" href="base.css">
+<link rel="stylesheet" href="custom.css">
+```
+
+```css
+/* base.css */
+p {
+  color: blue;
+}
+
+/* custom.css */
+p {
+  color: red;
+}
+```
+
+The browser uses the stylesheets in document order. Here, `custom.css` comes after `base.css`. Because the two declarations have equal priority under the other cascade rules, the later `color: red` declaration wins.
+
+If you swap the two `<link>` elements, the blue declaration comes later and the paragraph appears blue.
+
+## Internal and external styles
+
+An internal `<style>` element and an external stylesheet can also contain conflicting rules. Their position matters when the declarations are otherwise equal in priority.
+
+For example, this internal rule comes after the linked stylesheet:
+
+```html
+<link rel="stylesheet" href="base.css">
+
+<style>
+  p {
+    color: red;
+  }
+</style>
+```
+
+If `base.css` contains the earlier `p { color: blue; }` rule, the paragraph appears red. If the `<style>` element comes before the link instead, the blue declaration appears later and wins in this example.
+
+Internal CSS does not automatically have priority over external CSS. Similarly, a later rule does not always win just because it appears later: other cascade rules may give a declaration higher priority first. Inline styles can also conflict with other styles, so placing a style directly on an element does not guarantee that there will be no conflicts.
+
+## CSS comments
+
+A CSS comment begins with `/*` and ends with `*/`. You can use one line or several lines:
+
+```css
+/* Card appearance */
+.card {
+  background-color: white;
+  padding: 20px;
+}
+
+/*
+  These styles control
+  the card's appearance.
+*/
+```
+
+Comments help explain what a rule is for. They can also temporarily disable CSS while you investigate a problem:
+
+```css
+/*
+.card {
+  margin: 40px;
+}
+*/
+```
+
+The browser does not apply the commented-out rule. You can remove the comment markers when you want to use the rule again.
+
+## Investigating styles with DevTools
+
+![DevTools](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/30fa637c-4f12-4ae2-8a3e-cc3e26e003cc/gallery/b95bb908-26b6-4501-83c0-f7d3ce00b6b1)
+
+To inspect an element, right-click it on the page and select **Inspect**. In the developer tools, look for the **Styles** panel. It shows declarations associated with the selected element, including declarations that have been overridden.
+
+When a style does not appear as expected, use the panel to work through the problem:
+
+1. **Check the selector.** Make sure the rule targets the element you intended to style.
+2. **Look at the declarations.** Check for syntax errors, invalid property values, and declarations shown as overridden.
+3. **Check the stylesheet.** If an external stylesheet is missing, check that its link and file path are correct and that it loads.
+4. **Try a change.** Edit a CSS value directly in DevTools to see its effect, or temporarily disable a declaration while testing.
+
+Changes made in DevTools let you test an idea in the browser. Make the corresponding change in your CSS file when you have found the fix.
+
+## Key Takeaways
+
+- **Source order:** When conflicting declarations are otherwise equal in priority, the later declaration wins.
+- **Stylesheet position:** Linked stylesheets and internal styles can affect the result according to their order in the document.
+- **Priority:** Source order is considered after higher-priority cascade rules; internal CSS is not automatically stronger than external CSS.
+- **Comments:** Use `/* ... */` to explain CSS or temporarily disable it.
+- **DevTools:** Inspect elements and use the Styles panel to find conflicts, incorrect selectors, invalid values, and stylesheet loading problems.

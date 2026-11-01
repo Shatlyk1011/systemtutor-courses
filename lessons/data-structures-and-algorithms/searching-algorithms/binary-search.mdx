@@ -1,0 +1,157 @@
+---
+title: "Binary Search"
+description: "Understand how binary search repeatedly eliminates half of a sorted array, its pointer-based implementation, and Big O complexity."
+slug: "binary-search"
+---
+
+Binary search is a method for finding a **target** in a **sorted array**. Instead of examining every element, it repeatedly reduces the remaining search area by eliminating half of the array.
+
+## How it works
+
+1. Identify the middle element of the sorted array.
+2. Compare the target with that middle element.
+3. Use the comparison to eliminate half of the array.
+4. Repeat the process on the remaining half.
+
+![](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/bc404436-98cf-41f5-9ec8-6d3ceaf1686d/gallery/a6788490-d4f1-4012-9a2f-c210672052a5)
+
+Each comparison makes the search area smaller. The essential relationship is:
+
+> **Sorted array + middle-element comparison → half of the search area eliminated**
+
+## Example of the process
+
+Suppose the target is somewhere in a sorted array. Binary search first compares the target with the array’s middle element. After that comparison, one half is eliminated. The same process then continues with the remaining half: compare with its middle element, eliminate half again, and repeat.
+
+## Binary Search Implementation
+
+Binary search uses three pointers to narrow the part of a sorted list that may contain a target value:
+
+- `left` marks the beginning of the current search range.
+- `right` marks the end.
+- `middle` marks the position checked next.
+
+At each step, compare the value at `middle` with the target. If the target is larger, move `left` past `middle`. If the target is smaller, move `right` before `middle`. If they are equal, return the result.
+
+The function returns the index of the target if found. If the target is not present, it returns `-1`.
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```js
+    function binarySearch(array, target) {
+      let left = 0;
+      let right = array.length - 1;
+
+      while (left <= right) {
+        const middle = Math.floor((left + right) / 2);
+
+        if (array[middle] === target) {
+          return middle;
+        } else if (array[middle] < target) {
+          left = middle + 1;
+        } else {
+          right = middle - 1;
+        }
+      }
+
+      return -1;
+    }
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    def binary_search(array, target):
+        left = 0
+        right = len(array) - 1
+
+        while left <= right:
+            middle = (left + right) // 2
+
+            if array[middle] == target:
+                return middle
+            elif array[middle] < target:
+                left = middle + 1
+            else:
+                right = middle - 1
+
+        return -1
+    ```
+  </Tab>
+</Tabs>
+
+The loop continues while the search range is valid (`left <= right`). Each comparison removes part of that range by updating either `left` or `right`.
+
+If the pointers cross without finding the target, no matching value remains in the search range and the function returns `-1`.
+
+## Examples
+
+### Basic usage
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```js
+    const numbers = [2, 5, 8, 12, 16, 23, 38, 56, 72, 91];
+
+    console.log(binarySearch(numbers, 23)); // 5
+    console.log(binarySearch(numbers, 2));  // 0
+    console.log(binarySearch(numbers, 50)); // -1 (not found)
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    numbers = [2, 5, 8, 12, 16, 23, 38, 56, 72, 91]
+
+    print(binary_search(numbers, 23))  # 5
+    print(binary_search(numbers, 2))   # 0
+    print(binary_search(numbers, 50))  # -1 (not found)
+    ```
+  </Tab>
+</Tabs>
+
+### Essential pattern
+
+1. Initialize `left` to `0` and `right` to `array.length - 1`.
+2. Calculate `middle` (`Math.floor((left + right) / 2)` or `(left + right) // 2`).
+3. Compare the element at `middle` with the target.
+4. Return the matching index, move `left`, or move `right`.
+5. Return `-1` when the search range is exhausted.
+
+---
+
+## Binary Search and Big O
+
+Binary search is analyzed by counting how the number of steps grows as the input size grows. Big O describes this growth, especially for larger inputs.
+
+### Three cases
+
+| Case | Meaning | Binary search performance |
+|---|---|---|
+| **Best case** | The desired result is found immediately. | **O(1)** |
+| **Average case** | The result requires a typical number of steps. | **O(log n)** |
+| **Worst case** | The result takes the greatest number of steps, or the search finishes without finding it. | **O(log n)** |
+
+Here, `n` represents the number of items being searched.
+
+### Why the growth is logarithmic
+
+Binary search reduces the remaining search space by about half at each step. After one step, about half the items remain; after another step, about one quarter remain. Each additional step continues this halving process.
+
+That is why doubling the input does not double the work. If an input has `n` items, an input with `2n` items needs only about one additional step:
+
+```text
+n items   → about k steps
+2n items  → about k + 1 steps
+```
+
+The extra step is enough because repeatedly halving `2n` reaches the size of `n` after one additional halving. This slow growth is represented by `O(log n)`.
+
+---
+
+## Key Takeaways
+
+- **Requires Sorted Data:** Binary search only works on arrays that are already sorted.
+- **Divide and Conquer:** Each comparison with the middle element halves the remaining search area.
+- **Three Pointers:** Employs `left`, `right`, and `middle` pointers to iteratively shrink the search window until `left > right`.
+- **Time Complexity:** Best case is $O(1)$ if the target is in the exact middle. Average and worst-case complexities are $O(\log n)$.
+- **Space Complexity:** The iterative implementation operates in $O(1)$ auxiliary space.
+- **Scalability:** Because of logarithmic growth, doubling the input array size ($2n$) adds only one additional step.

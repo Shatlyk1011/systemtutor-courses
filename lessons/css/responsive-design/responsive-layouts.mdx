@@ -1,0 +1,380 @@
+---
+title: "Responsive Layouts"
+---
+
+{/* Topics to cover: Mobile-First Design; Media Queries; Container Queries. */}
+
+## Mobile-First Design
+
+**Responsive design** makes a page work at different sizes and settings. A **mobile-first** stylesheet starts with a narrow-screen layout, then adds changes as more space becomes available.
+
+### Set the viewport
+
+Include this element inside the document's `head`:
+
+```html
+<!-- [!code word:width=device-width] -->
+<!-- [!code word:initial-scale=1] -->
+<meta name="viewport" content="width=device-width, initial-scale=1">
+```
+
+`width=device-width` asks the browser to use the device width in CSS pixels for its layout viewport. `initial-scale=1` sets the initial zoom level. Without an appropriate viewport declaration, a mobile browser can use a wider virtual layout viewport and shrink the page to fit.
+
+Leave users able to zoom. Do not add `user-scalable=no` or a restrictive maximum scale.
+
+### Begin with a useful content order
+
+```html
+<!-- [!code word:class="page"] -->
+<main class="page">
+  <article>
+    <h1>Choosing a desk</h1>
+    <p>Compare sizes and features to find the right desk for your workspace.</p>
+  </article>
+  <aside aria-label="Related guides">
+    <h2>More to explore</h2>
+    <a href="/guides/delivery">Delivery information</a>
+  </aside>
+</main>
+```
+
+The article comes before the related guides. That order makes sense when they stack or when someone reads the page without its visual layout.
+
+### Make the base layout flexible
+
+```css
+/* [!code word:min(calc(100% - 2rem), 70rem)] */
+/* [!code word:minmax(0, 1fr)] */
+.page {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  width: min(calc(100% - 2rem), 70rem);
+  margin-inline: auto;
+  gap: 1.5rem;
+}
+
+.page > * {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+```
+
+This single column works before any media query matches:
+
+- The width leaves `1rem` on each side of the containing block and stops growing at `70rem`.
+- The zero track minimum and item minimum allow the column to shrink.
+- Long strings can wrap instead of forcing the page wider.
+- No fixed height prevents the article from growing with its text.
+
+Flexible sizing handles many changes without a breakpoint.
+
+### Add columns when the content has room
+
+```css
+/* [!code word:min-width\: 48rem] */
+/* [!code word:minmax(0, 2fr) minmax(0, 1fr)] */
+@media (min-width: 48rem) {
+  .page {
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  }
+}
+```
+
+Place this after the base rule. At viewports at least `48rem` wide, the article and related guides share a row. The article receives twice the track space of the sidebar.
+
+Resize the page to choose a breakpoint where both regions have enough room. The example value does not define a device type: a large monitor can have a narrow browser window, and zoomed text may need one column.
+
+Only override what changes. The width limit, gap, and wrapping behavior remain useful at larger sizes.
+
+### Key Takeaways
+
+- **Viewport:** Configure mobile layout while preserving zoom.
+- **Base layout:** Keep narrow-screen content readable before adding queries.
+- **Flexibility:** Let widths and content height adapt naturally.
+- **Breakpoints:** Add changes when the content has room for them.
+
+### Try it yourself
+
+A news page has a `.news` container with an article followed by related links. It starts with one column and a `1rem` gap. Add two equal columns at viewport widths of at least `50rem`, keeping the gap. Explain why article-first source order helps when the page stacks.
+
+```css
+.news {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1rem;
+}
+```
+
+First predict the layout at `40rem`. Then write the wider rule and, if possible, resize a browser on both sides of the threshold.
+
+<details>
+<summary>Hints</summary>
+
+Keep the base layout outside the query. In a `min-width: 50rem` query, override only the columns.
+
+</details>
+
+<details>
+<summary>Check your work and reasoning</summary>
+
+```css
+@media (min-width: 50rem) {
+  .news { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+```
+
+At `40rem` the query does not match. The gap remains from the base rule. Article-first source order keeps the main content first when stacked and when read without the visual layout.
+
+</details>
+
+## Media Queries
+
+A **media query** applies styles when a condition matches, such as a minimum viewport width. It can also check print output or input features such as hover. The rules still follow the cascade.
+
+### Change layout at a width threshold
+
+```css
+/* [!code word:@media] */
+/* [!code word:width >= 48rem] */
+.results {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1rem;
+}
+
+@media (width >= 48rem) {
+  .results {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+```
+
+The results use one column below the breakpoint and two at or above it. `width` tests the viewport. To respond to a component’s container instead, use a container query.
+
+`@media` does not increase selector specificity. Here, the matching rule overrides the earlier column declaration because the selectors have equal specificity and the rule comes later.
+
+### Read range conditions precisely
+
+| Condition | Matches |
+| --- | --- |
+| `(width >= 48rem)` | At least `48rem`; includes the boundary. |
+| `(width < 48rem)` | Below `48rem`; excludes the boundary. |
+| `(30rem <= width < 60rem)` | At least `30rem`, but below `60rem`. |
+| `(min-width: 48rem)` | The same minimum threshold as `width >= 48rem`. |
+| `(max-width: 48rem)` | At most `48rem`; includes the boundary. |
+
+Both `min-width` and `max-width` include equality. If you need adjacent, non-overlapping ranges, use comparisons that include the boundary on only one side.
+
+For example, this adjusts spacing only in the middle range:
+
+```css
+/* [!code word:30rem <= width < 60rem] */
+@media (30rem <= width < 60rem) {
+  .results {
+    gap: 1.5rem;
+  }
+}
+```
+
+In media query conditions, font-relative units use the initial font size rather than a `font-size` declaration on the page. With a 16-pixel initial size, `48rem` is 768 CSS pixels. Changing the page's root font size does not itself move that threshold.
+
+### Combine conditions
+
+Use `and` when all conditions must match:
+
+```css
+/* [!code word:hover\: hover] */
+/* [!code word:and] */
+/* [!code word:pointer\: fine] */
+@media (hover: hover) and (pointer: fine) {
+  .link:hover {
+    text-decoration-thickness: 0.15em;
+  }
+}
+```
+
+This adds styles when the primary input supports hover and precise pointing. It does not tell you the device type or rule out touch input. Keep the link usable without hover.
+
+A comma separates alternative media queries: the group matches if any listed query matches. A media type can also limit output, such as `screen and (width >= 48rem)` or `print`.
+
+### Choose breakpoints from the content
+
+Resize until a real problem appears: navigation stops fitting, text becomes cramped, or an extra column has enough space to be useful. Add a rule for that change instead of copying a list of device widths.
+
+### Key Takeaways
+
+- **Conditions:** Media queries test the viewport or environment.
+- **Boundaries:** Read inclusive and exclusive comparisons carefully.
+- **Cascade:** Matching queries do not bypass specificity or source order.
+- **Breakpoints:** Choose changes around the content's needs.
+
+### Try it yourself
+
+A `.gallery` starts with one column. Switch it to two equal columns at `48rem` and above, retaining its gap. Predict the result at the boundary and just below it.
+
+```css
+.gallery {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1rem;
+}
+```
+
+Write the override after the base rule, and explain why it wins when the condition matches.
+
+<details>
+<summary>Hints</summary>
+
+Choose an inclusive minimum condition from the table above. Only the column declaration needs to change.
+
+</details>
+
+<details>
+<summary>Check your work and reasoning</summary>
+
+```css
+@media (width >= 48rem) {
+  .gallery { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+```
+
+The boundary matches; just below it the base column applies. The later declaration wins because both selectors have equal specificity. `min-width: 48rem` is equivalent.
+
+</details>
+
+## Container Queries
+
+A **container size query** changes a component’s styles based on the size of a container around it. The same card can be compact in a sidebar and wider in the main content on the same page.
+
+### Separate the container from the card
+
+```html
+<!-- [!code word:class="slot"] -->
+<!-- [!code word:class="card"] -->
+<div class="slot">
+  <article class="card">
+    <span class="card-visual" aria-hidden="true">📦</span>
+    <div class="card-copy">
+      <h2>Project status</h2>
+      <p>Review milestones and upcoming deadlines.</p>
+    </div>
+  </article>
+</div>
+```
+
+The outer wrapper receives its width from the surrounding layout. The card inside it responds to that width.
+
+```css
+/* [!code word:container-type] */
+/* [!code word:inline-size] */
+/* [!code word:container-name] */
+.slot {
+  container-type: inline-size;
+  container-name: card;
+}
+
+.card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1rem;
+}
+
+.card-copy {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.card-visual {
+  font-size: 3rem;
+}
+```
+
+`inline-size` lets queries check the wrapper’s inline size: its width in these horizontal-writing examples. Its height can still grow with the content.
+
+The wrapper’s width should come from the surrounding layout, rather than the card’s contents. A normal block inside a column works for this example.
+
+### Query the named ancestor
+
+```css
+/* [!code word:@container] */
+/* [!code word:card (width >= 30rem)] */
+@container card (width >= 30rem) {
+  .card {
+    grid-template-columns: 6rem minmax(0, 1fr);
+    align-items: center;
+  }
+}
+```
+
+Place this after the base styles. The query finds a surrounding size-query container named `card`. At a content width of `30rem` or more, the image and text sit in separate columns.
+
+The container name and class name can differ. This query styles elements inside the wrapper, not the wrapper itself.
+
+### Compare with a media query
+
+With a 16-pixel root font size:
+
+| Situation in one 1200px viewport | Card layout |
+| --- | --- |
+| A slot with 256px of content width. | One column. |
+| A slot with 800px of content width. | Two columns, because it exceeds 480px. |
+
+A viewport media query would see the same viewport width for both cards. This container query sees the space assigned to each copy. Without a name, a size query uses the nearest ancestor set up to answer that size query.
+
+### Scale a detail with container units
+
+```css
+/* [!code word:4cqi] */
+.card h2 {
+  font-size: clamp(1.25rem, 4cqi, 2rem);
+}
+```
+
+`1cqi` is 1% of the query container’s inline size, or width here. The heading scales with the slot, within the `rem` limits. Keep the wrapper in place: without a suitable container, these units use the small viewport size instead.
+
+The base single-column card remains usable if the size query does not apply.
+
+### Key Takeaways
+
+- **Setup:** Add `container-type` to a wrapper around the component.
+- **Names:** Identify which ancestor a query should inspect.
+- **Scope:** Size queries style descendants based on their allocated space.
+- **Units:** `cqi` follows a query container's inline size.
+
+### Try it yourself
+
+A `.panel` sits inside a `.panel-slot`. Make the slot a named inline-size container called `panel-space`. The panel starts in one column and should have two equal columns when its slot is at least `24rem` wide.
+
+```css
+.panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1rem;
+}
+```
+
+Assume the surrounding layout gives each slot a width. Explain what happens to two panels in differently sized slots in the same viewport.
+
+<details>
+<summary>Hints</summary>
+
+Put the container properties on the wrapper. Query `panel-space` and override the descendant panel's columns.
+
+</details>
+
+<details>
+<summary>Check your work and reasoning</summary>
+
+```css
+.panel-slot {
+  container-type: inline-size;
+  container-name: panel-space;
+}
+@container panel-space (width >= 24rem) {
+  .panel { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+```
+
+Each panel responds to its own named ancestor's width: one can match while the other does not. Test both instances; one static preview cannot demonstrate the comparison.
+
+</details>

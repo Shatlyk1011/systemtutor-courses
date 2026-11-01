@@ -1,0 +1,224 @@
+---
+title: "Introduction"
+description: "Learn how data structures organize data before working with arrays, strings, hash maps, and sets."
+---
+
+
+Think of it like organizing physical items in real life:
+
+![](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/03ce588b-f581-46ee-b98b-277331400e55/gallery/20f266bb-0cb1-4023-9c4e-848c98831415)
+
+Each system is designed to make finding, adding, or removing items as quick and easy as possible. In programming, data structures do the exact same thing for numbers, words, and objects.
+
+<Callout title="Data Structures + Algorithms" type="info">
+An **algorithm** is a step-by-step set of instructions for solving a problem (like a recipe). A **data structure** is where the information is kept. They always work together.
+</Callout>
+
+---
+
+## Why Data Structures Matter
+
+Computers deal with massive amounts of information—user accounts, chat messages, bank balances, and map routes. How you store that data directly determines how fast your application runs and how much memory it uses.
+
+### 1. Primitive vs. Non-Primitive Structures
+
+Every programming language divides data into two basic groups:
+
+| Type | What it is | Examples | Analogy |
+|---|---|---|---|
+| **Primitive** | Stores a single, simple value | Number (`42`), Character (`"A"`), Boolean (`true`) | A single sheet of paper |
+| **Non-Primitive** | A container that holds multiple values together | Arrays, Hash Maps, Stacks, Queues, Trees | A binder or filing cabinet |
+
+### 2. Why Picking the Right Structure Matters
+
+Different data structures are optimized for different tasks:
+
+- **Speed (Efficiency):** Looking up an element in an array by its position is instant ($O(1)$). But looking for a specific name in an unsorted list requires checking every single item one by one ($O(n)$).
+- **Handling Growth (Scalability):** An inefficient structure might feel fast with 20 items, but it can freeze or crash your app when handling 100,000 items.
+- **Memory Use:** Some structures pack data tightly into memory, while others use extra memory pointers to link items together.
+
+### 3. Common Problem-Solving Roles
+
+Different problems naturally call for different data structures:
+
+- **Ordered Lists:** Storing a list of high scores or shopping items $\rightarrow$ **Arrays**.
+- **Instant Lookups:** Finding a user's profile by their username $\rightarrow$ **Hash Tables / Maps**.
+- **Undo / Back Buttons:** Remembering previous actions where the most recent action comes first $\rightarrow$ **Stacks (LIFO)**.
+- **Waiting Lines:** Processing print jobs or messages in the exact order they arrived $\rightarrow$ **Queues (FIFO)**.
+- **Hierarchies & Connections:** Modeling folder systems, family trees, or friendships $\rightarrow$ **Trees & Graphs**.
+
+<Callout title="The Core Rule" type="info">
+There is no single "best" data structure. Every structure is a trade-off. Some are fast for reading, others are fast for adding or removing items.
+</Callout>
+
+---
+
+## Key Characteristics of Data Structures
+
+When comparing data structures, focus on these four basic characteristics:
+
+### 1. Organization (Layout)
+How are items arranged relative to each other?
+- **Linear:** Items line up in a single row, one after another (Arrays, Stacks, Queues).
+- **Hierarchical:** Items branch out like a tree (parent and children).
+- **Key-Value (Associative):** Items are labeled with unique names (keys) so you can find them directly without counting positions (Hash Maps).
+
+![](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/03ce588b-f581-46ee-b98b-277331400e55/gallery/561d5301-cbba-41f6-abc1-8695a25bff35)
+
+### 2. Memory Storage
+How does the computer store the items in RAM?
+- **Side-by-side (Contiguous):** Items sit next to each other in one unbroken block of memory (like houses on the same street). This makes jumping to an item by index very fast.
+- **Scattered (Linked):** Each item can live anywhere in memory, and each item stores a link (or pointer) pointing to where the next item lives (like a treasure hunt).
+
+### 3. Sizing (Static vs. Dynamic)
+- **Static:** The size is locked when you create it. It cannot grow or shrink.
+- **Dynamic:** The structure automatically expands or shrinks as you add or remove items.
+
+### 4. Basic Operations
+Almost every data structure allows four main actions:
+1. **Access:** Reading an item when you already know its index or key.
+2. **Search:** Finding an item when you do not know where it is.
+3. **Insert:** Adding a new item.
+4. **Delete:** Removing an existing item.
+
+Here is how two of the most popular structures compare:
+
+| Operation | Array (by index) | Hash Table (by key) |
+|---|---|---|
+| **Access** | Instant ($O(1)$) | Instant ($O(1)$) |
+| **Search** | Check items one by one ($O(n)$) | Instant ($O(1)$) |
+| **Insert** | Instant at the end ($O(1)$) / Slower at start ($O(n)$) | Instant ($O(1)$) |
+| **Delete** | Instant at the end ($O(1)$) / Slower at start ($O(n)$) | Instant ($O(1)$) |
+
+---
+
+## Example 1: Arrays
+
+An **array** is an ordered list where each item has a numbered position called an **index** (starting at `0`).
+
+Because items are stored right next to each other in memory, jumping directly to any index (like `fruits[2]`) happens instantly.
+
+### How Arrays Work in Code
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```js
+    // 1. Create an array
+    const fruits = ["apple", "banana", "cherry"];
+
+    // 2. Instant access by index - O(1)
+    console.log(fruits[0]); // "apple"
+    console.log(fruits[2]); // "cherry"
+
+    // 3. Adding and removing at the end - O(1) (Fast)
+    fruits.push("date");    // adds to the end
+    fruits.pop();           // removes the last item
+
+    // 4. Adding at the beginning - O(n) (Slower, must shift all items)
+    fruits.unshift("apricot");
+
+    // 5. Search for an item - O(n) (Checks one by one)
+    console.log(fruits.includes("banana")); // true
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    # 1. Create a list (Python's dynamic array)
+    fruits = ["apple", "banana", "cherry"]
+
+    # 2. Instant access by index - O(1)
+    print(fruits[0])  # "apple"
+    print(fruits[2])  # "cherry"
+
+    # 3. Adding and removing at the end - O(1) (Fast)
+    fruits.append("date")  # adds to the end
+    fruits.pop()           # removes the last item
+
+    # 4. Adding at the beginning - O(n) (Slower, must shift all items)
+    fruits.insert(0, "apricot")
+
+    # 5. Search for an item - O(n) (Checks one by one)
+    print("banana" in fruits)  # True
+    ```
+  </Tab>
+</Tabs>
+
+---
+
+## Example 2: Hash Tables (Hash Maps)
+
+A **hash table** (often called a **Map** in JavaScript or a **Dictionary** in Python) stores data as **key-value pairs**.
+
+Instead of looking up items by a number (`0, 1, 2`), you look them up by a label or word:
+- In a phonebook, the **name** is the key, and the **phone number** is the value.
+- In a user system, the **username** is the key, and the **profile data** is the value.
+
+### How Hash Tables Work in 3 Steps
+
+1. You give it a key (e.g. `"alice"`).
+2. A special function called a **hash function** turns that word into a memory slot number.
+3. The computer places the value into that slot.
+
+Because the computer calculates the slot directly from the key name, reading or updating a key is almost always **instant** ($O(1)$).
+
+### How Hash Tables Work in Code
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```js
+    // In JavaScript, you can use the built-in Map object
+    const scores = new Map();
+
+    // 1. Add or update key-value pairs - O(1)
+    scores.set("alice", 95);
+    scores.set("bob", 87);
+
+    // 2. Look up a value by its key - O(1) (Instant)
+    console.log(scores.get("alice")); // 95
+
+    // 3. Check if a key exists - O(1)
+    console.log(scores.has("alice")); // true
+    console.log(scores.has("david")); // false
+
+    // 4. Delete an item by key - O(1)
+    scores.delete("bob");
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    # In Python, dictionaries are built-in hash tables
+    scores = {}
+
+    # 1. Add or update key-value pairs - O(1)
+    scores["alice"] = 95
+    scores["bob"] = 87
+
+    # 2. Look up a value by its key - O(1) (Instant)
+    print(scores["alice"])       # 95
+    print(scores.get("alice"))   # 95
+
+    # 3. Check if a key exists - O(1)
+    print("alice" in scores)  # True
+    print("david" in scores)  # False
+
+    # 4. Delete an item by key - O(1)
+    del scores["bob"]
+    ```
+  </Tab>
+</Tabs>
+
+---
+
+## Key Takeaways
+
+- **What they are:** A data structure is an organized way to store data in a computer so programs can work faster and cleaner.
+- **Primitives vs. Non-Primitives:** Primitives store a single value (numbers, booleans); non-primitives store groups of values (arrays, maps, trees).
+- **Trade-offs:** No data structure is good at everything. You choose a structure based on what you need to do most often (fast lookups, fast insertions, or organized relationships).
+- **Arrays:** Perfect when you have an ordered list and want instant access by index ($O(1)$), but inserting at the start is slower ($O(n)$).
+- **Hash Tables:** Perfect when you want instant lookups by a label or key ($O(1)$), like finding a user by their username.
+
+## Chapter flow
+
+- [Arrays](/courses/data-structures-and-algorithms/docs/arrays-strings-and-hash-maps/arrays): Work with indexed collections and their common operations.
+- [Strings](/courses/data-structures-and-algorithms/docs/arrays-strings-and-hash-maps/strings): Compare, traverse, and transform ordered text.
+- [Hash Maps and Sets](/courses/data-structures-and-algorithms/docs/arrays-strings-and-hash-maps/hash-maps-and-sets): Use key-value lookups and membership checks.

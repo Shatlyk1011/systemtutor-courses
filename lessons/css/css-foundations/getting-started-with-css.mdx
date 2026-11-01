@@ -1,0 +1,200 @@
+---
+title: "Getting Started with CSS"
+---
+
+CSS, or **Cascading Style Sheets**, describes the presentation of a document written in HTML. HTML gives a page its content and structure; CSS controls how that content looks. With CSS, you can change colors and fonts, arrange elements, and adapt a page to different screens.
+
+Separating content from presentation makes a page easier to maintain. An external stylesheet can provide consistent styles across multiple pages, so a shared design can be updated in one place.
+
+## What CSS can do
+
+CSS can style text by changing its color, size, style, and spacing. It also provides layout tools such as flexbox and grid for arranging content. Media queries help a design adapt to different screen sizes, while transitions and animations add visual changes to a page.
+
+These tools offer flexibility, but their choices affect the people using a page. For example, adjusting text size and contrast can improve readability and accessibility. Reusing styles also reduces repetitive code; an external stylesheet helps manage those shared styles.
+
+A simple rule can change the background of the whole page:
+
+```css
+body {
+  background-color: lightblue;
+}
+```
+
+Here, `body` selects the page's body, and `background-color: lightblue;` sets its background color.
+
+## HTML elements and nesting
+
+![Parent and child inheritance](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/30fa637c-4f12-4ae2-8a3e-cc3e26e003cc/gallery/3b1af0cb-41cf-4703-9051-6b902a7850a8)
+
+
+HTML structures content with elements. Headings use tags from `<h1>` to `<h6>`, paragraphs use `<p>`, links use `<a>`, and images use `<img>`:
+
+```html
+<h1>Main Heading</h1>
+<h2>Subheading</h2>
+<p>This is a paragraph.</p>
+<a href="https://example.com">Visit Example</a>
+<img src="image.jpg" alt="Sample Image">
+```
+
+Elements can be **nested** inside another element. In this example, the `div` is the parent of the heading and paragraph:
+
+```html
+<div class="container">
+  <h2>Styled Heading</h2>
+  <p>Text inheriting styles</p>
+</div>
+```
+
+HTML structure matters when applying CSS. A rule can select the parent, and some properties can be inherited by its children:
+
+```css
+.container {
+  color: blue;
+}
+```
+
+The heading and paragraph inherit the blue text color from the `div`. This example shows inheritance of `color`; it does not mean every CSS property is inherited. Correct nesting also helps with accessibility and stylesheet management.
+
+## Use classes and IDs
+
+![Class and ID targeting](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/30fa637c-4f12-4ae2-8a3e-cc3e26e003cc/gallery/e87dc58f-3a8f-4cb3-847f-784c2ebca712)
+
+
+HTML attributes help identify elements for styling. A **class** can be reused on multiple elements, making it useful for a shared style:
+
+```html
+<div class="highlight">This is highlighted text.</div>
+<p class="highlight">This paragraph is also highlighted.</p>
+```
+
+An **ID** identifies a specific element and should be unique within a page:
+
+```html
+<div id="main">This is the main section.</div>
+```
+
+A class selector starts with a dot (`.`), and an ID selector starts with `#`:
+
+```css
+.highlight {
+  background-color: yellow;
+}
+
+#main {
+  font-weight: bold;
+}
+```
+
+The first rule applies a yellow background to both elements with the `highlight` class. The second makes the text in the element with the `main` ID bold.
+
+## Create CSS rules
+
+![Parts of a CSS rule](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/30fa637c-4f12-4ae2-8a3e-cc3e26e003cc/gallery/fa875c25-30b1-4c0c-9cc6-3bc06cd84fad)
+
+
+A CSS rule connects a **selector** to a **declaration block**:
+
+```css
+selector {
+  property: value;
+}
+```
+
+The selector determines which elements to style. The braces hold one or more **declarations**, each of which sets a property to a value. A colon separates the property from its value, and semicolons separate declarations.
+
+```css
+h1 {
+  color: blue;
+  font-size: 20px;
+}
+```
+
+Read this rule step by step: `h1` selects heading elements. The declaration `color: blue;` sets their text color, and `font-size: 20px;` sets their text size. Both declarations are in the same block because they apply to the same selection. The last semicolon is optional, but including it makes adding another declaration less error-prone.
+
+Selectors can target elements in several ways:
+
+- **Element selector:** `p` targets paragraphs.
+- **Class selector:** `.highlight` targets elements with the `highlight` class.
+- **ID selector:** `#main` targets the element with the `main` ID.
+- **Universal selector:** `*` targets all elements.
+- **Descendant selector:** `div p` targets paragraphs within a `div`.
+
+## Group declarations
+
+A single rule can set several properties. Grouping them makes related styles easier to find and update:
+
+```css
+.button {
+  background-color: green;
+  color: white;
+  border-radius: 5px;
+  padding: 10px;
+}
+```
+
+The selector matches elements with the `button` class. The four declarations set the background color, text color, border radius, and padding. Each declaration has its own property and value, separated from the next declaration by a semicolon.
+
+Use consistent naming and ordering to make stylesheets easier to scan. You can group related properties together or use an alphabetical order consistently. Add comments when a rule needs an explanation.
+
+## Write CSS comments
+
+A CSS comment begins with `/*` and ends with `*/`. The browser ignores the contents when applying styles. Comments can fit on one line or span several lines:
+
+```css
+/* Style a class */
+.highlight {
+  background-color: yellow;
+}
+
+/*
+  This is a longer comment
+  that spans multiple lines.
+*/
+```
+
+Comments can label sections, explain why a style is needed, or temporarily disable code during troubleshooting. Keep them concise and update them when the CSS changes. Comments do not appear on the rendered page, but they remain in the stylesheet.
+
+## Find and fix syntax mistakes
+
+![Missing semicolon](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/30fa637c-4f12-4ae2-8a3e-cc3e26e003cc/gallery/f791a88c-bf98-41a4-8ff6-130450fa5a55)
+
+Small mistakes can prevent CSS from producing the intended result. Start by checking punctuation, property names, and selectors.
+
+### Missing semicolons
+
+```css
+h1 {
+  color: red
+  font-size: 16px;
+}
+```
+
+Without a semicolon after `red`, the declarations are not read separately. Add the separator so the browser can read each one:
+
+```css
+h1 {
+  color: red;
+  font-size: 16px;
+}
+```
+
+### Misspelled properties
+
+Property names need the correct spelling. `bakground-color: blue;` contains a typo, so use `background-color: blue;` instead.
+
+### Incorrect selectors
+
+A missing dot changes what a selector targets. If the HTML uses `class="buttonsubmit"`, write `.buttonsubmit { color: green; }`. The selector `buttonsubmit` does not identify a class.
+
+Browser developer tools let you inspect an element and view its applied styles. They can help you check whether a rule reaches the intended element. A [CSS validator](https://jigsaw.w3.org/css-validator/) can also help find errors in a stylesheet.
+
+## Key Takeaways
+
+- **CSS:** Controls the presentation of HTML, including text, layout, and visual effects.
+- **Shared styles:** External stylesheets help keep designs consistent and make updates easier across pages.
+- **HTML structure:** Elements can be nested, and properties such as `color` can be inherited from a parent.
+- **Classes and IDs:** Classes can be reused; an ID should be unique within a page.
+- **CSS rules:** A selector chooses elements, and declarations set properties to values inside a block.
+- **Comments:** Use `/* ... */` for notes, organization, or temporarily disabling code.
+- **Debugging:** Check semicolons, spelling, and selector syntax, and use developer tools or a validator to investigate.

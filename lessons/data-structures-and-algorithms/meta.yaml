@@ -1,0 +1,11 @@
+title: "Data Structures & Algorithms"
+description: "Master core data structures, algorithms, time complexity, and problem-solving patterns from first principles."
+pages:
+  - index
+  - big-o-notation
+  - arrays-strings-and-hash-maps
+  - algorithm-patterns
+  - data-structures
+  - recursion
+  - sorting-algorithms
+  - searching-algorithms

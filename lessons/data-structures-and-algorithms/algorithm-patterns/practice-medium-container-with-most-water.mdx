@@ -1,0 +1,72 @@
+---
+title: "Container With Most Water"
+description: "Use two pointers to maximize the area between vertical lines."
+slug: "practice-medium-container-with-most-water"
+ 
+---
+
+## Try It Yourself
+
+Use the editor below to measure containers formed by two lines. The current area depends on the distance between the pointers and the shorter of their two heights.
+
+Submit your implementation when it passes the examples. Decide which pointer can move without discarding a possible improvement.
+
+<PracticeExercise problemId="container-with-most-water" />
+
+## Solution
+
+![Container pointer decisions](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/1e3e13b6-0db0-43d8-9eab-205bdcf6fa8f/gallery/fe467d05-a5b7-415d-b761-eda06b34bf96)
+
+Start with the widest possible container. Record its area, then move the pointer at the shorter line because keeping that shorter height cannot improve the area after the width shrinks.
+
+Repeat until the pointers meet, preserving the greatest area seen.
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```js
+    function maxArea(heights) {
+      let left = 0;
+      let right = heights.length - 1;
+      let maximum = 0;
+    
+      while (left < right) {
+        const width = right - left;
+        const height = Math.min(heights[left], heights[right]);
+        maximum = Math.max(maximum, width * height);
+    
+        if (heights[left] <= heights[right]) left++;
+        else right--;
+      }
+    
+      return maximum;
+    }
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    def max_area(heights):
+        left = 0
+        right = len(heights) - 1
+        maximum = 0
+    
+        while left < right:
+            width = right - left
+            height = min(heights[left], heights[right])
+            maximum = max(maximum, width * height)
+    
+            if heights[left] <= heights[right]:
+                left += 1
+            else:
+                right -= 1
+    
+        return maximum
+    ```
+  </Tab>
+</Tabs>
+
+### Big O notation
+
+| Measure | Complexity | Explanation |
+|---|---:|---|
+| Time | `O(n)` | The two pointers move inward across the array once. |
+| Auxiliary space | `O(1)` | The algorithm stores only pointer positions and the best area. |

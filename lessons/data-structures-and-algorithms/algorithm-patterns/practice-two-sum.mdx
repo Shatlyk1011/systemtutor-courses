@@ -1,0 +1,67 @@
+---
+title: "Two Sum"
+description: "Apply hash-map lookups to solve Two Sum and verify the implementation with test cases."
+slug: "practice-two-sum"
+ 
+---
+
+## Try It Yourself
+
+Use the editor below to find two array positions whose values add up to the target. Think about what information should be remembered while scanning from left to right.
+
+Submit your implementation when it passes the examples. A complete solution also handles duplicate values, negative numbers, and pairs far apart in the array.
+
+<PracticeExercise problemId="two-sum" />
+
+## Solution
+
+![Complement lookup](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/1e3e13b6-0db0-43d8-9eab-205bdcf6fa8f/gallery/0259e6f9-dc84-48b0-bf7d-c96672c8a379)
+
+Store each value's index as you scan the array. Before storing the current value, calculate the complement needed to reach the target and check whether that complement has already appeared.
+
+Checking first prevents the same element from being used twice. As soon as a complement is found, return its saved index and the current index.
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```js
+    function twoSum(nums, target) {
+      const indexByValue = new Map();
+    
+      for (let index = 0; index < nums.length; index++) {
+        const complement = target - nums[index];
+    
+        if (indexByValue.has(complement)) {
+          return [indexByValue.get(complement), index];
+        }
+    
+        indexByValue.set(nums[index], index);
+      }
+    
+      return [];
+    }
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    def two_sum(nums, target):
+        index_by_value = {}
+    
+        for index, value in enumerate(nums):
+            complement = target - value
+    
+            if complement in index_by_value:
+                return [index_by_value[complement], index]
+    
+            index_by_value[value] = index
+    
+        return []
+    ```
+  </Tab>
+</Tabs>
+
+### Big O notation
+
+| Measure | Complexity | Explanation |
+|---|---:|---|
+| Time | `O(n)` | The array is scanned once, with average constant-time map lookups. |
+| Auxiliary space | `O(n)` | The map may store an index for every visited value. |

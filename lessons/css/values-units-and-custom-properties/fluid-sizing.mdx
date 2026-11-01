@@ -1,0 +1,131 @@
+---
+title: "Fluid Sizing"
+description: "Size elements with calc, min, max, and clamp."
+---
+
+A **fluid size** grows or shrinks as its reference size changes. CSS math functions let you calculate a value, choose between values, or keep a value within limits.
+
+Before reading a result, name its reference. In the width examples below, a percentage refers to the containing block's width. `rem` refers to the root font size, and `vw` refers to the viewport width. The same number can produce a different result when its reference changes.
+
+## Calculate a value with `calc()`
+
+```css
+/* [!code word:calc(100% - 2rem)] */
+.card {
+  width: calc(100% - 2rem);
+}
+```
+
+In a simple block layout, this takes the containing block's width and subtracts `2rem`:
+
+- If the containing block is 800 pixels wide and the root font size is 16 pixels, the result is `800px - 32px = 768px`.
+- If that containing block becomes narrower, the percentage changes and the calculation is evaluated again.
+
+The reasoning is: resolve `100%` from the containing block, resolve `2rem` from the root font size, then subtract the two results. `calc()` can combine compatible types, such as lengths and percentages where the property allows them. It does not turn an arbitrary calculation into a valid value for every property.
+
+Keep spaces around `+` and `-`: write `calc(100% - 2rem)`, not `calc(100%-2rem)`.
+
+## Cap a size with `min()`
+
+`min()` chooses the smallest of its arguments:
+
+```css
+/* [!code word:min(90%, 40rem)] */
+.card {
+  width: min(90%, 40rem);
+}
+```
+
+The card follows 90% of its containing block's width until that would exceed `40rem`. With a 16-pixel root font size, the cap is 640 pixels:
+
+| Containing block | `90%` candidate | `40rem` candidate | Chosen width |
+| --- | --- | --- | --- |
+| 400px | 360px | 640px | 360px |
+| 800px | 720px | 640px | 640px |
+
+First calculate both candidates, then pick the smaller one. That is why `min()` keeps this card from becoming too wide.
+
+## Set a floor with `max()`
+
+`max()` chooses the largest argument:
+
+```css
+/* [!code word:max(20rem, 50%)] */
+.map {
+  width: max(20rem, 50%);
+}
+```
+
+The map's width is at least `20rem`, but grows when half its containing block is larger than that floor. With a 16-pixel root font size, `20rem` is 320 pixels:
+
+| Containing block | `20rem` candidate | `50%` candidate | Chosen width |
+| --- | --- | --- | --- |
+| 400px | 320px | 200px | 320px |
+| 800px | 320px | 400px | 400px |
+
+First calculate both candidates, then pick the larger one. Although the name is `max()`, it establishes a floor because the larger value wins.
+
+A floor can still be too wide. The map will overflow a container narrower than 320 pixels.
+
+### Complete the selection
+
+For a 600-pixel containing block, `50%` is 300 pixels and `20rem` is 320 pixels. Before reading on, decide which value `max(20rem, 50%)` selects. It selects 320 pixels because that is the larger candidate.
+
+## Set both limits with `clamp()`
+
+![Clamp size range]()
+{/*
+IMAGE PROMPT — Clamp size range
+Illustrate `clamp(1rem, 3vw, 2rem)` across small, medium, and large viewports, showing the preferred value below the minimum, within the range, and above the maximum.
+*/}
+
+`clamp()` takes three arguments: a minimum, a preferred value, and a maximum. Resolve the preferred value first, then use the minimum or maximum only when that result falls outside the range:
+
+```css
+/* [!code word:clamp] */
+/* [!code word:1rem] */
+/* [!code word:3vw] */
+/* [!code word:2rem] */
+.title {
+  font-size: clamp(1rem, 3vw, 2rem);
+}
+```
+
+- **Minimum:** `1rem` prevents the result from becoming smaller than the lower bound.
+- **Preferred:** `3vw` lets the text size follow the viewport width.
+- **Maximum:** `2rem` caps the result.
+
+With a 16-pixel root font size:
+
+| Viewport width | Preferred size | Chosen size |
+| --- | --- | --- |
+| 400px | 12px | 16px, the minimum. |
+| 800px | 24px | 24px, within the range. |
+| 1200px | 36px | 32px, the maximum. |
+
+Keep the minimum no larger than the maximum in examples like this. Test fluid text when users resize or zoom the page; a formula alone does not guarantee readable text in every situation.
+
+## Choose the function that matches the goal
+
+| Goal | Function | Reasoning |
+| --- | --- | --- |
+| Add or subtract compatible values | `calc()` | The expression produces one calculated value. |
+| Let a value grow, but not past a cap | `min()` | The smaller candidate wins. |
+| Keep a value at or above a floor | `max()` | The larger candidate wins. |
+| Use a preferred value with both a floor and a cap | `clamp()` | The preferred value is kept within the two bounds. |
+
+For every choice, identify the reference before calculating. A percentage-based width follows its containing block; a `vw` value follows the viewport instead.
+
+## Try it yourself
+
+Build the small card below with the four functions from this lesson. The fixed preview lets you check the CSS syntax and the visible result; before editing, identify what each percentage, `rem`, and `vw` value refers to.
+
+<LessonPractice />
+
+## Key Takeaways
+
+- **`calc()`:** Combines compatible values in an arithmetic expression.
+- **`min()`:** Chooses the smallest candidate, which can cap a fluid size.
+- **`max()`:** Chooses the largest candidate, which can establish a floor.
+- **`clamp()`:** Keeps a preferred value between a minimum and maximum.
+- **References:** The result depends on the units, available space, and bounds you choose.

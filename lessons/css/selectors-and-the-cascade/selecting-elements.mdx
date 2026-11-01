@@ -1,0 +1,284 @@
+---
+title: "Selecting Elements"
+---
+
+A CSS rule needs to know which HTML elements to style. A **selector** is the pattern before the braces that identifies those elements. The declarations inside the braces describe the styles to apply.
+
+```css
+p {
+  color: blue;
+}
+```
+
+Here, `p` selects paragraph elements, and `color: blue` sets their text color. Choosing a selector lets you control whether a rule applies broadly or to a particular group.
+
+## Select by element type
+
+![Type selector matching](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/7689566b-bca3-4518-9bf3-638b05ac8ccc/gallery/93d130c0-53ed-4637-9172-265748310cc1)
+
+A **type selector** uses an HTML tag name. For example, `p` matches every `<p>` element, while `h1` matches every `<h1>` element.
+
+```css
+p {
+  font-size: 16px;
+}
+
+h1 {
+  margin-bottom: 20px;
+}
+```
+
+Type selectors are useful for consistent styles across elements of the same kind. Their broad reach also means that every matching element receives the rule, so consider whether you intend to style all of them.
+
+## Select by class
+
+![Class selector matching](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/7689566b-bca3-4518-9bf3-638b05ac8ccc/gallery/a13d4f6a-18a2-4c5e-b079-a29203a18c69)
+
+A **class selector** starts with a dot followed by a class name. It matches elements whose `class` attribute includes that name.
+
+```html
+<div class="card">Product 1</div>
+<div class="card">Product 2</div>
+```
+
+```css
+.card {
+  background-color: lightblue;
+  padding: 10px;
+}
+```
+
+Both elements have the `card` class, so both receive the styles. You can change their shared appearance by editing the rule in one place. A class can also be used on different kinds of elements, and an element can have multiple classes:
+
+```html
+<button class="btn primary">Submit</button>
+<button class="btn secondary">Cancel</button>
+```
+
+A `.btn` rule matches both buttons, while `.primary` matches only the first and `.secondary` matches only the second.
+
+## Select by ID
+
+![ID selector matching](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/7689566b-bca3-4518-9bf3-638b05ac8ccc/gallery/69738875-d4d3-4bad-a320-b00c34cb2524)
+
+An **ID selector** starts with `#` followed by an element's `id` value:
+
+```html
+<h1 id="main-title">Welcome</h1>
+```
+
+```css
+#main-title {
+  color: navy;
+}
+```
+
+An ID should be unique within a document, so it identifies one element. ID selectors also have higher specificity than class or type selectors, which can make styles harder to override. For reusable styling, a class is usually a more flexible choice.
+
+## Select everything
+
+![Universal selector reach](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/7689566b-bca3-4518-9bf3-638b05ac8ccc/gallery/d1eaf241-a065-4b36-961f-a02233971d1c)
+
+The **universal selector**, `*`, matches every element. It can provide a shared starting point for a page:
+
+```css
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+```
+
+This removes margin and padding from elements and sets their box sizing to `border-box`, so padding and borders are included in their total width and height. Because the rule reaches every element, use it when that broad effect is intended.
+
+## Combine and list selectors
+
+![Combined selectors and lists](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/7689566b-bca3-4518-9bf3-638b05ac8ccc/gallery/af13dcd7-70b5-40a6-87ee-b1e82f233b14)
+
+Selectors written together without a space describe conditions on the **same element**:
+
+```css
+p.highlight {
+  color: blue;
+  font-weight: bold;
+}
+```
+
+`p.highlight` matches a paragraph only if it also has the `highlight` class. A different element with that class, or a paragraph without it, does not match.
+
+A **selector list** uses commas to apply the same declarations to different selections:
+
+```css
+h1, h2, p {
+  color: blue;
+}
+```
+
+Each selector in the list is considered independently, so headings and paragraphs all receive the color. Combining selectors narrows a match; listing them shares a rule across matches.
+
+## Select by relationships
+
+![Combinator relationships](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/7689566b-bca3-4518-9bf3-638b05ac8ccc/gallery/dd4bb958-cc95-41d3-83c1-a368a3ec09e5)
+
+Combinators describe how elements relate in the HTML. In these examples, the selector on the right identifies the element to style:
+
+```css
+.container p {
+  color: blue;
+}
+.container > p {
+  color: blue;
+}
+h2 + p {
+  color: blue;
+}
+h2 ~ p {
+  color: blue;
+}
+```
+
+The space selects paragraphs anywhere inside `.container`, including nested paragraphs. The `>` selects only paragraphs directly inside it. The `+` selects a paragraph immediately after an `h2` with the same parent. The `~` selects matching paragraphs later among the same siblings, even when other elements come between them.
+
+Read a selector from right to left to understand its target. For `.container > p`, start with a paragraph, then check whether its direct parent has the `container` class.
+
+## Select by attributes
+
+![Attribute value matching](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/7689566b-bca3-4518-9bf3-638b05ac8ccc/gallery/c0184c6d-4add-42ab-be59-dea1f428a12d)
+
+An attribute selector matches an element based on an HTML attribute. For example, `input[required]` matches inputs that have `required`, regardless of its value. You can also test a value:
+
+```css
+input[required] {
+  border: 2px solid blue;
+}
+input[type="text"] {
+  padding: 10px;
+}
+[class~="primary"] {
+  color: blue;
+}
+```
+
+`[type="text"]` requires the whole attribute value to equal `text`. The `~=` operator instead matches a complete word in a whitespace-separated list. Thus `[class~="primary"]` matches `class="btn primary"`, while `[class="primary"]` does not because the whole value is `btn primary`.
+
+Other operators match parts of a value:
+
+```css
+input[id^="user-"] {
+  background-color: lightblue;
+}
+a[href$=".pdf"] {
+  font-weight: bold;
+}
+a[href*="example"] {
+  color: red;
+}
+```
+
+`^=` matches the start, `$=` the end, and `*=` a substring anywhere in the value. For example, `report.pdf` matches the second rule, while `contact.html` does not.
+
+## Select states and positions
+
+![Pseudo-class states and positions](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/7689566b-bca3-4518-9bf3-638b05ac8ccc/gallery/3595422d-a76e-4cab-9839-169266dac074)
+
+A **pseudo-class** begins with `:` and selects elements based on a state or a relationship. These rules provide feedback when a button is hovered or focused:
+
+```css
+button:hover {
+  background-color: blue;
+  color: white;
+}
+button:focus {
+  outline: 2px solid orange;
+}
+```
+
+Hover can show a pointer user that a button is interactive. Focus can also come from keyboard navigation, so a visible focus indicator helps users see where they are. `:focus-visible` can provide a focus indicator when the browser determines it should be visible, while `:focus-within` matches an element when it or a descendant has focus.
+
+Other pseudo-classes select links, form controls, or elements in a particular position:
+
+| Pseudo-class | Matches |
+| --- | --- |
+| `:link` | An unvisited link. |
+| `:visited` | A visited link. |
+| `:required` | A form control that is required. |
+| `:optional` | A form control that is optional. |
+| `:valid` | A form control that satisfies its validation constraints. |
+| `:invalid` | A form control that does not satisfy its validation constraints. |
+| `:in-range` | An input with a value within its specified range. |
+| `:out-of-range` | An input with a value outside its specified range. |
+| `:first-child` | An element that is its parent's first child. |
+| `:last-child` | An element that is its parent's last child. |
+| `:nth-child()` | An element at a specified position among its siblings. |
+| `:nth-of-type()` | An element at a specified position among siblings of the same type. |
+| `:only-child` | An element that is its parent's only child. |
+| `:not()` | An element that does not match the condition inside the parentheses. |
+
+For example:
+
+```css
+li:first-child {
+  color: red;
+}
+li:nth-child(even) {
+  background-color: lightgray;
+}
+ul li:not(.highlight) {
+  color: blue;
+}
+```
+
+The first rule matches an `li` that is its parent's first child; the second matches `li` elements in even child positions. The final rule matches list items inside a `ul` except those with the `highlight` class. `:not()` supplies the condition to exclude.
+
+## Style parts of elements
+
+![Pseudo-element targets](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/7689566b-bca3-4518-9bf3-638b05ac8ccc/gallery/8fa74a2e-246d-4ab7-88be-a98307d9e3d7)
+
+A **pseudo-element** uses `::` to target a part of an element or create decorative content. It differs from a pseudo-class, which selects an element according to a condition.
+
+```css
+.quote::before {
+  content: "“";
+  color: gray;
+}
+.quote::after {
+  content: "”";
+  color: gray;
+}
+p::first-letter {
+  font-size: 2em;
+}
+p::first-line {
+  font-weight: bold;
+}
+```
+
+The first two rules add decorative marks before and after the quote's content; the `content` property specifies what appears. The other rules style the first letter and first line of paragraphs. Keep essential information in the HTML rather than relying on generated content for it.
+
+Other pseudo-elements include `::selection` for selected text, `::placeholder` for input hints, and `::marker` for list bullets or numbers. For instance, this rule changes the marker color without changing the list item's text:
+
+```css
+li::marker {
+  color: red;
+}
+```
+
+## Choose a selector
+
+![Choosing selector scope](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/7689566b-bca3-4518-9bf3-638b05ac8ccc/gallery/3bd3e70b-d774-4db3-aa12-fed77f850fe5)
+
+Choose the selector that expresses the scope you need. Use a type selector for a common style across a type of element, a class for a reusable group, and an ID for a unique element. Keep selectors simple enough to read and update; a more specific selector is useful when its extra condition is needed.
+
+For a quick check, consider `<p class="highlight">Important</p>` and `<div class="highlight">Notice</div>`. `.highlight` matches both elements, while `p.highlight` matches only the paragraph.
+
+## Key Takeaways
+
+![Selector families overview](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/7689566b-bca3-4518-9bf3-638b05ac8ccc/gallery/0ae84952-7dc1-4417-9b47-a323ca304e77)
+
+- **Type:** A tag name such as `p` selects elements of that type.
+- **Class and ID:** `.card` selects elements with a reusable class; `#main-title` selects an element by its unique ID.
+- **Universal:** `*` matches every element, making it useful for broad rules.
+- **Combined selectors:** `p.highlight` requires both conditions on the same element.
+- **Selector lists:** Commas share declarations across separate selectors.
+- **Relationships and attributes:** Combinators match structure; attribute selectors match attribute presence or values.
+- **Pseudo-classes and pseudo-elements:** Pseudo-classes match states or positions; pseudo-elements style parts or generated content.

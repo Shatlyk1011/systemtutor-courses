@@ -1,0 +1,99 @@
+---
+title: "Valid Palindrome"
+description: "Apply the two pointers pattern to solve Valid Palindrome, run test cases, and review the solution when needed."
+slug: "practice-valid-palindrome"
+ 
+---
+
+## Try It Yourself
+
+Use the editor below to solve the problem before reading the solution. Start one pointer at the beginning of the string and another at the end. Decide how each pointer should move when it reaches a character that is not a letter or digit, and return `false` as soon as the two meaningful characters do not match.
+
+Submit your implementation when it passes the examples. A complete submission also needs to handle capitalization, punctuation, numbers, and a single-character string.
+
+<PracticeExercise problemId="valid-palindrome" />
+
+## Solution
+
+![Palindrome scan ](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/1e3e13b6-0db0-43d8-9eab-205bdcf6fa8f/gallery/edb545f1-1a4a-4bf6-acb7-297e7548b173)
+
+The two-pointers approach compares the next meaningful character from each end of the string. The `left` pointer moves forward and the `right` pointer moves backward. Before comparing characters, each pointer skips anything that is not a letter or digit.
+
+When both pointers reach valid characters, compare their lowercase forms. A mismatch means the string cannot be a palindrome. If they match, move both pointers inward and repeat until they meet.
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```js
+    function isAlphaNumeric(character) {
+      const code = character.charCodeAt(0);
+
+      const isDigit = code >= 48 && code <= 57;
+      const isUppercaseLetter = code >= 65 && code <= 90;
+      const isLowercaseLetter = code >= 97 && code <= 122;
+
+      return isDigit || isUppercaseLetter || isLowercaseLetter;
+    }
+
+    function isPalindrome(s) {
+      let left = 0;
+      let right = s.length - 1;
+
+      while (left < right) {
+        while (left < right && !isAlphaNumeric(s[left])) {
+          left++;
+        }
+
+        while (left < right && !isAlphaNumeric(s[right])) {
+          right--;
+        }
+
+        if (s[left].toLowerCase() !== s[right].toLowerCase()) {
+          return false;
+        }
+
+        left++;
+        right--;
+      }
+
+      return true;
+    }
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    def is_alphanumeric(character):
+        is_digit = "0" <= character <= "9"
+        is_uppercase_letter = "A" <= character <= "Z"
+        is_lowercase_letter = "a" <= character <= "z"
+
+        return is_digit or is_uppercase_letter or is_lowercase_letter
+
+
+    def is_palindrome(s):
+        left = 0
+        right = len(s) - 1
+
+        while left < right:
+            while left < right and not is_alphanumeric(s[left]):
+                left += 1
+
+            while left < right and not is_alphanumeric(s[right]):
+                right -= 1
+
+            if s[left].lower() != s[right].lower():
+                return False
+
+            left += 1
+            right -= 1
+
+        return True
+    ```
+  </Tab>
+</Tabs>
+
+### Big O notation
+
+| Measure | Complexity | Explanation |
+|---|---:|---|
+| Time | `O(n)` | Each pointer moves across the string at most once. |
+| Auxiliary space | `O(1)` | The algorithm uses only two pointer indices and a fixed number of local variables. |

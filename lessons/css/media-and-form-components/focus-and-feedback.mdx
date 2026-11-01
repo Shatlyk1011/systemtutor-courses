@@ -1,0 +1,167 @@
+---
+title: "Focus and Feedback"
+description: "Make focus, disabled, error, and success states clear."
+---
+
+Help users see which control has focus, which actions are available, and whether an action worked. Use visible focus styles and clear messages.
+
+## Make keyboard focus visible
+
+**Focus** identifies the element currently receiving keyboard input. `:focus-visible` matches when the browser determines that a visible indicator is appropriate, commonly during keyboard navigation.
+
+```css
+/* [!code word:focus-visible] */
+/* [!code word:outline-offset] */
+.feedback-form input:focus-visible,
+.feedback-form button:focus-visible {
+  outline: 3px solid #1d4ed8;
+  outline-offset: 3px;
+}
+```
+
+The offset separates the ring from the control's border. This allows a focused input to keep its error border at the same time. Preserve the browser's indicator wherever you have not supplied a replacement, and check that nearby content does not clip the ring.
+
+## Explain a detected error
+
+This example represents a form after validation has detected an invalid email:
+
+```html
+<!-- [!code word:aria-invalid="true"] -->
+<!-- [!code word:aria-describedby] -->
+<form class="feedback-form" action="/subscriptions" method="post">
+  <label for="feedback-email">Email (required)</label>
+  <input
+    id="feedback-email"
+    name="email"
+    type="email"
+    value="visitor@"
+    autocomplete="email"
+    aria-invalid="true"
+    aria-describedby="feedback-email-error"
+    required>
+  <p class="field-error" id="feedback-email-error">
+    Error: Enter a complete email address, such as visitor@example.com.
+  </p>
+  <button type="submit">Subscribe</button>
+</form>
+```
+
+```css
+.feedback-form {
+  display: grid;
+  gap: 0.5rem;
+  max-width: 28rem;
+}
+
+.feedback-form input,
+.feedback-form button {
+  box-sizing: border-box;
+  font: inherit;
+  padding: 0.75rem;
+  border: 1px solid #64748b;
+  border-radius: 0.5rem;
+}
+
+/* [!code word:aria-invalid="true"] */
+.feedback-form input[aria-invalid="true"] {
+  border: 2px solid #9f1239;
+}
+
+.field-error {
+  margin: 0;
+  color: #9f1239;
+}
+```
+
+`aria-invalid` communicates an error state; `aria-describedby` connects the explanation to the field. The text states what to fix, so the border color is an additional cue.
+
+Application code or a server response sets these attributes after finding an error and updates them when it is fixed. CSS only styles the state; it does not keep `aria-invalid` in sync with browser validation.
+
+## Distinguish unavailable controls
+
+For a separate unavailable-button example:
+
+```html
+<button type="submit" disabled>Subscribe</button>
+<p>Subscriptions are temporarily unavailable.</p>
+```
+
+```css
+.feedback-form button:disabled {
+  color: #475569;
+  background: #e2e8f0;
+  border-style: dashed;
+  cursor: not-allowed;
+}
+```
+
+Replace the form’s enabled button with this button and explanation. `disabled` prevents activation and normally removes the button from the Tab order. The gray styling only changes its appearance.
+
+## Confirm completed actions in words
+
+After a subscription actually succeeds, show a message such as “Subscription saved.” A field matching `:valid` passes its browser validation checks. That does not tell you whether the server saved the form.
+
+## Trace the feedback
+
+Why can the input show both an error border and a focus outline in the example?
+
+<details>
+<summary>Check your reasoning</summary>
+
+The error uses the border and focus uses an offset outline, so each can remain visible at the same time. Check that the outline is not clipped.
+
+</details>
+
+Does a valid email field prove the subscription was saved?
+
+<details>
+<summary>Check your reasoning</summary>
+
+No. Validation checks the field; a success message should follow a confirmed successful action.
+
+</details>
+
+## Key Takeaways
+
+- **Focus:** Show where keyboard input will go with a visible indicator.
+- **Errors:** Pair visual styling with a specific, connected explanation.
+- **Disabled controls:** Use HTML behavior and explain why an action is unavailable.
+- **Success:** Confirm the completed action rather than inferring it from field validity.
+
+## Try it yourself
+
+A form has detected an invalid email after submission. Write a labeled input with an explicit error state and connected message telling the user what to fix. Add CSS for an error border and a separate visible keyboard focus outline. Explain who updates the error state when the value is corrected.
+
+Check that the message ID matches `aria-describedby`, the state and message agree, and the focus indicator remains visible on the error field. Test with keyboard navigation; do not infer that the form was saved from a valid field.
+
+<details>
+<summary>Hint 1</summary>
+
+Use `aria-invalid` for the detected state and associate the explanation with `aria-describedby`.
+
+</details>
+
+<details>
+<summary>Hint 2</summary>
+
+Style the attribute selector for the border and `:focus-visible` for an offset outline.
+
+</details>
+
+<details>
+<summary>Check your work and reasoning</summary>
+
+```html
+<label for="email">Email</label>
+<input id="email" name="email" type="email" aria-invalid="true" aria-describedby="email-error">
+<p id="email-error">Enter a complete email address.</p>
+```
+
+```css
+input[aria-invalid="true"] { border: 2px solid #9f1239; }
+input:focus-visible { outline: 3px solid #1d4ed8; outline-offset: 3px; }
+```
+
+Application code or a server response must update the state and message after validation; CSS cannot synchronize them. Check the ring and error text against their actual backgrounds.
+
+</details>

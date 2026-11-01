@@ -1,0 +1,76 @@
+---
+title: "Remove Nth Node From End of List"
+description: "Use a fixed pointer gap to remove a linked-list node in one pass."
+slug: "practice-medium-remove-nth-node-from-end"
+ 
+---
+
+## Try It Yourself
+
+Use the editor below to remove a node counted from the end without first measuring the list. Create a gap of n nodes between two pointers.
+
+Submit your implementation when it passes the examples. The removed node may be the head, the tail, or the only node.
+
+<PracticeExercise problemId="remove-nth-node-from-end" />
+
+## Solution
+
+![Offset linked-list pointers](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/03ce588b-f581-46ee-b98b-277331400e55/gallery/3fd86748-4a2e-4511-a15b-5bd7da84bc8c)
+
+A dummy node before the head makes removing the first real node identical to every other removal. Advance fast n steps, then move fast and slow together until fast reaches the tail.
+
+At that moment, slow.next is the node to remove. Skip it by connecting slow.next to the following node.
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```js
+    function removeNthFromEnd(head, n) {
+      const dummy = { val: 0, next: head };
+      let fast = dummy;
+      let slow = dummy;
+    
+      for (let step = 0; step < n; step++) {
+        fast = fast.next;
+      }
+    
+      while (fast.next !== null) {
+        fast = fast.next;
+        slow = slow.next;
+      }
+    
+      slow.next = slow.next.next;
+      return dummy.next;
+    }
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    def remove_nth_from_end(head, n):
+        class Dummy:
+            def __init__(self, next_node):
+                self.val = 0
+                self.next = next_node
+    
+        dummy = Dummy(head)
+        fast = dummy
+        slow = dummy
+    
+        for _ in range(n):
+            fast = fast.next
+    
+        while fast.next is not None:
+            fast = fast.next
+            slow = slow.next
+    
+        slow.next = slow.next.next
+        return dummy.next
+    ```
+  </Tab>
+</Tabs>
+
+### Big O notation
+
+| Measure | Complexity | Explanation |
+|---|---:|---|
+| Time | `O(n)` | The fast and slow pointers each move through the list at most once. |
+| Auxiliary space | `O(1)` | The algorithm uses one dummy node and two pointers. |

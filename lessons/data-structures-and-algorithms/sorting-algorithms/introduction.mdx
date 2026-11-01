@@ -1,0 +1,109 @@
+---
+title: "Introduction"
+description: "Learn how sorting orders data with comparators before comparing elementary and divide-and-conquer sorting algorithms."
+---
+
+Sorting means rearranging the items in a collection according to a comparison. For numeric arrays, the comparison commonly determines whether the numbers should appear in **ascending** or **descending** order.
+
+![](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/55e77424-3054-409c-a931-e158d18008d8/gallery/9f245b42-998d-4ab5-b34d-7661208fe92a)
+
+
+The items are the same in each result; only their order changes.
+
+---
+
+## Why Sorting Matters
+
+Sorting is the process of arranging data into an order. It appears frequently in programming because ordered data is easier to reason about and work with.
+
+### Why programmers sort data
+
+Sorting gives a program a consistent structure for its data. Once data is ordered, a program can work with it according to that order instead of handling an arbitrary arrangement.
+
+The important point is that sorting is not one single technique. Different sorting algorithms solve the same general problem, but each has different strengths and weaknesses. Choosing an algorithm therefore requires more than knowing that it works: you must also consider which trade-offs matter for the situation.
+
+### Comparing sorting algorithms
+
+When comparing algorithms, ask:
+
+- What is this algorithm good at?
+- What limitations does it have?
+- Which strengths matter for the current problem?
+- Which weaknesses are acceptable?
+
+This comparison is the central reason sorting is valuable to study. It shows that multiple solutions can be correct while still differing in usefulness.
+
+<Callout title="The main takeaway" type="info">
+Sorting matters not only because programs often need ordered data, but because it demonstrates how algorithms can have different strengths and weaknesses while solving the same problem.
+</Callout>
+
+---
+
+## JavaScript Array Sort
+
+JavaScript provides a built-in array `sort` method for ordering array elements.
+
+### Default behavior
+
+The default sort behavior is **Unicode-based**. JavaScript converts array items to strings and compares their UTF-16 code units. This leads to unexpected results for numbers:
+
+```js
+const numbers = [6, 4, 15, 10];
+
+numbers.sort();
+console.log(numbers); // [10, 15, 4, 6] (because "1" comes before "4" in Unicode)
+```
+
+### Comparator functions
+
+A comparator function `(a, b)` tells JavaScript how to order elements:
+
+- Return `< 0`: `a` comes before `b`
+- Return `> 0`: `b` comes before `a`
+- Return `0`: `a` and `b` stay in their current relative order
+
+Common comparator-based sorts include:
+
+| Sort goal | Comparator logic | Example output |
+|---|---|---|
+| Numeric ascending | `(a, b) => a - b` | `[4, 6, 10, 15]` |
+| Numeric descending | `(a, b) => b - a` | `[15, 10, 6, 4]` |
+| String-length sort | `(a, b) => a.length - b.length` | `["cat", "dog", "elephant"]` |
+
+### Code examples
+
+```js
+const numbers = [6, 4, 15, 10];
+
+// 1. Ascending numeric sort
+numbers.sort((a, b) => a - b);
+console.log(numbers); // [4, 6, 10, 15]
+
+// 2. Descending numeric sort
+numbers.sort((a, b) => b - a);
+console.log(numbers); // [15, 10, 6, 4]
+
+// 3. String length sort
+const words = ["elephant", "cat", "dog", "giraffe"];
+words.sort((a, b) => a.length - b.length);
+console.log(words); // ["cat", "dog", "giraffe", "elephant"]
+```
+
+The comparator is the part that changes the sorting rule. Choose the comparator according to the data and the desired order.
+
+---
+
+## Key Takeaways
+
+- **Rearranging Collections:** Sorting rearranges items in a collection according to a comparison rule.
+- **Numeric Order:** Arrays are commonly sorted in ascending or descending order without altering their elements.
+- **Structural Advantage:** Programs benefit from sorted data because ordered structures are predictable, faster to search, and easier to process.
+- **Algorithm Trade-offs:** Different sorting algorithms come with distinct strengths, limitations, time complexities, and memory usage.
+- **JavaScript Array Sort:** The built-in `.sort()` method defaults to Unicode string order; custom comparator functions are required for accurate numeric, string-length, ascending, or descending ordering.
+
+## Chapter flow
+
+- [Bubble Sort](/courses/data-structures-and-algorithms/docs/sorting-algorithms/bubble-sort): Compare and swap adjacent values.
+- [Selection Sort](/courses/data-structures-and-algorithms/docs/sorting-algorithms/selection-sort): Repeatedly place the next selected value.
+- [Insertion Sort](/courses/data-structures-and-algorithms/docs/sorting-algorithms/insertion-sort): Build a sorted portion one value at a time.
+- [Merge Sort](/courses/data-structures-and-algorithms/docs/sorting-algorithms/merge-sort): Use divide and conquer to sort and merge smaller arrays.

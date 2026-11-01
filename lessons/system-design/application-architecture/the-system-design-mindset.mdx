@@ -1,0 +1,141 @@
+---
+title: The System Design Mindset
+description: Reason about requirements, reliability, latency, throughput, and trade-offs.
+---
+
+<Callout title="Lesson goal" type="info">
+  By the end of this lesson, you will understand how to evaluate architectural trade-offs, trace data lifecycle operations, measure availability and service levels (SLOs/SLAs), and address reliability, throughput, and latency through scaling strategies.
+</Callout>
+
+System design is the process of making **deliberate choices about how a system should behave under stated constraints**. There is rarely a perfect design: a choice that improves latency, cost, consistency, or availability can make another concern harder. The goal is to select the option that best fits the requirements.
+
+## The system design mindset
+
+Every architectural decision comes with advantages and compromises. Effective system design follows a practical three-step process:
+
+1. **Analyze trade-offs** — Understand what each possible choice improves and what it may compromise.
+2. **Improve system behavior** — Use those insights to make the system work better.
+3. **Choose for the requirements** — Select the option that best fits the system's goals and constraints, even when every option has limitations.
+
+<Callout title="Key idea" type="info">
+  Good system design accepts that no solution is perfect. The goal is to make informed decisions that improve the system overall.
+</Callout>
+
+## Moving, storing, and transforming data
+
+Large applications ultimately deal with data in three fundamental ways: they **move** it, **store** it, and **transform** it. These operations take place across machines, databases, blob stores, file systems, and distributed systems.
+
+![](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/de9ef765-c009-496e-b966-629ad6184037/gallery/22a251e0-cf18-48d2-8d81-f730a7b4e250)
+
+### The three operations
+
+| Operation | Focus |
+|---|---|
+| **Moving data** | Data travels across the machines and systems that make up an application. |
+| **Storing data** | Data is kept in databases, blob stores, or file systems. |
+| **Transforming data** | Data is processed as it moves through an application or distributed system. |
+
+
+## Availability, SLOs, and SLAs
+
+### Availability
+
+
+
+**Availability** describes the proportion of a measured period in which a service is usable according to a defined criterion. It is commonly expressed as a percentage:
+
+```text
+Availability = (Time the service is available / Total measured time) × 100
+```
+
+A higher percentage means the service is available for more of the measured period.
+
+### Percentages and the "nines" convention
+
+Availability percentages are often described by the number of 9s they contain:
+
+| Percentage | Common description | Allowed downtime per year |
+|---|---|---|
+| **99%** | Two nines | ~3.65 days / year |
+| **99.9%** | Three nines | ~8.76 hours / year |
+| **99.99%** | Four nines | ~52.56 minutes / year |
+| **99.999%** | Five nines | ~5.26 minutes / year |
+
+![](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/de9ef765-c009-496e-b966-629ad6184037/gallery/32555285-c0fa-4161-9005-9552c508bf4b-Screenshot-2026-08-19-at-16.09.11.png)
+<Callout title="Github availability graph for 19.08.2026 - source 'https://githubstatus.com'" type="info" />
+
+The nines convention gives a compact way to describe an availability target. Even a small increase in the percentage represents a substantially stricter target and usually requires greater architectural resilience. The downtime figures assume a 365-day year and do not define what counts as unavailable; that definition is part of the service objective.
+
+### SLOs and SLAs
+
+A **service level objective (SLO)** is a target for a service level, such as its availability percentage. It states the level the service aims to provide.
+
+A **service level agreement (SLA)** is a formal agreement that defines the expected service level, making the expectation explicit between the service provider and its customers (often including financial penalties for downtime).
+
+The distinction is straightforward:
+
+- **SLO:** The internal or external **target** for the service level.
+- **SLA:** The formal **agreement** that defines the expected service level.
+
+<Callout title="Recap: Availability & Service Levels" type="info">
+  Availability measures how often a service is usable. Percentages are expressed using the "nines" convention. An **SLO** is a service-level target, while an **SLA** is a formal agreement defining the expected service level.
+</Callout>
+
+![](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/de9ef765-c009-496e-b966-629ad6184037/gallery/afe17a8c-ca9c-49ec-ad48-f9a028e7dd76-Screenshot-2026-08-19-at-16.18.21.png)
+
+---
+
+## Reliability, throughput, and latency
+
+{/*
+IMAGE PROMPT — System quality trade-offs
+Show a service handling a stream of requests. Use separate visual indicators for reliability through redundant servers, throughput through requests per second, and latency through a request timing path. Make clear that the three measures are distinct.
+*/}
+
+Designing a system means deciding how well it must continue working, how much work it must handle, and how quickly it must respond. Three central requirements are **reliability**, **throughput**, and **latency**.
+
+### Core concepts
+
+- **Reliability** — The ability of a system to operate correctly as expected.
+- **Fault tolerance** — The ability of a system to continue operating when faults occur.
+- **Redundancy** — Having additional duplicate components or resources that can take over when needed.
+- **Throughput** — The amount of work or number of requests a system processes over a period of time (e.g., requests per second).
+- **Latency** — The duration required for a system to respond to a request or complete an operation.
+
+![](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/de9ef765-c009-496e-b966-629ad6184037/gallery/b7edf74b-6de9-46ce-b825-e6f399e29bbd)
+
+Reliability is closely related to fault tolerance and redundancy: **a system becomes more reliable when it can tolerate component faults and has redundant resources available**.
+
+Throughput and latency describe different aspects of performance:
+- A system can process a massive volume of work (**high throughput**) while individual operations still take noticeable time (**higher latency**).
+- Conversely, a single operation can execute instantly (**low latency**) without the system being capable of handling heavy concurrent volume (**low throughput**).
+
+### Scaling to meet requirements
+
+Scaling changes a system's capacity so it can better satisfy reliability, throughput, or latency requirements.
+
+| Approach | Description | Requirements addressed |
+|---|---|---|
+| **Vertical scaling** | Increase compute resources (CPU, RAM, disk) of a single server. | More capacity for work that fits on one node |
+| **Horizontal scaling** | Add more servers and distribute workload across them. | More aggregate capacity; redundancy when the workload and dependencies support it |
+
+#### Vertical scaling
+Vertical scaling focuses on a single machine. Increasing its resources helps it process more work or complete operations faster, but remains bounded by hardware limits and represents a single point of failure.
+
+#### Horizontal scaling
+Horizontal scaling adds more machines instead of relying on one. Additional nodes can increase total throughput capacity and provide redundancy, supporting fault tolerance and high availability. It also introduces coordination work, such as distributing traffic and managing shared state.
+
+![](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/ba63474e-1b92-4442-ad73-e67e7b1b8070/gallery/01b2cedc-8c3f-4d25-b4cd-f289e3997f5f-vertical-horizontal-scaling.webp)
+
+
+<Callout title="Keep the requirements distinct" type="info">
+  Reliability, throughput, and latency are separate requirements. **Fault tolerance and redundancy** support reliability; **scaling** can increase capacity, but it does not automatically improve every latency bottleneck.
+</Callout>
+
+## Key takeaways
+
+- **Thoughtful trade-offs:** System design is about analyzing trade-offs and choosing the best available option for your specific constraints.
+- **Data lifecycle:** Large applications continuously **move**, **store**, and **transform** data across machines, databases, and compute workers.
+- **Availability:** Availability measures uptime percentage.
+- **Performance dimensions:** **Reliability** ensures correctness and uptime, **throughput** measures volume of work, and **latency** measures response time.
+- **Scaling strategies:** Use **vertical scaling** for simple compute boosts, **horizontal scaling** for scalable throughput and redundancy.

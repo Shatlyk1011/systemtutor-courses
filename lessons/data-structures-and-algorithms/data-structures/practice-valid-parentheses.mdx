@@ -1,0 +1,78 @@
+---
+title: "Valid Parentheses"
+description: "Use a stack to validate nested brackets and parentheses."
+slug: "practice-valid-parentheses"
+ 
+---
+
+## Try It Yourself
+
+Use the editor below to validate the order and type of every closing symbol. Store opening symbols until their matching closing symbols arrive.
+
+Submit your implementation when it passes the examples. Check incorrect nesting, extra opening symbols, and a closing symbol with no opener.
+
+<PracticeExercise problemId="valid-parentheses" />
+
+## Solution
+
+![Bracket matching stack](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/1e3e13b6-0db0-43d8-9eab-205bdcf6fa8f/gallery/2751b223-3e0e-4356-92cd-b21db19d78e8)
+
+Push every opening symbol onto a stack. For a closing symbol, pop the most recent opener and verify that it is the required matching type.
+
+Return false immediately for a mismatch or an empty stack. At the end, the stack must also be empty.
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```js
+    function isValidParentheses(s) {
+      const expectedOpening = new Map([
+        [")", "("],
+        ["]", "["],
+        ["}", "{"],
+      ]);
+      const stack = [];
+    
+      for (const symbol of s) {
+        if (!expectedOpening.has(symbol)) {
+          stack.push(symbol);
+          continue;
+        }
+    
+        if (stack.pop() !== expectedOpening.get(symbol)) {
+          return false;
+        }
+      }
+    
+      return stack.length === 0;
+    }
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    def is_valid_parentheses(s):
+        expected_opening = {
+            ")": "(",
+            "]": "[",
+            "}": "{",
+        }
+        stack = []
+    
+        for symbol in s:
+            if symbol not in expected_opening:
+                stack.append(symbol)
+                continue
+    
+            if not stack or stack.pop() != expected_opening[symbol]:
+                return False
+    
+        return len(stack) == 0
+    ```
+  </Tab>
+</Tabs>
+
+### Big O notation
+
+| Measure | Complexity | Explanation |
+|---|---:|---|
+| Time | `O(n)` | Every symbol is inspected and pushed or popped at most once. |
+| Auxiliary space | `O(n)` | An input containing only opening symbols fills the stack. |

@@ -1,0 +1,220 @@
+---
+title: "Color and Backgrounds"
+description: "Use CSS color values to style text, backgrounds, and borders while maintaining readable contrast."
+---
+
+CSS lets you choose colors for different parts of an element. The `color` property sets text color, `background-color` sets the surface behind it, and `border-color` sets the color of its border. Each property controls a different part, so changing the background does not change the text color.
+
+```css
+.color-box {
+  color: #333333;
+  background-color: #cce7ff;
+  border: 2px solid;
+  border-color: #004080;
+  padding: 20px;
+}
+```
+
+This rule gives the box dark text, a light blue background, and a dark blue border. The `border` declaration provides a solid border, and `border-color` gives it a color. One value colors all four sides; four values can give the sides different colors, as in `border-color: red green blue yellow;`.
+
+## Text color and inheritance
+
+![Text color inheritance](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/672f4e80-d6d2-41b3-9579-d7814f16abb2/gallery/e19ce727-5b97-4ac0-bdc3-7e41043c960f)
+
+The `color` property is inherited: child elements usually use their parent's text color unless they have a color of their own.
+
+```html
+<div class="parent">
+  Parent text is blue.
+  <div class="child">This text inherits blue.</div>
+  <div class="override">This text is red.</div>
+</div>
+```
+
+```css
+.parent {
+  color: blue;
+}
+
+.override {
+  color: red;
+}
+```
+
+The first child has no color declaration, so it inherits blue from `.parent`. The second child has its own declaration, so it uses red instead. Inheritance makes it possible to set a shared text color on a parent and change a child when needed.
+
+## Describe a color
+
+![Color values and properties](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/672f4e80-d6d2-41b3-9579-d7814f16abb2/gallery/cee6e0c7-cf82-4c2e-b4bf-aa23def29f3d)
+
+CSS accepts several ways to describe a color. You can use these values with properties such as `color` and `background-color`.
+
+### Named colors
+
+![Named color values](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/672f4e80-d6d2-41b3-9579-d7814f16abb2/gallery/ef9dc368-291e-421c-855f-2f9fc088b64f)
+
+Named colors are predefined identifiers such as `red`, `green`, and `blue`. They are easy to read and use:
+
+```css
+body {
+  background-color: lightblue;
+}
+
+h1 {
+  color: navy;
+}
+```
+
+Each name represents a specific color. For example, `red` corresponds to `#ff0000`, while `green` corresponds to `#008000`. Names are convenient when you do not need to specify a precise shade.
+
+### Hexadecimal colors
+
+![Hex color components](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/672f4e80-d6d2-41b3-9579-d7814f16abb2/gallery/b8e0a8b5-acdf-431e-8903-988d241cd60d)
+
+A six-digit hexadecimal color has the form `#RRGGBB`. Each pair describes the intensity of red, green, or blue, in that order. Hexadecimal uses digits from `0` to `9` and letters from `A` to `F`; `00` is the lowest intensity and `FF` is the highest.
+
+For example, `#FF5733` combines full red (`FF`), moderate green (`57`), and lower blue (`33`) to produce a red-orange. Letters can be uppercase or lowercase: `#FFFFFF` and `#ffffff` both mean white.
+
+When all three components are equal, the result is a neutral gray. `#000000` is black, `#808080` is a middle gray, and `#FFFFFF` is white. Increasing the equal components makes the gray lighter.
+
+```css
+body {
+  background-color: #eeeeee;
+}
+
+h1 {
+  color: #333333;
+}
+```
+
+Here the heading's darker gray stands against a lighter gray background.
+
+### RGB colors
+
+![RGB color components](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/672f4e80-d6d2-41b3-9579-d7814f16abb2/gallery/de5bbb5b-dec1-4b37-bee5-edec1d8428f6)
+
+RGB describes a color by combining red, green, and blue intensities. In the examples below, each component ranges from `0` to `255`:
+
+```css
+h1 {
+  color: rgb(255, 105, 180);
+}
+```
+
+The first value controls red, the second green, and the third blue. For comparison, `rgb(255, 0, 0)` is red, `rgb(0, 0, 255)` is blue, and `rgb(255, 255, 255)` is white. Setting all three to `0` gives black.
+
+### HSL colors
+
+![Hue saturation and lightness](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/672f4e80-d6d2-41b3-9579-d7814f16abb2/gallery/c7629072-d639-414f-afa0-4befb9c85da9)
+
+HSL describes color using **hue**, **saturation**, and **lightness**:
+
+- **Hue** identifies the color on a wheel measured in degrees: `0` or `360` is red, `120` is green, and `240` is blue.
+- **Saturation** describes color intensity. `0%` gives gray, while `100%` gives full saturation.
+- **Lightness** describes how light or dark the color is. `0%` is black, `100%` is white, and `50%` is in the middle.
+
+```css
+h1 {
+  color: hsl(240, 100%, 50%);
+}
+```
+
+This produces a vivid blue: the hue selects blue, the saturation is full, and lightness is at the midpoint. HSL makes it convenient to adjust saturation or lightness while keeping the hue the same.
+
+## Transparency and opacity
+
+![Background alpha and element opacity](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/672f4e80-d6d2-41b3-9579-d7814f16abb2/gallery/3ec64e8b-0ebf-4664-9b1e-a394e6d82d2f)
+
+An **alpha channel** controls the opacity of a color. An alpha of `0` is completely transparent, while `1` is completely opaque. Values between them let the background behind the color show through.
+
+```css
+.color-box {
+  background-color: rgba(255, 87, 51, 0.3);
+}
+```
+
+The first three values specify the orange color; `0.3` makes that background color 30% opaque. The alpha belongs to the background color, so it does not itself fade the box's text. You can also add alpha using `hsla()`, as in `hsla(12, 100%, 57%, 0.5)`. In an eight-digit hex color such as `#FF573380`, the last two digits represent alpha.
+
+The `opacity` property also ranges from `0` to `1`, but it affects the appearance of the whole element, including its children:
+
+```css
+.container {
+  opacity: 0.6;
+}
+```
+
+If the container holds an image and text, both appear 60% opaque along with the container. Use an alpha value on the background color when you want that color to be translucent while keeping the text unaffected.
+
+### Transparent and currentColor
+
+![Transparent and currentColor](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/672f4e80-d6d2-41b3-9579-d7814f16abb2/gallery/5b8edc10-9556-4bad-a685-5f0c221d022f)
+
+These two keywords help connect an element's colors to its surroundings and its own text:
+
+- **`transparent`:** A fully transparent color. For example, `background-color: transparent` lets what is behind the background show through; it does not make the element's text invisible.
+- **`currentColor`:** The element's `color` value. You can use it to keep a border matched to the text.
+
+For example, a card can use both values:
+
+```css
+.card {
+  color: #333333;
+  border: 2px dashed currentColor;
+  background-color: transparent;
+}
+```
+
+The border uses the card's text color. If that color changes, the border follows it, and the transparent background lets the surface behind the card show through.
+
+## Reuse colors with custom properties
+
+![Reusable color variables and themes](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/672f4e80-d6d2-41b3-9579-d7814f16abb2/gallery/4297f55d-96c9-45b4-bd52-0e5970012bd0)
+
+CSS custom properties, also called variables, store values for reuse. Define a name with `--`, then use its value with `var()`:
+
+```css
+:root {
+  --color-primary: #3498db;
+  --color-secondary: #2ecc71;
+}
+
+.button {
+  background-color: var(--color-primary);
+  color: white;
+}
+
+.header {
+  border-bottom: 2px solid var(--color-secondary);
+}
+```
+
+The button uses the primary color for its background, and the header uses the secondary color for its border. Reusing a variable helps keep colors consistent: changing its definition updates the places that use it.
+
+Custom properties can also be scoped to an element. The following rules define a light theme and replace its values when the `body` has the `dark-mode` class:
+
+```css
+:root {
+  --background-color: #fff;
+  --text-color: #000;
+}
+
+body {
+  background-color: var(--background-color);
+  color: var(--text-color);
+}
+
+body.dark-mode {
+  --background-color: #333;
+  --text-color: #fff;
+}
+```
+
+Adding `dark-mode` to the body changes the variables used for its background and text. Check contrast for each color pair you use, including pairs in different themes.
+
+## Key Takeaways
+
+- **Color properties:** `color`, `background-color`, and `border-color` style text, backgrounds, and borders separately.
+- **Inheritance:** Children usually inherit a parent's text color unless they have their own color.
+- **Color values:** Named colors, hex, RGB, and HSL offer different ways to specify colors.
+- **Transparency:** Alpha affects an individual color; `opacity` affects the appearance of an element and its children.
+- **Custom properties:** Store colors in variables to reuse them and update themes consistently.

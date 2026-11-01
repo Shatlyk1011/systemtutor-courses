@@ -1,0 +1,72 @@
+---
+title: "Find Numbers with Even Number of Digits"
+description: "Apply linear search to inspect and count qualifying array values."
+slug: "practice-find-even-number-digits"
+ 
+---
+
+## Try It Yourself
+
+Use the editor below to inspect every number and count how many have an even number of decimal digits. The array is unsorted, so each value must be considered.
+
+Submit your implementation when it passes the examples. Include one-digit, multi-digit, and six-digit values.
+
+<PracticeExercise problemId="find-even-number-digits" />
+
+## Solution
+
+![Counting decimal digits](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/3cf2b7c0-b4e3-4aa7-8dbf-f3dfb8f1f738/gallery/862bfbf3-8c6c-49a2-8140-51f75f67caac)
+
+Scan the array once. For each value, repeatedly remove its final decimal digit and count how many steps are needed to reach zero.
+
+Increase the answer only when that digit count is even.
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```js
+    function findNumbers(nums) {
+      let result = 0;
+    
+      for (const number of nums) {
+        let value = number;
+        let digits = 0;
+    
+        while (value > 0) {
+          value = Math.floor(value / 10);
+          digits++;
+        }
+    
+        if (digits % 2 === 0) result++;
+      }
+    
+      return result;
+    }
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    def find_numbers(nums):
+        result = 0
+    
+        for number in nums:
+            value = number
+            digits = 0
+    
+            while value > 0:
+                value //= 10
+                digits += 1
+    
+            if digits % 2 == 0:
+                result += 1
+    
+        return result
+    ```
+  </Tab>
+</Tabs>
+
+### Big O notation
+
+| Measure | Complexity | Explanation |
+|---|---:|---|
+| Time | `O(n · d)` | Each of n values is visited and up to d decimal digits are counted. |
+| Auxiliary space | `O(1)` | Only counters for the current value and total are stored. |

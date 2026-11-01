@@ -1,0 +1,94 @@
+---
+title: "Sort an Array"
+description: "Implement merge sort to order an integer array."
+slug: "practice-medium-sort-an-array"
+ 
+---
+
+## Try It Yourself
+
+Use the editor below to sort the array with merge sort. Separate the recursive splitting step from the helper that combines two sorted halves.
+
+Submit your implementation when it passes the examples. Duplicate, negative, and already sorted values should all work without a built-in sort.
+
+<PracticeExercise problemId="sort-an-array" />
+
+## Solution
+
+![Merge-sort recursion](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/03ce588b-f581-46ee-b98b-277331400e55/gallery/a63e3c26-595b-43f4-987f-77c5223d8f08)
+
+Recursively split the array until every piece contains at most one value. Those small pieces are already sorted.
+
+Merge two sorted pieces by repeatedly taking their smaller front value, then append the remainder of the unfinished piece.
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```js
+    function sortArray(nums) {
+      function merge(left, right) {
+        const result = [];
+        let first = 0;
+        let second = 0;
+    
+        while (first < left.length && second < right.length) {
+          if (left[first] <= right[second]) result.push(left[first++]);
+          else result.push(right[second++]);
+        }
+    
+        return result.concat(left.slice(first), right.slice(second));
+      }
+    
+      function mergeSort(values) {
+        if (values.length <= 1) return values;
+    
+        const middle = Math.floor(values.length / 2);
+        const left = mergeSort(values.slice(0, middle));
+        const right = mergeSort(values.slice(middle));
+    
+        return merge(left, right);
+      }
+    
+      return mergeSort(nums);
+    }
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    def sort_array(nums):
+        def merge(left, right):
+            result = []
+            first = 0
+            second = 0
+    
+            while first < len(left) and second < len(right):
+                if left[first] <= right[second]:
+                    result.append(left[first])
+                    first += 1
+                else:
+                    result.append(right[second])
+                    second += 1
+    
+            result.extend(left[first:])
+            result.extend(right[second:])
+            return result
+    
+        def merge_sort(values):
+            if len(values) <= 1:
+                return values
+    
+            middle = len(values) // 2
+            left = merge_sort(values[:middle])
+            right = merge_sort(values[middle:])
+            return merge(left, right)
+    
+        return merge_sort(nums)
+    ```
+  </Tab>
+</Tabs>
+
+### Big O notation
+
+| Measure | Complexity | Explanation |
+|---|---:|---|
+| Time | `O(n log n)` | There are logarithmic split levels and each level merges n values. |
+| Auxiliary space | `O(n)` | Merged arrays and recursive slices require linear auxiliary storage. |

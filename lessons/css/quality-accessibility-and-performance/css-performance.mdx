@@ -1,0 +1,81 @@
+---
+title: "CSS Performance"
+description: "Consider unused CSS, font loading, and rendering costs."
+---
+
+CSS affects how quickly a page appears and how smoothly it responds. First measure whether the delay comes from loading styles or drawing the page, then choose a change that addresses it.
+
+## Deliver the styles the page needs
+
+A normal linked stylesheet can block initial rendering while the browser loads and processes it. Large shared files can make a small page download styles for features it never uses.
+
+In the Network panel, check which stylesheets load and how large they are. Look for duplicates, old rules, or a whole library loaded for one small feature. Splitting a file helps only if the page then loads less CSS.
+
+Minification shortens the CSS. Transfer compression, such as gzip, reduces the download size. Neither automatically finds every unused rule.
+
+## Interpret unused CSS carefully
+
+Chrome DevTools Coverage records which stylesheet ranges are used during a session. Start recording, then open menus, submit invalid forms, navigate relevant routes, and resize through responsive states before drawing conclusions.
+
+“Unused during this recording” is evidence to investigate, not permission to delete a rule immediately. A closed dialog, another route, print styles, or a different viewport can need code that the current recording never exercised. See the [Coverage documentation](https://developer.chrome.com/docs/devtools/coverage/).
+
+## Keep text readable during font loading
+
+```css
+/* [!code word:font-display\: swap] */
+@font-face {
+  font-family: "Site Sans";
+  src: url("/fonts/site-sans-regular.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+
+body {
+  font-family: "Site Sans", system-ui, sans-serif;
+  line-height: 1.5;
+}
+```
+
+Supply the actual regular-weight WOFF2 font at the example path. The fallback stack remains usable if it cannot load. Load only the families, styles, and weights your design uses; declaring a regular face does not supply a separate bold file.
+
+`font-display: swap` permits fallback text after a very short block period and allows replacement when the web font arrives. Different font metrics can still change line wrapping and shift layout. Check a slow initial load as well as a cached reload.
+
+## Examine rendering work
+
+Changing dimensions or positions can trigger layout and paint. Large shadows, filters, and other effects can also add rendering cost. Transforms and opacity are often useful for motion that should leave layout fixed, but they are not a guarantee of smooth playback.
+
+Record a slow interaction in the Performance panel. Check whether the browser spends time on layout, paint, or compositing. Keep selectors readable and focus on the work the recording shows is slow.
+
+## Compare before and after
+
+Use the same route, interaction, viewport, and loading conditions for each comparison. Check that reducing bytes or rendering work preserves the intended layout and states. Keep an optimization only when the evidence supports its benefit.
+
+## Key Takeaways
+
+- **Delivery:** Reduce unnecessary styles the page actually downloads and processes.
+- **Coverage:** Investigate unused ranges across real states before deleting them.
+- **Fonts:** Provide readable fallbacks and inspect layout during loading.
+- **Measurement:** Compare equivalent conditions and verify behavior after optimization.
+
+## Try it yourself
+
+Coverage reports 60% of a shared stylesheet unused on a dashboard at one width. A menu was closed and the settings route was not visited. Text changes line breaks when a web font arrives.
+
+Explain what to investigate before removing CSS and how to investigate the font shift. Describe a fair before-and-after comparison. Use the lesson to check that your response addresses each part.
+
+<details>
+<summary>Hint</summary>
+
+Which states were omitted, and which conditions must remain the same?
+
+</details>
+
+<details>
+<summary>Check your reasoning</summary>
+
+Record coverage across the menu, settings route and responsive states; inspect ranges before removal. Compare fallback and web-font metrics on a slow first load. Repeat the same route, viewport, interaction and loading conditions, and verify required states still work.
+
+Other accurate approaches can also meet the task.
+
+</details>

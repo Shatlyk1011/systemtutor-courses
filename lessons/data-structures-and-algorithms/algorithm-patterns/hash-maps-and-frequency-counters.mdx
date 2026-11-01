@@ -1,0 +1,181 @@
+---
+title: "Frequency Counters"
+description: "Learn how frequency counters turn arrays and strings into value-frequency profiles for comparing squared values, anagrams, matching contents, and repeated frequencies, while avoiding nested-loop solutions."
+---
+
+A **frequency counter** is a hash map (or record) that stores each value together with the number of times it appears. It turns an array or string into a compact value-frequency profile that is easy to compare.
+
+For example, the array `[a, b, a, c, b, a]` produces:
+
+![](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/1e3e13b6-0db0-43d8-9eab-205bdcf6fa8f/gallery/1be252b6-a7fd-4921-9647-76adbfcb1c1f)
+
+Once inputs are represented this way, compare the profiles instead of repeatedly searching through the original data.
+
+## Why use a hash map?
+
+Searching an array for a value inside another loop often creates a quadratic `O(n²)` solution. A hash map gives average `O(1)` lookup and update, so a single pass can build the information needed for the comparison.
+
+<Callout title="Core idea" type="success">
+Count first, then compare counts. This turns problems about squared values, anagrams, matching contents, and repeated frequencies into profile comparisons.
+</Callout>
+
+## Basic workflow
+
+1. Create a profile for the first array or string.
+2. Create a profile for the second input, or update it while scanning.
+3. Compare the values and their frequencies.
+
+The update operation is usually written as “the old count, or zero, plus one”:
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```js
+    function count(items) {
+      const profile = new Map();
+
+      for (const item of items) {
+        profile.set(item, (profile.get(item) ?? 0) + 1);
+      }
+
+      return profile;
+    }
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    def count(items):
+        profile = {}
+
+        for item in items:
+            profile[item] = profile.get(item, 0) + 1
+
+        return profile
+    ```
+  </Tab>
+</Tabs>
+
+For `["tea", "coffee", "tea"]`, the profile is `{ tea: 2, coffee: 1 }`. The keys describe which values are present; the counts describe how often they occur.
+
+## Comparing frequency profiles
+
+Two inputs have matching contents when every value appears the same number of times in both profiles. Order does not matter, but missing keys and different counts do.
+
+```text
+sameContents(first, second):
+    if length(first) != length(second):
+        return false
+
+    firstProfile = count(first)
+    secondProfile = count(second)
+
+    for value in firstProfile:
+        if firstProfile[value] != secondProfile[value]:
+            return false
+
+    return true
+```
+
+The length check is an early exit: if the inputs contain different numbers of items, their frequency profiles cannot match.
+
+## Common use cases
+
+### Squared values
+
+To check whether one array contains the **squared values** of another:
+
+- Count the values in the first array.
+- Count the values in the second array.
+- For each value in the first profile, look for its square in the second profile.
+- Compare the frequencies.
+
+For example, `[1, 2, 2, 3]` matches `[1, 4, 4, 9]`, because the profile for the first array maps `1 → 1`, `2 → 2`, and `3 → 1`, while the second maps `1 → 1`, `4 → 2`, and `9 → 1`.
+
+A matching square is not enough: the counts must also match. `[2, 2, 3]` does not match `[4, 9, 9]` because the frequency of `2` is two but the frequency of its square `4` is one.
+
+### Anagrams
+
+For strings, count each character. Two strings are anagrams when their character profiles match.
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```js
+    function areAnagrams(first, second) {
+      if (first.length !== second.length) return false;
+
+      const profile = new Map();
+
+      for (const char of first) {
+        profile.set(char, (profile.get(char) ?? 0) + 1);
+      }
+
+      for (const char of second) {
+        const remaining = profile.get(char);
+        if (!remaining) return false;
+
+        if (remaining === 1) profile.delete(char);
+        else profile.set(char, remaining - 1);
+      }
+
+      return profile.size === 0;
+    }
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    def are_anagrams(first, second):
+        if len(first) != len(second):
+            return False
+
+        profile = {}
+
+        for char in first:
+            profile[char] = profile.get(char, 0) + 1
+
+        for char in second:
+            if profile.get(char, 0) == 0:
+                return False
+
+            profile[char] -= 1
+
+        return all(count == 0 for count in profile.values())
+    ```
+  </Tab>
+</Tabs>
+
+The second pass consumes counts from the first string. This avoids creating a second profile and can stop immediately when an unexpected character appears.
+
+### Repeated frequencies
+
+When a problem asks whether frequencies repeat or match, first build the value-frequency profile. Then compare the frequency information required by the problem instead of comparing every pair of elements.
+
+For example, `[a, a, b, b, c, c]` has frequencies `[2, 2, 2]`. It has one repeated frequency, `2`, appearing three times. A second map can count those frequencies if the problem asks whether two values occur equally often.
+
+## Frequency counters vs. nested loops
+
+| Approach | Main method | Time pattern |
+| --- | --- | --- |
+| Frequency counter | Build profiles, then compare counts | Linear-time approach, usually `O(n)` |
+| Nested loops | Repeatedly search and compare elements | Quadratic-time approach, often `O(n²)` |
+
+Frequency counters keep the work to passes over the input. Nested-loop solutions repeat searches as the input grows, making them less efficient for these comparison tasks.
+
+## Complexity and trade-offs
+
+- **Time:** Building one or two profiles takes `O(n)` average time. Comparing the profiles takes `O(k)`, where `k` is the number of distinct values.
+- **Space:** A profile uses `O(k)` additional space. In the worst case, every input item is distinct, so `k = n`.
+- **Lookup assumption:** Hash-map operations are average `O(1)`. A language or runtime may have different worst-case guarantees, but the pattern is designed around constant-time average lookup.
+
+<Callout title="When to reach for this pattern" type="info">
+Use a frequency counter when the problem asks whether two collections contain the same values, the same number of values, or a transformed version of those values. If order matters, a direct sequence comparison may be enough; if you need contiguous ranges, consider a sliding window instead.
+</Callout>
+
+---
+
+## Key Takeaways
+
+- **Count First, Compare Later:** Store element counts in a hash map to avoid slow `O(n²)` nested loops and compare profiles in fast `O(n)` time.
+- **Two-Pass Workflow:** Check lengths first, count items from the first input, then compare or decrease counts while scanning the second input.
+- **Common Uses:** Great for anagrams, matching squared values, checking duplicate counts, and finding repeated frequencies.
+- **Memory vs. Speed:** Uses `O(k)` extra space (where `k` is the count of unique values) to achieve fast `O(n)` average runtime.
+- **When to Choose:** Use a Frequency Counter when order does not matter and you only care about item counts. If order or contiguous items matter, use **Two Pointers** or **Sliding Window**.
+

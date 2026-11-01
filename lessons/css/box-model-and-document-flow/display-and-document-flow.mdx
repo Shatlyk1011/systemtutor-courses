@@ -1,0 +1,319 @@
+---
+title: "Display and Document Flow"
+---
+
+{/* Topics to cover: Display and Overflow; Normal Flow; Floats and Columns. */}
+
+## Display and Overflow
+
+`display` controls how an element and its children fit into the layout. `overflow` controls what happens when content extends beyond the element’s box.
+
+### Compare block and inline boxes
+
+```html
+<!-- [!code word:<p>] -->
+<!-- [!code word:<span] -->
+<p>Open the <span class="document-name">project brief</span> in your workspace.</p>
+<p>Review the latest changes before sharing.</p>
+```
+
+By default, paragraphs are **block boxes**: they start on a new line and normally use the available width. The `span` is an **inline box**, so it sits within the surrounding text.
+
+For a text element such as this `span`, `width` and `height` do not set its size. Top and bottom margins do not push text lines apart. Vertical padding and borders can extend into nearby lines without moving them.
+
+This differs from images, which can be inline while still accepting dimensions.
+
+### Give an inline item dimensions
+
+Use `inline-block` for a badge that should sit within text but accept width, height, and padding:
+
+```css
+/* [!code word:inline-block] */
+.document-name {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  border: 1px solid green;
+  background-color: honeydew;
+}
+```
+
+The badge stays in the line as one box. Its full height contributes to the line's layout, and text inside it can wrap if its width is constrained.
+
+Changing `display` changes layout behavior, not HTML meaning. A `span` styled as a block does not become a heading or paragraph semantically.
+
+Other display values establish different layouts for children: `flex` creates a flex container, and `grid` creates a grid container. Those systems are covered in later chapters.
+
+### Hide an element deliberately
+
+These declarations have different effects:
+
+| Declaration | Visible? | Reserves layout space? | Interaction |
+| --- | --- | --- | --- |
+| `display: none` | No. | No. | The hidden element is not a keyboard target. |
+| `visibility: hidden` | No. | Yes. | The hidden element cannot receive focus. |
+| `opacity: 0` | No. | Yes. | It can still receive pointer events and keyboard focus. |
+
+`display: none` hides the element and its descendants and ordinarily removes them from the accessibility tree. `visibility: hidden` also hides content from assistive technology; a descendant can override visibility to become visible. Opacity alone does not hide content from assistive technology.
+
+An invisible button with `opacity: 0` can still be reached with Tab and activated. Choose a hiding method based on whether the element should keep its space and remain interactive.
+
+### Handle content that does not fit
+
+**Overflow** occurs when content extends beyond a box. A long unbroken string or a fixed height can cause it:
+
+```html
+<!-- [!code word:class="notes"] -->
+<div class="notes">
+  <p>Record each order status here.</p>
+  <p>Add updates as orders are processed.</p>
+  <p>Keep earlier notes for comparison.</p>
+</div>
+```
+
+```css
+/* [!code word:overflow] */
+/* [!code word:auto] */
+.notes {
+  max-height: 6rem;
+  overflow: auto;
+  padding: 1rem;
+  border: 1px solid green;
+}
+```
+
+When the notes exceed the height limit, the box allows scrolling. Compare the common values:
+
+- **`visible`:** The default; overflowing content can paint outside the box.
+- **`hidden`:** Clips overflow and provides no user scrolling controls, though programmatic scrolling remains possible.
+- **`clip`:** Clips overflow without making the box a scroll container.
+- **`auto`:** Allows scrolling, with scrollbars as needed according to the browser and operating system.
+- **`scroll`:** Establishes scrolling even when content fits; scrollbar appearance depends on platform settings.
+
+`overflow-x` controls horizontal overflow, and `overflow-y` controls vertical overflow. Their values can affect each other: for example, setting one to `auto` can make the other’s default `visible` act as `auto` too.
+
+### Key Takeaways
+
+- **Display:** Block, inline, and inline-block boxes participate in layout differently.
+- **Meaning:** Changing `display` changes layout, not the meaning of the HTML.
+- **Hiding:** Display, visibility, and opacity differ in layout and interaction behavior.
+- **Overflow:** Choose whether excess content stays visible, is clipped, or can be scrolled.
+
+## Normal Flow
+
+**Normal flow** is the browser’s default layout. Block elements stack one after another, while text and inline elements share lines.
+
+The examples here use horizontal writing, with text read from left to right.
+
+### Follow the document order
+
+```html
+<!-- [!code word:<h2>] -->
+<!-- [!code word:<p>] -->
+<!-- [!code word:<a] -->
+<section class="notes">
+  <h2>Article overview</h2>
+  <p>Read the <strong>key points</strong>.</p>
+  <p>Read the <a href="/guides/layout">layout guide</a> for more advice.</p>
+</section>
+```
+
+With the browser's usual display styles:
+
+- **Block boxes:** The heading and paragraphs stack vertically in their document order.
+- **Inline boxes:** Text, `strong`, and the link share lines inside those blocks.
+- **Line wrapping:** When a line runs out of width, text continues on the next line.
+
+The layout follows the content's structure. You do not need to give each paragraph a coordinate.
+
+### Let content determine height
+
+```css
+/* [!code word:max-width] */
+/* [!code word:padding] */
+.notes {
+  max-width: 36rem;
+  padding: 1rem;
+  border: 1px solid green;
+}
+```
+
+The section has no set height, so it grows with its content. If its available width shrinks, the paragraphs wrap onto more lines and become taller. Later blocks move downward to make room.
+
+This is a useful default for articles and cards with variable text. Test the example with a longer heading or another paragraph before deciding that the section needs a fixed height.
+
+### Understand the containing block
+
+A **containing block** is the box CSS uses to calculate sizes and positions. Here, the paragraphs use the parent section’s content area as their reference.
+
+```css
+/* [!code word:50%] */
+.notes p {
+  width: 50%;
+}
+```
+
+If the section's content width is 600 pixels, each paragraph's content width is 300 pixels, assuming the initial `content-box` sizing and no added paragraph padding or borders. They still stack: making blocks narrower does not automatically place them side by side.
+
+The containing block is not always the immediate parent. Positioning can change which ancestor supplies it, as the next lesson explains.
+
+### Recognize collapsing margins
+
+In a separate example, use two adjacent paragraphs in ordinary block flow:
+
+```html
+<p class="first-note">Review the order.</p>
+<p class="second-note">Confirm the address.</p>
+```
+
+```css
+/* [!code word:margin] */
+.first-note {
+  margin: 0 0 24px;
+}
+
+.second-note {
+  margin: 16px 0 0;
+}
+```
+
+Their adjoining vertical margins **collapse** into one margin. Because both are positive, the gap is 24 pixels, the larger value, rather than 40 pixels.
+
+Margin collapse has boundaries and conditions:
+
+- Horizontal margins do not collapse.
+- Padding and borders do not collapse.
+- A parent’s top or bottom margin can combine with its first or last child’s margin when nothing separates them, such as a border or padding.
+- Margins between flex or grid items do not collapse.
+
+If the section has a top border or top padding, its first child's top margin cannot collapse through that edge.
+
+When collapsing margins include negative values, combine the largest positive value with the most negative value. If the second paragraph's top margin changes from `16px` to `-8px`, the collapsed margin becomes `24px - 8px = 16px`. If all the collapsing margins are negative, use the most negative value: `-24px` and `-8px` collapse to `-24px`.
+
+### Notice when content leaves normal flow
+
+Absolute and fixed positioning remove a box from normal flow: its former place is not reserved for neighboring content. Relative positioning keeps the original space even when the box is visually offset. Floats allow surrounding inline content to wrap around them.
+
+Those behaviors solve particular layout problems. Begin with normal flow, then choose another behavior when the content needs it.
+
+### Key Takeaways
+
+- **Normal flow:** Blocks stack in document order while inline content forms wrapping lines.
+- **Content height:** In-flow content can expand an automatically sized parent and move later content.
+- **Containing block:** Reference dimensions determine how values such as percentage widths resolve.
+- **Margin collapse:** Adjoining vertical margins can combine instead of adding together.
+- **Placement:** A narrower block does not automatically move beside another block.
+
+## Floats and Columns
+
+Some layouts need text to wrap around a small box or continue from one column into another. Floats and multicolumn layout handle these reading patterns without positioning every piece of content individually.
+
+### Wrap text around a float
+
+A **float** moves a box to one side of its container and lets surrounding inline content wrap around it.
+
+```html
+<!-- [!code word:class="fact"] -->
+<article class="article">
+  <aside class="fact">Estimated reading time: 5 minutes.</aside>
+  <p>
+    A clear project brief helps a team understand its goals. Describe the
+    scope, timeline, and responsibilities in language that is easy to scan.
+    Include enough context for readers to make informed decisions.
+  </p>
+  <p>Review related documents for more context.</p>
+</article>
+```
+
+```css
+/* [!code word:float] */
+/* [!code word:left] */
+.fact {
+  box-sizing: border-box;
+  float: left;
+  width: 10rem;
+  max-width: 100%;
+  margin: 0 1rem 1rem 0;
+  padding: 1rem;
+  background-color: honeydew;
+}
+```
+
+The fact box moves left. Nearby text lines become shorter to fit beside its margin box; below the float, lines can use the full available width again.
+
+The paragraph itself stays in place; its text wraps around the float. The float leaves normal flow but still affects nearby text lines.
+
+### Start content below a float
+
+If the next section must begin below any preceding float, append a heading with a clearing class:
+
+```html
+<!-- [!code word:class="next"] -->
+<h2 class="next">Next steps</h2>
+```
+
+```css
+/* [!code word:clear] */
+/* [!code word:both] */
+.next {
+  clear: both;
+}
+```
+
+`clear: both` moves the heading below earlier floats on either side within the same block layout region. Use `left` or `right` to clear just one side.
+
+Clearing changes where the following box begins. It does not turn the earlier float back into an ordinary in-flow box.
+
+### Contain floats with `flow-root`
+
+A parent with automatic height can end before the bottom of a tall floated child because that child is out of normal flow. This is especially noticeable when the parent's only child is a float.
+
+```css
+/* [!code word:flow-root] */
+.article {
+  display: flow-root;
+  padding: 1rem;
+  border: 1px solid green;
+}
+```
+
+`flow-root` creates a separate block layout region, called a **block formatting context**. The parent grows tall enough to contain its floats, and outside floats cannot push into its content.
+
+The fact box still floats and the article’s text still wraps around it. `flow-root` contains the float without clipping content that overflows.
+
+### Flow an article through columns
+
+Multicolumn layout divides one continuous content stream into columns. For a separate example, use a section with several paragraphs:
+
+```html
+<!-- [!code word:class="column-text"] -->
+<section class="column-text">
+  <h2>Project updates</h2>
+  <p>Start by reviewing the project requirements.</p>
+  <p>Record progress and decisions as the project develops.</p>
+  <p>Review the notes before planning the next release.</p>
+</section>
+```
+
+```css
+/* [!code word:column-width] */
+/* [!code word:column-gap] */
+.column-text {
+  column-width: 16rem;
+  column-gap: 2rem;
+  column-rule: 1px solid lightgray;
+}
+```
+
+`column-width` suggests a column width. The browser works out how many columns fit and adjusts their widths. A narrow container can have one column smaller than the suggested width.
+
+`column-gap` sets the space between columns. `column-rule` draws a dividing line in that gap without adding extra width. To request a particular number instead, use a declaration such as `column-count: 2`.
+
+Content continues down one column and then into the next; it is not a set of independent card tracks. A heading can span all columns with `column-span: all`. For a short grouped item, `break-inside: avoid` requests that it stay together when space permits.
+
+### Key Takeaways
+
+- **Floats:** Move a box to one side so nearby inline content can wrap around it.
+- **Clearing:** `clear` places a following box below relevant preceding floats.
+- **Containment:** `display: flow-root` lets a parent contain floats without clipping overflow.
+- **Columns:** Multicolumn layout flows one content stream through several columns.
+- **Reading order:** Content runs down a column before continuing into the next one.

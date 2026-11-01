@@ -1,0 +1,68 @@
+---
+title: "Introduction"
+description: Understand APIs and the contracts they define between software components.
+---
+
+An **API (Application Programming Interface)** is a defined interface that lets software components use one another predictably. Its contract describes available operations, accepted inputs, returned outputs, and error behavior.
+
+An API is not necessarily a separate intermediary. A local library function, an operating-system call, and a remote web endpoint are all APIs; only the remote case needs a network request and response.
+
+<Callout title="What is an API Contract?" type="info">
+An **API contract** is a formal agreement defining the expected inputs, outputs, and error formats between a client and server to ensure predictable communication.
+</Callout>
+
+---
+
+## How an API Works
+
+For a network API, a typical interaction follows a structured request–response lifecycle:
+
+![API request-response lifecycle](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/15aa5af8-3541-4385-b8bf-900901675665/gallery/f02074f4-2699-47b5-9285-6fd01310908d)
+
+1. **The Request:** An application sends a structured message requesting data or triggering an action (e.g., querying current weather conditions, retrieving user profiles, or authenticating credentials).
+2. **The Contract and implementation:** The receiving service interprets the request according to the API contract, validates what it needs, and performs the requested work. Authentication and authorization are common but not universal steps.
+3. **The Response:** The service returns the result or an error in the format defined by the contract.
+
+---
+
+## Two Broad Kinds of APIs
+
+![Local and network APIs](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/15aa5af8-3541-4385-b8bf-900901675665/gallery/85215ab3-0ce2-44ed-978e-2985e5c1a1a7)
+
+An API is a way for software parts to communicate. APIs can work **locally** or **over a network**.
+
+| Kind            | Where it works                                 | Examples                                   |
+| --------------- | ---------------------------------------------- | ------------------------------------------ |
+| **Local API**   | On the same machine or inside the same program | `Math.max`, `fs.readFile`, OS system calls |
+| **Network API** | Between different machines or services         | REST, GraphQL, gRPC, Stripe API            |
+
+<Callout title="Remember" type="info">
+An external HTTP API is one specific manifestation of an API. A local function signature, an OS system call, and a remote web endpoint are all APIs operating in different contexts.
+</Callout>
+
+## Understanding API Paradigms
+
+An API paradigm is the way an API is designed and how clients communicate with it.
+
+Common network API paradigms include:
+
+- **REST**: Works with resources and uses HTTP methods like GET, POST, PUT, and DELETE.
+- **GraphQL**: The client asks for exactly the data it needs.
+- **RPC / gRPC**: The client calls a remote function or procedure.
+- **Event-Driven / Streaming**: The server pushes data in real time using WebSockets, SSE, or message brokers.
+
+<Callout title="Core Idea" type="info"> **API** is the interface. **Context** tells us where it works (local runtime vs. network). **Paradigm** tells us how it is designed. </Callout>
+
+## Key Takeaways
+
+- An API is an interface that lets software communicate.
+- APIs can be local or network-based.
+- An API paradigm describes how the API is designed.
+
+## Continue with API design
+
+The next lessons compare three common ways to define and use network API contracts.
+
+- **[REST](/courses/system-design/docs/api/rest):** Model an API around resources, HTTP methods, representations, and cacheable responses.
+- **[GraphQL](/courses/system-design/docs/api/graphql):** Let clients select a typed response shape from a schema.
+- **[RPC](/courses/system-design/docs/api/rpc):** Model an API around remote operations, with gRPC as a common implementation.

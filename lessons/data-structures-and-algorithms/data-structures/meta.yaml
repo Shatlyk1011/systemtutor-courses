@@ -1,0 +1,20 @@
+title: "Linked Lists, Stacks & Queues"
+description: "Study linked lists, stacks, and queues and the operations each structure supports."
+pages:
+  - single-linked-list
+  - double-linked-list
+  - practice-reverse-linked-list
+  - quiz-data-structure-and-linked-list-trade-offs
+  - practice-merge-two-sorted-lists
+  - practice-medium-remove-nth-node-from-end
+  - stack
+  - practice-valid-parentheses
+  - practice-medium-min-stack
+  - practice-medium-daily-temperatures
+  - queue
+  - practice-queue-using-stacks
+  - circular-queues
+  - quiz-circular-queues
+  - practice-medium-design-circular-queue
+  - practice-hard-sliding-window-maximum
+  - quiz-queues-circular-buffers-and-monotonic-deques

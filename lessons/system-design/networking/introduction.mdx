@@ -1,0 +1,45 @@
+---
+title: Introduction
+description: Understand network layers and how data travels across the internet.
+---
+
+<Callout title="Lesson goal" type="info">
+  By the end of this lesson, you will understand the fundamentals of computer networking, the layered architecture models (OSI and TCP/IP), and how data travels across interconnected networks.
+</Callout>
+
+Networking is the backbone of distributed systems. Every interaction between clients, load balancers, application servers, and databases relies on network protocols to deliver packets accurately and efficiently.
+
+## The layered network model
+
+Modern networking is organized into abstraction layers. Each layer offers a service to the one above it and hides lower-level details, so an application can use HTTP without deciding how a Wi-Fi frame is transmitted.
+
+| Layer | Primary Responsibility | Common Protocols |
+|---|---|---|
+| **Application** | High-level data exchange and business logic | HTTP, HTTPS, WebSockets, DNS, SSH |
+| **Transport** | End-to-end delivery, connection management, reliability | TCP, UDP, QUIC |
+| **Network / Internet** | Addressing, packet routing across networks | IP (IPv4, IPv6), ICMP |
+| **Data Link & Physical** | Frame transfer across local media / physical hardware | Ethernet, Wi-Fi, Fiber Optics |
+
+The **OSI model** is commonly taught as seven conceptual layers, while the **TCP/IP model** is the practical Internet suite. This lesson uses the four-layer TCP/IP grouping: OSI application, presentation, and session concerns are grouped into **Application**; transport maps to **Transport**; network maps to **Internet**; and data link plus physical map to **Link / Physical**.
+
+### How data travels
+![How packets travel](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/54de4736-cbfb-4ca3-add4-542a111f11df/gallery/ad8e566d-e48a-4cef-8c98-764718d7bc7b)
+
+When a client sends an HTTP request, each layer adds the information it needs: HTTP creates the application message, TCP or UDP adds transport information, IP adds source and destination addresses, and the local network carries the resulting frame to the next hop. Routers forward the IP packet across networks. At the destination, the layers remove their own information in reverse order and deliver the original application data to the receiving program.
+
+
+## Key Takeaways
+
+- **Encapsulation:** Each layer wraps data with the metadata it needs; the receiver unwraps it in reverse order.
+- **Routing vs. switching:** Routers choose paths between networks, while switches forward frames within a local network.
+- **Latency and throughput:** RTT measures delay; throughput measures completed work per unit of time. They are related but not interchangeable.
+
+## Continue with networking
+
+Each next lesson zooms in on one layer or protocol from this overview.
+
+- **[IP](/courses/system-design/docs/networking/ip):** Learn how IP addresses and packets let routers direct traffic between networks.
+- **[TCP](/courses/system-design/docs/networking/tcp):** See how a connection-oriented transport provides reliable, ordered delivery.
+- **[UDP](/courses/system-design/docs/networking/udp):** Explore connectionless datagrams and the trade-off between delivery guarantees and timely updates.
+- **[HTTP](/courses/system-design/docs/networking/http):** Understand the request-response protocol that web clients and services use to communicate.
+- **[DNS](/courses/system-design/docs/networking/dns):** Follow how domain names resolve to DNS records and reach the correct destination.

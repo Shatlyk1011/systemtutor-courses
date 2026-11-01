@@ -1,0 +1,135 @@
+---
+title: "Stacking and Z-Index"
+description: "Control overlapping elements and understand stacking contexts."
+---
+
+When boxes overlap, the browser must decide which one to paint in front. `z-index` helps control that order, but its numbers are compared within **stacking contexts**, not across the whole page.
+
+## Set an order for positioned boxes
+
+```html
+<!-- [!code word:class="card"] -->
+<!-- [!code word:class="badge"] -->
+<!-- [!code word:class="caption"] -->
+<article class="card">
+  <h2>Latest updates</h2>
+  <span class="badge">New</span>
+  <p class="caption">Read the announcement.</p>
+</article>
+```
+
+```css
+/* [!code word:z-index] */
+.card {
+  position: relative;
+  padding: 1rem 1rem 5rem;
+  border: 1px solid green;
+}
+
+.badge {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  z-index: 2;
+  background-color: honeydew;
+}
+
+.caption {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  margin: 0;
+  z-index: 1;
+  background-color: white;
+}
+```
+
+Where these boxes overlap, the badge paints in front because `2` is greater than `1` within their shared stacking context. `z-index` changes painting order; it does not move boxes or reserve space.
+
+For these ordinary boxes, positioning makes `z-index` applicable. Flex and grid items can also use `z-index` without positioning. Adding a large number to a static paragraph in normal block flow does not bring it forward.
+
+## Understand the context boundary
+
+A **stacking context** groups elements into one layer. Children stack within that group, and the whole group stacks among the surrounding elements.
+
+The document root creates a stacking context. Other common causes include:
+
+- A relative or absolute box with a `z-index` other than `auto`.
+- A fixed or sticky box.
+- An element with `opacity` less than `1`.
+- An element with `transform` other than `none`.
+- An element with `isolation: isolate`.
+
+This is a selection, not the complete list. In particular, `position: relative` by itself, with `z-index: auto`, does not create a stacking context.
+
+## Compare ancestors before descendants
+
+For a separate example, put a badge inside one section and a notice after it:
+
+```html
+<!-- [!code word:class="panel"] -->
+<!-- [!code word:class="notice"] -->
+<section class="panel">
+  <span class="badge">New updates</span>
+</section>
+<aside class="notice">The shop closes at sunset.</aside>
+```
+
+Replace the previous CSS with:
+
+```css
+/* [!code word:999] */
+/* [!code word:z-index] */
+.panel {
+  position: relative;
+  z-index: 1;
+  height: 6rem;
+  background-color: honeydew;
+}
+
+.panel .badge {
+  position: absolute;
+  top: 4rem;
+  left: 0;
+  z-index: 999;
+}
+
+.notice {
+  position: relative;
+  z-index: 2;
+  margin-top: -3rem;
+  padding: 1rem;
+  background-color: white;
+}
+```
+
+The notice overlaps the panel. Wherever it overlaps the badge, the notice paints in front:
+
+- The panel establishes a context at level `1`.
+- The badge's `999` is meaningful inside that panel.
+- The notice's context is at level `2` in the shared parent context, above the panel as a whole.
+
+Increasing the badge's number cannot move it outside its context. Adjust the ancestor's stacking level or move the overlay to a suitable place in the document when that matches the intended design.
+
+## Keep a component's stacking local
+
+Give a component its own stacking context with `isolation: isolate`:
+
+```css
+/* [!code word:isolate] */
+.card {
+  isolation: isolate;
+}
+```
+
+Its descendants now stack within the card's context. This can keep local decorative layers from competing directly with unrelated page layers, but it also constrains overlays that need to appear outside the component's stacking order.
+
+If an element appears behind the wrong thing, check its parents for stacking contexts. Then check its position and `z-index`.
+
+## Key Takeaways
+
+- **`z-index`:** Changes which eligible elements appear in front without moving them.
+- **Contexts:** Stacking contexts group descendants into units in a parent context.
+- **Local numbers:** A child's large value cannot escape an ancestor's stacking context.
+- **Context creators:** Positioning, opacity, transforms, and isolation can establish boundaries.
+- **Debugging:** Compare the relevant ancestor contexts before adjusting descendant values.

@@ -1,0 +1,105 @@
+---
+title: "Maintaining CSS"
+description: "Document, review, and refactor styles for maintainability."
+---
+
+CSS is easier to maintain when you can tell why a rule exists, what it styles, and how to change it. Use clear names, useful comments, and small changes that you can check in the browser.
+
+## Explain decisions in comments
+
+A comment such as “sets the padding” adds little beside a padding declaration. Explain a constraint that a future reader cannot infer:
+
+```css
+.toolbar {
+  /* Keep actions on separate rows when translated labels need more space. */
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+```
+
+If a workaround addresses a specific browser or external component, record its reason and the condition under which it can be removed. Keep comments current when behavior changes. Group related rules and use consistent formatting and names.
+
+## Extract a shared decision deliberately
+
+Suppose two panels use the same radius because the design gives all panels one shared shape:
+
+```css
+.info-card {
+  padding: 1.25rem;
+  border-radius: 0.75rem;
+  background: #e7f3ec;
+}
+
+.status-panel {
+  padding: 1rem;
+  border-radius: 0.75rem;
+  background: #f1f5f9;
+}
+```
+
+Replace those rules with a shared custom property while preserving their other differences:
+
+```css
+/* [!code word:--radius-panel] */
+:root {
+  --radius-panel: 0.75rem;
+}
+
+.info-card {
+  padding: 1.25rem;
+  border-radius: var(--radius-panel);
+  background: #e7f3ec;
+}
+
+.status-panel {
+  padding: 1rem;
+  border-radius: var(--radius-panel);
+  background: #f1f5f9;
+}
+```
+
+The initial appearance stays the same, but future panel-radius changes have a clear shared location. Padding remains independent because these panels have different spacing needs.
+
+Share values because they represent one design decision, not just because two numbers currently match. Custom properties participate in the cascade and inherit by default, so verify their scope when introducing them.
+
+## Refactor without accumulating overrides
+
+Find the current rule and its uses before appending a replacement. Moving a rule, changing its selector, or moving it into a cascade layer can change which declaration wins even if its property values stay identical.
+
+Make one change, check the component’s variations, then remove the old rules. Explain any overrides that remain. If a rule loses, inspect the cascade before adding stronger selectors or `!important`.
+
+## Review behavior as well as the diff
+
+For a shared component change, inspect its representative pages at narrow and wide widths. Check long content and relevant focus, disabled, error, or expanded states.
+
+Use existing visual comparisons when they cover the change, and review differences before updating references. A behavior-preserving refactor should retain the intended appearance; an intentional design change should have an explicitly reviewed new appearance. See the [visual comparison guide](https://playwright.dev/docs/test-snapshots).
+
+## Key Takeaways
+
+- **Documentation:** Explain constraints, ownership, and removable workarounds.
+- **Shared values:** Extract decisions that should change together.
+- **Refactoring:** Trace dependencies and cascade effects before replacing rules.
+- **Review:** Check component states and representative layouts, not only source text.
+
+## Try it yourself
+
+Two panels both have a radius of 0.75rem. Their shapes should change together, but their padding must remain independent. One panel has an override in a cascade layer.
+
+Describe the refactor and review plan. Why might moving the override change the result even if its value stays the same? Use the lesson to check that your response addresses each part.
+
+<details>
+<summary>Hint</summary>
+
+Which value is a shared decision, and what determines the winning declaration?
+
+</details>
+
+<details>
+<summary>Check your reasoning</summary>
+
+Introduce a scoped shared custom property for the radius and use it in both panels; retain separate padding. Inspect the override and layer order before moving rules. Check representative pages, widths and states, then remove obsolete rules. Layer or source order can change the winning declaration.
+
+Other accurate approaches can also meet the task.
+
+</details>

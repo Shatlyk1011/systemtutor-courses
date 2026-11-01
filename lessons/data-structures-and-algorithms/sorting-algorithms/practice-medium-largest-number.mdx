@@ -1,0 +1,106 @@
+---
+title: "Largest Number"
+description: "Apply a custom comparison while merge-sorting number strings."
+slug: "practice-medium-largest-number"
+ 
+---
+
+## Try It Yourself
+
+Use the editor below to order number strings by which concatenation produces the larger prefix. Comparing a and b requires comparing a + b with b + a.
+
+Submit your implementation when it passes the examples. Handle shared prefixes and collapse an all-zero result to one zero.
+
+<PracticeExercise problemId="largest-number" />
+
+## Solution
+
+![Largest-number comparator]https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/03ce588b-f581-46ee-b98b-277331400e55/gallery/29f770f3-f275-44e8-bb95-9df817d3ba39()
+
+Convert every number to a string and merge-sort using a custom comparison. Place a before b when a + b is lexicographically greater than b + a.
+
+Join the sorted strings. If the first string is zero, every value must be zero, so return a single zero.
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```js
+    function largestNumber(nums) {
+      function comesFirst(first, second) {
+        return first + second >= second + first;
+      }
+    
+      function merge(left, right) {
+        const result = [];
+        let first = 0;
+        let second = 0;
+    
+        while (first < left.length && second < right.length) {
+          if (comesFirst(left[first], right[second])) {
+            result.push(left[first++]);
+          } else {
+            result.push(right[second++]);
+          }
+        }
+    
+        return result.concat(left.slice(first), right.slice(second));
+      }
+    
+      function mergeSort(values) {
+        if (values.length <= 1) return values;
+        const middle = Math.floor(values.length / 2);
+        return merge(
+          mergeSort(values.slice(0, middle)),
+          mergeSort(values.slice(middle)),
+        );
+      }
+    
+      const ordered = mergeSort(nums.map(String));
+      return ordered[0] === "0" ? "0" : ordered.join("");
+    }
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    def largest_number(nums):
+        def comes_first(first, second):
+            return first + second >= second + first
+    
+        def merge(left, right):
+            result = []
+            first = 0
+            second = 0
+    
+            while first < len(left) and second < len(right):
+                if comes_first(left[first], right[second]):
+                    result.append(left[first])
+                    first += 1
+                else:
+                    result.append(right[second])
+                    second += 1
+    
+            result.extend(left[first:])
+            result.extend(right[second:])
+            return result
+    
+        def merge_sort(values):
+            if len(values) <= 1:
+                return values
+    
+            middle = len(values) // 2
+            return merge(
+                merge_sort(values[:middle]),
+                merge_sort(values[middle:]),
+            )
+    
+        ordered = merge_sort([str(value) for value in nums])
+        return "0" if ordered[0] == "0" else "".join(ordered)
+    ```
+  </Tab>
+</Tabs>
+
+### Big O notation
+
+| Measure | Complexity | Explanation |
+|---|---:|---|
+| Time | `O(n log n · k)` | Merge sort performs O(n log n) comparisons of strings up to k digits long. |
+| Auxiliary space | `O(n · k)` | The string values and merge buffers require linear storage. |

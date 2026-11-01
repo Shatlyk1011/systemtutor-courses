@@ -1,0 +1,70 @@
+---
+title: "Daily Temperatures"
+description: "Use a monotonic stack to find the next warmer day."
+slug: "practice-medium-daily-temperatures"
+ 
+---
+
+## Try It Yourself
+
+Use the editor below to calculate how many days each temperature waits for a warmer value. Store indices whose answer has not yet been found.
+
+Submit your implementation when it passes the examples. Equal temperatures are not warmer, and some days may never receive an answer.
+
+<PracticeExercise problemId="daily-temperatures" />
+
+## Solution
+
+![Resolving warmer days](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/03ce588b-f581-46ee-b98b-277331400e55/gallery/966f0f32-a19a-4bac-83f2-15e802eaaca5)
+
+Keep a stack of unresolved indices whose temperatures decrease from bottom to top. A new warmer temperature resolves every cooler index at the top.
+
+Pop each resolved index and store the distance to the current day. Indices left in the stack keep the default answer of zero.
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```js
+    function dailyTemperatures(temperatures) {
+      const answer = Array(temperatures.length).fill(0);
+      const stack = [];
+    
+      for (let day = 0; day < temperatures.length; day++) {
+        while (
+          stack.length > 0 &&
+          temperatures[day] > temperatures[stack[stack.length - 1]]
+        ) {
+          const previousDay = stack.pop();
+          answer[previousDay] = day - previousDay;
+        }
+    
+        stack.push(day);
+      }
+    
+      return answer;
+    }
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    def daily_temperatures(temperatures):
+        answer = [0] * len(temperatures)
+        stack = []
+    
+        for day, temperature in enumerate(temperatures):
+            while stack and temperature > temperatures[stack[-1]]:
+                previous_day = stack.pop()
+                answer[previous_day] = day - previous_day
+    
+            stack.append(day)
+    
+        return answer
+    ```
+  </Tab>
+</Tabs>
+
+### Big O notation
+
+| Measure | Complexity | Explanation |
+|---|---:|---|
+| Time | `O(n)` | Every index is pushed once and popped at most once. |
+| Auxiliary space | `O(n)` | A decreasing sequence leaves every index in the stack. |

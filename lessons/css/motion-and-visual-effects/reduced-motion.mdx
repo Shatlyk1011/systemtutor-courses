@@ -1,0 +1,175 @@
+---
+title: "Reduced Motion"
+description: "Respect user preferences for reduced motion."
+---
+
+Movement can help explain an interface, but it can also distract users or cause discomfort. A reduced-motion version should communicate the same information with less movement.
+
+CSS can read the device's motion preference with the `prefers-reduced-motion` media feature. This preference is separate from screen size and input method.
+
+## Understand the two values
+
+| Value | Meaning |
+| --- | --- |
+| `reduce` | The user has requested reduced motion. |
+| `no-preference` | No reduced-motion preference has been reported. |
+
+With either setting, use motion only when it helps. `no-preference` simply means no reduced-motion preference was reported.
+
+## Start with complete static content
+
+```html
+<section class="saved-message" aria-labelledby="saved-title">
+  <h2 id="saved-title">Changes saved</h2>
+  <p>Your changes are available to your team.</p>
+</section>
+```
+
+```css
+.saved-message {
+  padding: 1.25rem;
+  color: #17352a;
+  background: #e7f3ec;
+  border: 1px solid #17352a;
+  border-radius: 0.75rem;
+  opacity: 1;
+  transform: none;
+}
+
+@keyframes saved-arrival {
+  from {
+    opacity: 0.6;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* [!code word:prefers-reduced-motion\: no-preference] */
+@media (prefers-reduced-motion: no-preference) {
+  .saved-message {
+    animation: saved-arrival 300ms ease-out;
+  }
+}
+```
+
+The message is visible by default. The query adds an entrance only when it matches. With reduced motion enabled, or without support for the query, the confirmation appears immediately.
+
+The example shows a confirmation that has already been established. CSS does not save the changes or decide when the message should be inserted.
+
+## Override an existing effect deliberately
+
+If motion is already defined outside a preference query, add a targeted override after it:
+
+```css
+/* [!code word:prefers-reduced-motion\: reduce] */
+@media (prefers-reduced-motion: reduce) {
+  .saved-message {
+    animation: none;
+    transition: none;
+    opacity: 1;
+    transform: none;
+  }
+}
+```
+
+Use this approach for an existing animation. If the base style has `opacity: 0`, turning off the animation will leave the content invisible, so restore its visible state too. Remove the entrance rather than pausing it halfway through.
+
+## Trace the fallback
+
+An existing notice has `opacity: 0` in its base rule and uses an animation to reach `opacity: 1`. What happens if a reduced-motion rule only sets `animation: none`?
+
+<details>
+<summary>Check your reasoning</summary>
+
+The animation no longer supplies the visible value, so the base `opacity: 0` remains and the notice is invisible. The override must restore the intended visible state too.
+
+</details>
+
+Now a button changes color on hover and has a visible focus outline. Which feedback should remain if its color transition is removed?
+
+<details>
+<summary>Check your reasoning</summary>
+
+Keep the hover color and focus outline. The color can change immediately, and keyboard focus still needs to be visible.
+
+</details>
+
+## Preserve feedback and user control
+
+Keep labels, focus indicators, error explanations, and success text. Remove or simplify the movement that decorates those states. Making a large slide extremely fast still moves the element; showing the final state immediately is often clearer.
+
+For ongoing movement, consider whether it is needed and provide usable pause or stop controls when it remains. A preference query does not make an otherwise distracting loop useful.
+
+## Check the reduced-motion version
+
+Enable the operating system's reduced-motion preference or emulate it in browser DevTools. Confirm that content appears, controls work, and results remain understandable. Test the ordinary version too; both should communicate the same outcome.
+
+## Key Takeaways
+
+- **Preference:** Use `prefers-reduced-motion` to adapt movement to the reported setting.
+- **Baseline:** Keep content visible and useful before adding animation.
+- **Overrides:** Remove movement and restore the intended final appearance together.
+- **Meaning:** Preserve feedback and verify both motion settings.
+
+
+## Try it yourself
+
+This notice represents a save that the application has already confirmed. Its animation reveals it, but its base opacity hides it. Add a targeted rule after the existing CSS so that, when reduced motion is requested, the notice appears immediately without moving. Keep the confirmation text and button focus indicator.
+
+```html
+<section class="notice">
+  <p>Changes saved.</p>
+  <button type="button">Continue</button>
+</section>
+```
+
+```css
+.notice {
+  padding: 1rem;
+  background: #e7f3ec;
+  opacity: 0;
+  animation: reveal 800ms ease-out forwards;
+}
+.notice button:focus-visible { outline: 3px solid #1d4ed8; outline-offset: 3px; }
+@keyframes reveal {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+```
+
+Open a local copy in a browser. With reduced motion enabled or emulated, reload and check that the message is immediately visible, stationary, and that the button keeps a visible keyboard focus indicator. If you are comfortable observing the entrance, also check the ordinary preference setting. Explain why removing the animation alone is insufficient and why the confirmation is still meaningful without it.
+
+<details>
+<summary>Hint 1</summary>
+
+Use `@media (prefers-reduced-motion: reduce)` and target `.notice` after its existing rule.
+
+</details>
+
+<details>
+<summary>Hint 2</summary>
+
+Remove the animation and replace the hidden base opacity with the visible final value. The transform should also be reset to its static state.
+
+</details>
+
+<details>
+<summary>Check your work and reasoning</summary>
+
+```css
+@media (prefers-reduced-motion: reduce) {
+  .notice {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}
+```
+
+Without the opacity override, the base value of zero would hide the message once the animation stops supplying its filled value. The message itself communicates the already confirmed result; the movement is optional. The focus rule remains unchanged. Check the real application's timing and status logic as well: CSS alone cannot confirm a save.
+
+</details>

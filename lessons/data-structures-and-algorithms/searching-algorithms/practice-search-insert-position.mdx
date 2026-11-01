@@ -1,0 +1,65 @@
+---
+title: "Search Insert Position"
+description: "Use binary search to find an existing index or insertion boundary."
+slug: "practice-search-insert-position"
+ 
+---
+
+## Try It Yourself
+
+Use the editor below to find the first index whose value is greater than or equal to the target. That index is both the target position and the correct insertion position.
+
+Submit your implementation when it passes the examples. Test targets before the first value, after the last value, and between two values.
+
+<PracticeExercise problemId="search-insert-position" />
+
+## Solution
+![Lower-bound search range](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/3cf2b7c0-b4e3-4aa7-8dbf-f3dfb8f1f738/gallery/86e1ea08-6bbb-4f05-9f1a-c5aa44bddca3)
+
+Treat the right boundary as one position past the array. When the middle value is smaller than the target, discard it and everything to its left. Otherwise, keep the middle position as a possible answer and move the right boundary to it.
+
+When the boundaries meet, that position is the lower bound for the target.
+
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```js
+    function searchInsert(nums, target) {
+      let left = 0;
+      let right = nums.length;
+    
+      while (left < right) {
+        const middle = left + Math.floor((right - left) / 2);
+    
+        if (nums[middle] < target) left = middle + 1;
+        else right = middle;
+      }
+    
+      return left;
+    }
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    def search_insert(nums, target):
+        left = 0
+        right = len(nums)
+    
+        while left < right:
+            middle = left + (right - left) // 2
+    
+            if nums[middle] < target:
+                left = middle + 1
+            else:
+                right = middle
+    
+        return left
+    ```
+  </Tab>
+</Tabs>
+
+### Big O notation
+
+| Measure | Complexity | Explanation |
+|---|---:|---|
+| Time | `O(log n)` | Every comparison removes about half of the remaining positions. |
+| Auxiliary space | `O(1)` | Only the search boundaries and middle index are stored. |

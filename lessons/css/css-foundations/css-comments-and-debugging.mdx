@@ -1,0 +1,140 @@
+---
+title: "CSS Comments and Debugging"
+description: "Organize styles with comments and find common errors."
+---
+
+CSS can look correct in an editor while producing an unexpected result in the browser. Comments and a few debugging habits can help you find out why.
+
+**Debugging** means investigating why the page behaves differently from what you intended, then checking that a change fixes it.
+
+## Write CSS comments
+
+A CSS comment starts with `/*` and ends with `*/`. The browser ignores its contents when applying styles:
+
+```css
+/* [!code word:/* Heading *\/] */
+/* Heading */
+h1 {
+  color: green;
+}
+```
+
+A comment can also span several lines:
+
+```css
+/* [!code word:/*:1] */
+/*
+  Heading styles for the page.
+  Keep related declarations together.
+*/
+h1 {
+  color: green;
+  font-size: 18px;
+}
+```
+
+Use comments to label sections or explain a decision that would otherwise be unclear. Keep these syntax rules in mind:
+
+- Use `/* ... */` for both single-line and multiline comments.
+- Do not use `//`; it is not a CSS comment marker.
+- Do not nest comments. The first `*/` closes the comment, even if another `/*` appears inside it.
+
+## Temporarily disable a declaration
+
+Put a declaration inside a comment to turn it off temporarily:
+
+```css
+/* [!code word:color\: green;] */
+h1 {
+  /* color: green; */
+  font-size: 18px;
+}
+```
+
+Here, the font size still applies, but this rule no longer supplies a text color. Another rule or the browser's default styles can determine the color.
+
+This is useful when testing which declaration causes a problem. Restore the declaration after the experiment if you still need it.
+
+## Find a syntax mistake
+
+![Missing declaration separator](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/e14888a7-fc1d-46bc-8752-868336e60891/gallery/f34284f4-48b1-4f91-a66f-0ab042b701c7)
+
+Suppose this rule does not change the heading as expected:
+
+```css
+/* [!code word:green] */
+/* [!code word:font-size] */
+h1 {
+  color: green
+  font-size: 18px;
+}
+```
+
+The first declaration is missing a semicolon `;`. The browser reads the next line as part of the `color` value, effectively producing `green font-size: 18px`. That is not a valid color, so neither intended declaration takes effect.
+
+Add the separator:
+
+```css
+h1 {
+  color: green; /* [!code word:;:1] */
+  font-size: 18px;
+}
+```
+
+The browser skips invalid CSS and continues reading where it can. That is why the page still appears even though these styles do not work. The semicolon lets the browser read the two declarations separately.
+
+### A complete debugging example
+
+Use one small loop instead of changing several things at once:
+
+1. **Observe:** The heading is not green and is still using its default size.
+2. **Form a hypothesis:** The rule contains two declarations, but the first one has no semicolon, so the browser cannot parse either intended declaration correctly.
+3. **Make one change:** Add `;` after `color: green`.
+4. **Verify:** Reload the page and check that the heading is green and 18 pixels. If it is still wrong, return to the next likely cause rather than changing unrelated code.
+
+The reasoning matters: the symptom points to a syntax problem, the smallest fix tests that hypothesis, and the reload confirms whether the fix worked. Do not jump straight to a new selector or a stronger rule before checking the declaration syntax.
+
+Now complete the same process for a new symptom: a `.notice` rule is present, but the paragraph remains unchanged. First check whether the selector matches the paragraph, then inspect the declaration for a valid property and value, and finally check for a competing rule. This order moves from “does the rule apply?” to “can the browser read it?” to “which valid rule wins?”
+
+## Inspect the element in DevTools
+
+{/*
+![Inspecting a styled element]()
+*/}
+
+Browser **developer tools**, usually called **DevTools**, let you inspect the HTML and CSS behind the displayed page.
+
+In Chrome, right-click the heading and choose **Inspect**. In the **Elements** panel:
+
+1. Confirm that the selected element is the heading you meant to style.
+2. Open **Styles** to see matching rules, their declarations, and links to their source files.
+3. Check warnings on invalid declarations and look for declarations overridden by other styles. A crossed-out declaration alone does not tell you the cause; inspect its warning or the competing declarations.
+4. Open **Computed** to check the resulting value of a property, such as `color` or `font-size`.
+
+The [Chrome DevTools CSS reference](https://developer.chrome.com/docs/devtools/css/reference) describes these views.
+
+You can edit a value or temporarily disable a declaration in DevTools to test an idea immediately. For a lasting fix, make the corresponding change in your source file, save it, and reload the page.
+
+## Check one cause at a time
+
+Use this checklist to narrow down the cause:
+
+- **Missing rule:** Check that the stylesheet link points to the correct file and that the selector matches the element's type, class, or ID.
+- **Invalid declaration:** Check property names, values, and punctuation.
+- **Overridden declaration:** Inspect competing declarations to find which value wins.
+
+Change one thing, observe the result, and then continue. If the problem is hard to isolate, reduce the example to the affected HTML and the rules needed to reproduce it.
+
+## Try it yourself
+
+Fix the syntax error in the practice below. The heading should become green and 18 pixels, while the paragraph stays unchanged. Before editing, predict which declaration the browser cannot parse; after editing, verify the result in the preview.
+
+<LessonPractice />
+
+## Key Takeaways
+
+- **Comments:** Use `/* ... */` for notes or temporary experiments, and avoid nesting comments.
+- **Syntax errors:** A missing separator or invalid declaration can prevent the intended styles from applying.
+- **DevTools:** Inspect matching rules in Styles and resulting property values in Computed.
+- **Investigation:** Check the stylesheet, selector, syntax, and competing declarations one cause at a time.
+- **Lasting fixes:** Save successful changes in the source file and verify them after reloading.

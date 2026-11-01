@@ -1,0 +1,328 @@
+---
+title: "GraphQL"
+description: Explore schemas, queries, and the trade-offs of flexible data fetching.
+---
+
+<Callout title="Lesson goal" type="info">
+  By the end of this lesson, you will understand how **GraphQL** operates, how schemas and the Schema Definition Language (SDL) define API contracts, the mechanics of Queries and Mutations over HTTP, how GraphQL eliminates over-fetching and under-fetching, and key architectural trade-offs in system design.
+</Callout>
+
+**GraphQL** is an open-source data query and manipulation language for APIs, as well as a server-side execution runtime for fulfilling queries using a strongly typed schema you define for your data.
+
+GraphQL lets clients request a specific response shape. This can reduce unnecessary fields and combine related data in one operation, but it does not automatically make a backend efficient.
+
+![](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/15aa5af8-3541-4385-b8bf-900901675665/gallery/b54ea777-c9d5-413a-90c4-1e4d700d4731)
+
+---
+
+## Why GraphQL?
+
+Some REST API designs use fixed resource representations that do not match every client's data needs. That can lead to two common problems:
+
+### 1. Over-fetching (Receiving too much data)
+
+- **Scenario:** Client only needs `username` and `avatarUrl`.
+- **REST Behavior:** `GET /users/42` returns 30+ unneeded fields (address, billing, history).
+- **Result:** Wasted bandwidth, higher memory usage, and slower parsing.
+
+### 2. Under-fetching (Receiving too little data)
+
+- **Scenario:** Client needs a user profile, 3 latest posts, and comment counts.
+- **REST Behavior:** Requires multiple sequential requests (waterfall round-trips):
+  1. `GET /users/42` (profile)
+  2. `GET /users/42/posts` (posts)
+  3. `GET /posts/:id/comments` (comments per post)
+- **Result:** High latency, excessive network chattiness, and mobile battery drain.
+
+
+### A GraphQL approach
+
+
+
+In GraphQL, a single query can ask for the user, their posts, and comment counts. The server resolves the requested fields and returns a JSON response that mirrors the query structure. It still needs efficient resolver and data-access design.
+
+```graphql
+query GetUserProfile {
+  user(id: "42") {
+    name
+    avatarUrl
+    posts(limit: 3) {
+      id
+      title
+      commentsCount
+    }
+  }
+}
+```
+
+---
+
+## The Defined Schema (SDL)
+
+The backbone of any GraphQL service is its **Schema**. The schema serves as a strict, type-safe contract between the client and the server, written in **Schema Definition Language (SDL)**.
+
+The schema specifies:
+1. All available **types** and their properties.
+2. Relationships between types (the data graph).
+3. The root entry points for client operations: `Query`, `Mutation`, and `Subscription`.
+
+```graphql
+# 1. Custom Object Types
+type User {
+  id: ID!
+  name: String!
+  email: String!
+  role: Role!
+  posts: [Post!]!
+}
+
+type Post {
+  id: ID!
+  title: String!
+  content: String!
+  published: Boolean!
+  author: User!
+  commentsCount: Int!
+}
+
+# 2. Enums
+enum Role {
+  ADMIN
+  AUTHOR
+  READER
+}
+
+# 3. Input Types
+input CreatePostInput {
+  title: String!
+  content: String!
+}
+
+# 4. Root Operation Types
+type Query {
+  user(id: ID!): User
+  feed(limit: Int = 10): [Post!]!
+}
+
+type Mutation {
+  createPost(input: CreatePostInput!): Post!
+  deletePost(id: ID!): Boolean!
+}
+```
+
+### Schema type modifiers
+
+| Syntax | Description |
+|---|---|
+| `String` | May return a string or `null`. |
+| `String!` | The schema declares that the field must not be `null`. If resolution produces `null`, GraphQL reports an error and may propagate `null` to a parent field. |
+| `[Post]` | The list itself can be null, and items inside can be null. |
+| `[Post!]!` |  The list is always returned (e.g. `[]`), and every element is a valid `Post`. |
+
+---
+
+## Core Operations: Queries and Mutations
+
+GraphQL separates operations based on their intent:
+
+| Operation | Primary Purpose | Execution Semantics | HTTP Method |
+|---|---|---|---|
+| **`query`** | Read data without side effects | Independent fields may be resolved concurrently; this depends on the runtime and resolvers | `POST` (or `GET` where supported) |
+| **`mutation`** | Create, update, or delete data (side effects) | Top-level fields resolve serially | `POST` |
+| **`subscription`**| Stream real-time event updates | Long-lived push connection | WebSockets / SSE |
+
+---
+
+### 1. Queries for reading data
+
+A **query** requests specific **fields** from objects. Clients pass arguments and dynamic variables directly into the query.
+
+#### Example: Query with variables
+
+<Tabs items={["GraphQL Query", "JSON Variables", "Server Response"]}>
+  <Tab value="GraphQL Query">
+    ```graphql
+    query FetchUserWithPosts($userId: ID!, $postLimit: Int!) {
+      user(id: $userId) {
+        name
+        email
+        posts(limit: $postLimit) {
+          title
+          commentsCount
+        }
+      }
+    }
+    ```
+  </Tab>
+  <Tab value="JSON Variables">
+    ```json
+    {
+      "userId": "42",
+      "postLimit": 2
+    }
+    ```
+  </Tab>
+  <Tab value="Server Response">
+    ```json
+    {
+      "data": {
+        "user": {
+          "name": "Alice Johnson",
+          "email": "alice@example.com",
+          "posts": [
+            {
+              "title": "Scaling Distributed Systems",
+              "commentsCount": 14
+            },
+            {
+              "title": "Understanding GraphQL Resolvers",
+              "commentsCount": 8
+            }
+          ]
+        }
+      }
+    }
+    ```
+  </Tab>
+</Tabs>
+
+<Callout title="Predictable response shape" type="info">
+The JSON response mirrors the requested hierarchical structure. Requested fields can still be `null` or appear with errors when data is unavailable or a resolver fails.
+</Callout>
+
+### 2. Mutations for updating data
+
+Top-level mutation fields execute serially. Query field execution can be concurrent when the implementation allows it; serial mutation execution preserves the order in which top-level state changes are requested.
+
+A mutation can modify state on the server and immediately query the updated data in the **same round-trip**, eliminating the need for a secondary GET request.
+
+<Tabs items={["GraphQL Mutation", "JSON Variables", "Server Response"]}>
+  <Tab value="GraphQL Mutation">
+    ```graphql
+    mutation CreateNewPost($input: CreatePostInput!) {
+      createPost(input: $input) {
+        id
+        title
+        published
+        author {
+          name
+        }
+      }
+    }
+    ```
+  </Tab>
+  <Tab value="JSON Variables">
+    ```json
+    {
+      "input": {
+        "title": "Microservices Architecture",
+        "content": "Designing resilient service meshes..."
+      }
+    }
+    ```
+  </Tab>
+  <Tab value="Server Response">
+    ```json
+    {
+      "data": {
+        "createPost": {
+          "id": "109",
+          "title": "Microservices Architecture",
+          "published": true,
+          "author": {
+            "name": "Alice Johnson"
+          }
+        }
+      }
+    }
+    ```
+  </Tab>
+</Tabs>
+
+---
+
+## How GraphQL Communicates Over HTTP
+
+GraphQL is transport-agnostic. Many deployments use HTTP and one endpoint (for example, `https://api.example.com/graphql`), commonly with `POST`; read-only queries can also use `GET` where a server supports it.
+
+```text
+┌──────────────┐                                        ┌──────────────┐
+│    Client    │ ─── POST /graphql (JSON payload) ────> │GraphQL Server│
+│ (Web/Mobile) │ <── 200 OK { data, errors } ────────── │   Runtime    │
+└──────────────┘                                        └──────────────┘
+```
+
+<Callout title="HTTP status codes in GraphQL" type="warning">
+Unlike REST—which uses HTTP status codes like `404 Not Found` or `422 Unprocessable Entity`—GraphQL servers typically return **`200 OK`** as long as the HTTP request was received and processed by the GraphQL engine. If a specific field fails (e.g. database error on posts), GraphQL returns partial data in `data` and error details in the `errors` array.
+</Callout>
+
+---
+
+## The Execution Model: Resolvers
+
+![GraphQL resolver tree](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/15aa5af8-3541-4385-b8bf-900901675665/gallery/197cdf1d-057a-436d-bd5c-dc1785fcc164)
+
+How does a GraphQL server actually fetch data from databases, microservices, or third-party APIs? Through **resolver functions**.
+
+Every field in a GraphQL schema is backed by a resolver function on the server. The resolver function tells the runtime how to fetch the data for that field:
+
+```text
+               ┌───────────────────────┐
+               │    Incoming Query     │
+               └───────────┬───────────┘
+                           │
+                 ┌─────────▼─────────┐
+                 │    Query.user     │ ──> resolver: db.users.findById(id)
+                 └─────────┬─────────┘
+                           │
+             ┌─────────────┴─────────────┐
+             ▼                           ▼
+   ┌───────────────────┐       ┌───────────────────┐
+   │    User.name      │       │    User.posts     │ ──> resolver: db.posts.byUser(parent.id)
+   │ (trivial getter)  │       └─────────┬─────────┘
+   └───────────────────┘                 │
+                               ┌─────────┴─────────┐
+                               ▼                   ▼
+                     ┌───────────────────┐ ┌───────────────────┐
+                     │    Post.title     │ │Post.commentsCount │ ──> resolver: count(post.id)
+                     └───────────────────┘ └───────────────────┘
+```
+---
+
+## System Design Trade-Offs: When to Use GraphQL
+
+GraphQL can reduce over-fetching and simplify complex client-driven UI requirements, but it introduces specific architectural challenges.
+
+```text
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         GraphQL Architectural Matrix                        │
+├──────────────────────────────────────┬──────────────────────────────────────┤
+│ Advantages                           │ Challenges & Engineering Trade-Offs  │
+├──────────────────────────────────────┼──────────────────────────────────────┤
+│ ✔ Client-selected response shape      │ ✖ Caching needs deliberate design     │
+│ ✔ Combine related data in one operation│ ✖ Vulnerable to N+1 backend queries  │
+│ ✔ Strong contract and introspection   │ ✖ Risk of expensive queries           │
+│ ✔ Client-driven schema evolution      │ ✖ Additional runtime complexity       │
+└──────────────────────────────────────┴──────────────────────────────────────┘
+```
+
+## REST vs. GraphQL Feature Comparison
+
+| Feature | REST | GraphQL |
+|---|---|---|
+| **Architecture** | Resource-driven, multiple endpoints | Schema-driven, single endpoint (`/graphql`) |
+| **Data Fetching** | Fixed representations; can be tailored with endpoint design | Client selects requested fields |
+| **Round Trips** | Can require multiple requests, but can also provide aggregate endpoints | Can combine connected data in one operation |
+| **Type Safety** | Optional (OpenAPI/Swagger specs) | Mandatory built-in type system (SDL) |
+| **HTTP Methods** | Standard semantics (`GET`, `POST`, `PUT`, `DELETE`) | Primarily `POST` (queries & mutations) |
+| **HTTP Status Codes** | Meaningful codes (`200`, `201`, `400`, `404`, `500`) | Typically `200 OK` with errors in response body |
+| **Network Caching** | Native HTTP & CDN edge caching via URIs | Requires Persisted Queries or normalized cache |
+| **Best Suited For** | Simple CRUD, file streaming, public caching | Complex UIs, mobile apps, aggregated microservices |
+
+---
+
+## Key Takeaways
+
+- **Structured Queries:** GraphQL lets clients request a chosen response shape, which can reduce over-fetching and combine related data in one operation.
+- **Defined Schema:** The Schema Definition Language (SDL) serves as the type-safe contract defining types, relationships, and entry points (`Query`, `Mutation`, `Subscription`).
+- **Queries vs. Mutations:** Queries are side-effect-free; independent fields may resolve concurrently. Top-level mutation fields perform state changes serially.

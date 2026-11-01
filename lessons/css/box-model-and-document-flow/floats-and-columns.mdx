@@ -1,0 +1,117 @@
+---
+title: "Floats and Columns"
+description: "Use floats, clearing, and multicolumn layouts."
+---
+
+Some layouts need text to wrap around a small box or continue from one column into another. Floats and multicolumn layout handle these reading patterns without positioning every piece of content individually.
+
+## Wrap text around a float
+
+A **float** moves a box to one side of its container and lets surrounding inline content wrap around it.
+
+```html
+<!-- [!code word:class="fact"] -->
+<article class="article">
+  <aside class="fact">Estimated reading time: 5 minutes.</aside>
+  <p>
+    A clear project brief helps a team understand its goals. Describe the
+    scope, timeline, and responsibilities in language that is easy to scan.
+    Include enough context for readers to make informed decisions.
+  </p>
+  <p>Review related documents for more context.</p>
+</article>
+```
+
+```css
+/* [!code word:float] */
+/* [!code word:left] */
+.fact {
+  box-sizing: border-box;
+  float: left;
+  width: 10rem;
+  max-width: 100%;
+  margin: 0 1rem 1rem 0;
+  padding: 1rem;
+  background-color: honeydew;
+}
+```
+
+The fact box moves left. Nearby text lines become shorter to fit beside its margin box; below the float, lines can use the full available width again.
+
+The paragraph itself stays in place; its text wraps around the float. The float leaves normal flow but still affects nearby text lines.
+
+## Start content below a float
+
+If the next section must begin below any preceding float, append a heading with a clearing class:
+
+```html
+<!-- [!code word:class="next"] -->
+<h2 class="next">Next steps</h2>
+```
+
+```css
+/* [!code word:clear] */
+/* [!code word:both] */
+.next {
+  clear: both;
+}
+```
+
+`clear: both` moves the heading below earlier floats on either side within the same block layout region. Use `left` or `right` to clear just one side.
+
+Clearing changes where the following box begins. It does not turn the earlier float back into an ordinary in-flow box.
+
+## Contain floats with `flow-root`
+
+A parent with automatic height can end before the bottom of a tall floated child because that child is out of normal flow. This is especially noticeable when the parent's only child is a float.
+
+```css
+/* [!code word:flow-root] */
+.article {
+  display: flow-root;
+  padding: 1rem;
+  border: 1px solid green;
+}
+```
+
+`flow-root` creates a separate block layout region, called a **block formatting context**. The parent grows tall enough to contain its floats, and outside floats cannot push into its content.
+
+The fact box still floats and the article’s text still wraps around it. `flow-root` contains the float without clipping content that overflows.
+
+## Flow an article through columns
+
+Multicolumn layout divides one continuous content stream into columns. For a separate example, use a section with several paragraphs:
+
+```html
+<!-- [!code word:class="column-text"] -->
+<section class="column-text">
+  <h2>Project updates</h2>
+  <p>Start by reviewing the project requirements.</p>
+  <p>Record progress and decisions as the project develops.</p>
+  <p>Review the notes before planning the next release.</p>
+</section>
+```
+
+```css
+/* [!code word:column-width] */
+/* [!code word:column-gap] */
+.column-text {
+  column-width: 16rem;
+  column-gap: 2rem;
+  column-rule: 1px solid lightgray;
+}
+```
+
+`column-width` suggests a column width. The browser works out how many columns fit and adjusts their widths. A narrow container can have one column smaller than the suggested width.
+
+`column-gap` sets the space between columns. `column-rule` draws a dividing line in that gap without adding extra width. To request a particular number instead, use a declaration such as `column-count: 2`.
+
+Content continues down one column and then into the next; it is not a set of independent card tracks. A heading can span all columns with `column-span: all`. For a short grouped item, `break-inside: avoid` requests that it stay together when space permits.
+
+## Key Takeaways
+
+- **Floats:** Move a box to one side so nearby inline content can wrap around it.
+- **Clearing:** `clear` places a following box below relevant preceding floats.
+- **Containment:** `display: flow-root` lets a parent contain floats without clipping overflow.
+- **Columns:** Multicolumn layout flows one content stream through several columns.
+- **Reading order:** Content runs down a column before continuing into the next one.
