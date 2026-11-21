@@ -1,8 +1,13 @@
 title: System Design
-description: Learn to design scalable, reliable, and maintainable systems from first principles.
+description: Design reliable systems from requirements and estimates through data, services, and complete case studies.
 pages:
   - index
   - application-architecture
   - networking
   - api
+  - design-foundations
+  - data-systems
+  - reliable-services
+  - design-practice
+  - distributed-patterns
 
