@@ -1,5 +1,5 @@
 ---
-title: "Introduction"
+title: "Introduction to Recursion"
 description: "Learn how recursive calls, base cases, and progress solve smaller versions of a problem before applying recursion in practice."
 slug: "introduction"
 ---
@@ -8,7 +8,7 @@ slug: "introduction"
 
 Instead of completing a repetitive task using a loop construct (`for` or `while`), a recursive function breaks the input down into a smaller piece, processes that piece, and invokes itself on what remains until it reaches a natural stopping condition.
 
-![](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/f1b74d84-5ada-403c-b17f-1007370229f3/gallery/d67ad3b7-2529-4cb2-bd6e-e9d02b302ba8)
+![Countdown calls itself with 3, 2, and 1 before reaching the base case at 0.](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/f1b74d84-5ada-403c-b17f-1007370229f3/gallery/d67ad3b7-2529-4cb2-bd6e-e9d02b302ba8)
 
 The function's work includes another call to that same function. This self-calling behavior is the defining feature of recursion.
 
@@ -43,7 +43,7 @@ Every valid recursive function requires two core parts to work correctly:
 1. **The Base Case:** The condition under which the function stops calling itself and returns a result directly. Without a base case, the function calls itself indefinitely until the system runs out of memory (a **stack overflow**).
 2. **Progress (Different Input):** Each recursive call must modify the input and send a smaller, simpler piece of data toward the base case.
 
-![](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/f1b74d84-5ada-403c-b17f-1007370229f3/gallery/f2b52631-afdb-4d81-8d9e-7853aa503949)
+![A recursive function returns at the base case or calls itself again with a smaller input.](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/f1b74d84-5ada-403c-b17f-1007370229f3/gallery/f2b52631-afdb-4d81-8d9e-7853aa503949)
 
 If either ingredient is missing, the recursion fails:
 - Missing **Base Case** $\rightarrow$ Infinite loop leading to `RangeError: Maximum call stack size exceeded` / `RecursionError`.
@@ -61,7 +61,7 @@ When JavaScript invokes a function, it **pushes** that function onto the call st
 
 If that function invokes another function, JavaScript pushes the newly invoked function on top of it. The most recently invoked function is therefore at the top of the stack.
 
-![](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/f1b74d84-5ada-403c-b17f-1007370229f3/gallery/2b39b5d8-d0e7-4757-9720-24dcd51c1432)
+![Each nested call places another frame on top of the call stack while earlier calls wait below it.](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/f1b74d84-5ada-403c-b17f-1007370229f3/gallery/2b39b5d8-d0e7-4757-9720-24dcd51c1432)
 
 ### Removing function calls
 

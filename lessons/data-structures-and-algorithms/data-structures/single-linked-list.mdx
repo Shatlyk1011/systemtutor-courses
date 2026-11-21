@@ -7,7 +7,7 @@ A **singly linked list** is a sequence of nodes connected in one direction. Each
 
 The list keeps a `head` reference to its first node and a `tail` reference to its last node. The tail's `next` points to `null`, which marks the end of the list.
 
-![](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/c2d3d3d7-decc-4cc8-9405-d55b95d6181d/gallery/526414dd-716c-4335-913a-4466f0f6b743)
+![Following next pointers from head to tail visits nodes 10, 20, 30, and 40 in order.](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/c2d3d3d7-decc-4cc8-9405-d55b95d6181d/gallery/526414dd-716c-4335-913a-4466f0f6b743)
 
 Think of the structure like a **scavenger hunt**:
 
@@ -34,7 +34,7 @@ In a singly linked list, connections only go forward: each node points to the ne
 
 Each node is an independent object with two properties:
 
-![](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/c2d3d3d7-decc-4cc8-9405-d55b95d6181d/gallery/2bc4b772-f084-4860-b8d3-e8129b1287ff)
+![The head node containing apple points to banana, which points to cherry at the tail.](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/c2d3d3d7-decc-4cc8-9405-d55b95d6181d/gallery/2bc4b772-f084-4860-b8d3-e8129b1287ff)
 
 ---
 
@@ -92,7 +92,7 @@ Tracking `tail` and `length` gives us two immediate performance advantages:
 
 The `push` method appends a new node to the end of the list.
 
-![](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/c2d3d3d7-decc-4cc8-9405-d55b95d6181d/gallery/acde5772-aa60-4dd4-b332-b7586008fcdc)
+![Appending 30 links the old tail, 20, to the new tail.](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/c2d3d3d7-decc-4cc8-9405-d55b95d6181d/gallery/acde5772-aa60-4dd4-b332-b7586008fcdc)
 
 #### Step-by-Step Logic
 1. Create a new node with the provided value.
@@ -141,7 +141,7 @@ The `push` method appends a new node to the end of the list.
 
 The `unshift` method prepends a new node to the **start of the list**, making it the new `head`.
 
-![](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/c2d3d3d7-decc-4cc8-9405-d55b95d6181d/gallery/ecd47270-0b2c-41f1-b42b-5e620a25cbfa)
+![Prepending 10 makes it the new head and links it to the previous head, 20.](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/c2d3d3d7-decc-4cc8-9405-d55b95d6181d/gallery/ecd47270-0b2c-41f1-b42b-5e620a25cbfa)
 
 #### Step-by-Step Logic
 1. Create a new node with the provided value.
@@ -191,7 +191,7 @@ The `unshift` method prepends a new node to the **start of the list**, making it
 
 The `shift` method removes the node at the `head` of the list and returns it.
 
-![](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/c2d3d3d7-decc-4cc8-9405-d55b95d6181d/gallery/232b022f-3c55-4c36-9f3f-f7c4fb7dd965)
+![Removing the first node changes the head from 10 to 20. The rest of the list stays linked.](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/c2d3d3d7-decc-4cc8-9405-d55b95d6181d/gallery/232b022f-3c55-4c36-9f3f-f7c4fb7dd965)
 
 #### Step-by-Step Logic
 1. If the list is empty, return `null`.
@@ -241,7 +241,7 @@ The `shift` method removes the node at the `head` of the list and returns it.
 
 The `pop` method removes the node at the `tail` of the list and returns it.
 
-![](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/c2d3d3d7-decc-4cc8-9405-d55b95d6181d/gallery/023dd657-213e-4a51-b6cf-c478371c1651)
+![Removing the tail returns 30 and makes node 20 the new tail.](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/c2d3d3d7-decc-4cc8-9405-d55b95d6181d/gallery/023dd657-213e-4a51-b6cf-c478371c1651)
 
 <Callout title="Why is Pop O(n) in a Singly Linked List?" type="warn">
 Even though we have a `tail` pointer, removing the tail requires pointing the **second-to-last node** to `null` and making it the new tail. Because singly linked lists only point forward, we must traverse the entire list from the `head` to locate that second-to-last node.
@@ -396,7 +396,7 @@ The `set` method modifies the value stored in the node at a specific index.
 
 The `insert` method inserts a new node at any valid index (`0` through `length`).
 
-![](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/c2d3d3d7-decc-4cc8-9405-d55b95d6181d/gallery/c16c7148-f48f-4947-9611-0e95eb9b92d1)
+![Inserting 15 at index 1 links node 10 to 15 and node 15 to 20.](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/c2d3d3d7-decc-4cc8-9405-d55b95d6181d/gallery/c16c7148-f48f-4947-9611-0e95eb9b92d1)
 
 #### Step-by-Step Logic
 1. If `index < 0` or `index > this.length`, return `false`.
@@ -457,7 +457,7 @@ The `insert` method inserts a new node at any valid index (`0` through `length`)
 The `remove` method deletes the node at a given index and returns it.
 
 
-![](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/c2d3d3d7-decc-4cc8-9405-d55b95d6181d/gallery/f3f9d8fe-e568-4234-9ac8-b3cbc307f71a)
+![Removing node 20 links its predecessor, 10, directly to its successor, 30.](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/c2d3d3d7-decc-4cc8-9405-d55b95d6181d/gallery/f3f9d8fe-e568-4234-9ac8-b3cbc307f71a)
 
 #### Step-by-Step Logic
 1. If `index < 0` or `index >= this.length`, return `null`.
@@ -515,7 +515,7 @@ The `remove` method deletes the node at a given index and returns it.
 
 Reversing a singly linked list in-place is one of the classic data structure algorithms. It inverts the direction of all pointer links so that the head becomes the tail, the tail becomes the head, and all intermediate links point backward.
 
-![](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/c2d3d3d7-decc-4cc8-9405-d55b95d6181d/gallery/c44b2491-43b0-449c-beb3-ce55214f63bb)
+![Reversing the list makes 3 the head and 1 the tail, with each next pointer facing the opposite direction.](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/c2d3d3d7-decc-4cc8-9405-d55b95d6181d/gallery/c44b2491-43b0-449c-beb3-ce55214f63bb)
 
 #### The Three-Pointer Algorithm
 To flip links without losing references to the rest of the list, we maintain three pointers as we traverse:

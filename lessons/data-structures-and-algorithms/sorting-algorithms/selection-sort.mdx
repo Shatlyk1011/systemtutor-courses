@@ -16,7 +16,7 @@ Start at the first position. Treat its value as the current minimum, then scan e
 - If a smaller value appears, update the minimum.
 - After the scan finishes, swap the minimum with the value at the starting position.
 
-![](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/8cf4a4c6-e776-4c97-aae1-bff7cf629553/gallery/edb072bc-db24-4a44-b162-7fe117d9dd7b)
+![Scanning the unsorted values finds 1, which swaps with 5 at the front.](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/8cf4a4c6-e776-4c97-aae1-bff7cf629553/gallery/edb072bc-db24-4a44-b162-7fe117d9dd7b)
 
 After this swap, the first position is correct: no value in the array is smaller than `1`.
 
@@ -37,7 +37,7 @@ Now repeat the process beginning at the first unsorted position:
 2. Swap it into that region's first position.
 3. Move the boundary one position right.
 
-![](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/8cf4a4c6-e776-4c97-aae1-bff7cf629553/gallery/dc4a2e9b-cb5b-448e-985d-086b391d2e27)
+![Selection sort grows a sorted prefix by finding the smallest remaining value and swapping it into the next position.](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/8cf4a4c6-e776-4c97-aae1-bff7cf629553/gallery/dc4a2e9b-cb5b-448e-985d-086b391d2e27)
 
 
 <Callout title="Key pattern" type="info">
@@ -119,7 +119,7 @@ Use two loops:
 
 A swap exchanges the value at the current position with the smallest value found by the inner loop.
 
-![](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/55e77424-3054-409c-a931-e158d18008d8/gallery/c10f62d2-0e8d-40fe-baf3-a6276ccc2b28)
+![A temporary variable holds 5 while the smallest value, 1, moves to the first position. The saved 5 fills its former position.](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/55e77424-3054-409c-a931-e158d18008d8/gallery/c10f62d2-0e8d-40fe-baf3-a6276ccc2b28)
 
 
 If `smallestIndex` is already `i`, the current value is already the smallest remaining value, so no meaningful move is needed (avoiding a redundant self-swap).

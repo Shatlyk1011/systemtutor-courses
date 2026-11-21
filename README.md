@@ -4,11 +4,11 @@ This repository contains the lesson source and course navigation for SystemTutor
 
 ## Courses
 
-| Course | Status |
-| --- | --- |
-| [Data Structures & Algorithms](lessons/data-structures-and-algorithms/) | Ready |
-| [CSS Masterclass](lessons/css/) | In progress |
-| [System Design](lessons/system-design/) | In progress |
+| Course | Status | Learn on SystemTutor |
+| --- | --- | --- |
+| [Data Structures & Algorithms](lessons/data-structures-and-algorithms/) | Ready | [Course overview](https://www.systemtutor.com/courses/data-structures-and-algorithms) |
+| [CSS Masterclass](lessons/css/) | In progress | [Course overview](https://www.systemtutor.com/courses/css) |
+| [System Design](lessons/system-design/) | In progress | [Course overview](https://www.systemtutor.com/courses/system-design) |
 
 Found an error? Open an issue or edit the relevant `.mdx` file and open a pull request. See [CONTRIBUTING.md](CONTRIBUTING.md) for details.
 

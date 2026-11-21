@@ -5,7 +5,7 @@ description: "Understand the mechanics of bubble sort, how to implement it with 
 
 Bubble sort is a comparison-based sorting algorithm where adjacent elements are repeatedly compared and swapped if they are out of order.
 
-![](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/55e77424-3054-409c-a931-e158d18008d8/gallery/2486842a-f5cf-438f-b1ab-93fa16facbb2)
+![Bubble sort compares adjacent pairs and swaps them when the left value is larger, moving large values toward the end.](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/55e77424-3054-409c-a931-e158d18008d8/gallery/2486842a-f5cf-438f-b1ab-93fa16facbb2)
 
 
 ## Bubble Sort Mechanics
@@ -76,12 +76,7 @@ Bubble sort depends on three parts: nested loops, adjacent comparisons, and swap
 
 ### Swap logic
 
-A swap exchanges the value at the current position with the smallest value found by the inner loop.
-
-![](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/55e77424-3054-409c-a931-e158d18008d8/gallery/c10f62d2-0e8d-40fe-baf3-a6276ccc2b28)
-
-
-If `smallestIndex` is already `i`, the current value is already the smallest remaining value, so no meaningful move is needed (avoiding a redundant self-swap).
+When the adjacent values are `5` and `1`, save `5` in a temporary variable, copy `1` into the left position, then write the saved `5` into the right position. The next comparison uses that `5` and its new right neighbor.
 
 ---
 
