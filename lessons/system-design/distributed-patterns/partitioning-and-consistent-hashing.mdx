@@ -1,0 +1,77 @@
+---
+title: "Partitioning Strategies and Consistent Hashing"
+description: "Route keys, rebalance ownership, and distinguish distribution from hot-key traffic."
+---
+
+<Callout title="Lesson goal" type="info">
+  Compare range and hash partitioning, work through a hash ring, and explain virtual nodes.
+</Callout>
+
+**Before you begin** — [Replication, partitioning, and consistency](/courses/system-design/docs/data-systems/replication-partitioning-and-consistency).
+
+A mapping service has outgrown one storage node. It needs a way to decide which node owns each key and what happens when capacity changes. Partitioning is a routing and movement problem as well as a storage problem.
+
+## Choose a partitioning rule
+
+**Range partitioning** assigns intervals of ordered keys to nodes. Neighboring keys stay together, which helps range queries. But if new writes concentrate at one end of the ordering, one partition can receive most of the work.
+
+**Hash partitioning** transforms the key into a hash value and uses that value to choose a node. It can spread unrelated keys more evenly, while queries over original-key ranges may need to contact several nodes.
+
+A simple rule is `hash(key) % node_count`. With three nodes, hash 11 maps to index 2. With four nodes, it maps to index 3. Changing the divisor changes ownership for many keys, creating movement or cache misses even though most nodes remain healthy.
+
+## Walk through a consistent hash ring
+
+Consistent hashing places both keys and node positions in a circular hash space. Start at a key's hash and move clockwise until you reach a node. If the key lands exactly on a node, that node owns it. Passing the largest position brings you back to the smallest.
+
+Use an illustrative ring numbered 0 through 99. Nodes A, B, and C sit at 20, 50, and 80:
+
+| Key's hash | First clockwise node | Owner |
+| --- | --- | --- |
+| 10 | 20 | A |
+| 30 | 50 | B |
+| 60 | 80 | C |
+| 90 | 20 after wrapping | A |
+
+Now add D at 35. The diagram unrolls the ring into a number line. Follow hash 30 before and after D joins.
+
+![Before D joins, key 30 reaches B at 50. After D joins at 35, the same key reaches D first.](/course-images/system-design/distributed-patterns/partitioning-and-consistent-hashing-clockwise-ownership.png)
+
+Only positions after 20 through 35 acquire a new owner. Hash 30 moves to D. The routes for hashes 10, 60, and 90 stay the same. If B later leaves, its remaining interval moves to C.
+
+The benefit is limited remapping when membership changes. This routing rule does not copy stored values by itself. A persistent store must transfer data and coordinate routing changes; a cache must handle misses and refill pressure.
+
+## Represent physical nodes with virtual nodes
+
+One position per physical node can produce uneven intervals. A **virtual node** is another position assigned to the same physical server, giving that server several smaller intervals.
+
+For a simple example, assign A positions 10 and 60, B positions 30 and 80, and C positions 45 and 95. Hash 12 belongs to B at 30; hash 52 belongs to A at 60; hash 88 belongs to C at 95. Each server owns several parts of the ring rather than one contiguous region.
+
+![Two separated virtual positions labeled A on a hash ring belong to one physical server.](/course-images/system-design/distributed-patterns/partitioning-and-consistent-hashing-virtual-nodes.png)
+
+More well-distributed positions can improve aggregate balance and allow higher-capacity machines to own more intervals. The trade-off is additional placement metadata and more ranges to move. Workload also depends on how often each key is accessed.
+
+## Rebalance without losing the data
+
+Suppose B copies key 30 to D, then accepts an update to that key while the other records are still moving. Sending readers to D now could serve the old value. One migration plan keeps B authoritative during the copy, forwards or replays intervening updates, and briefly coordinates the switch once D has caught up. B can retire its old copy when earlier requests and routes no longer depend on it.
+
+For a replicated design, avoid selecting multiple virtual positions on the same physical server as if they were independent replicas. Placement should account for distinct machines and failure domains.
+
+A viral short link can overload its owner even if every server stores the same number of records. Virtual nodes distribute ranges; they do not split a single key's popularity. Cache or replicate read access where the freshness policy permits, and monitor traffic as well as record count.
+
+## Check your understanding
+
+On the original ring A=20, B=50, C=80, node D joins at 35. Which owner receives hash 40? Does hash 30 move?
+
+<details>
+<summary>Compare your reasoning</summary>
+
+Hash 40 still belongs to B at 50. Hash 30 moves from B to D at 35. Only the newly claimed interval changes in this simplified example; actual stored records still need migration.
+
+</details>
+
+## Key Takeaways
+
+- **Partition rules:** Range and hash strategies favor different query patterns.
+- **Consistent hashing:** Membership changes remap selected intervals rather than most keys.
+- **Virtual nodes:** Multiple positions improve distribution without eliminating hot keys.
+- **Movement:** Routing, data transfer, and replica placement must agree during changes.

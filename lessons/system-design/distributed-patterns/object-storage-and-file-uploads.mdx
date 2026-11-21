@@ -1,0 +1,70 @@
+---
+title: "Object Storage and File Uploads"
+description: "Separate file metadata from content and recover interrupted uploads."
+---
+
+<Callout title="Lesson goal" type="info">
+  Trace authorized upload and download, explain multipart completion, and distinguish durability from availability.
+</Callout>
+
+**Before you begin** — [Storage and database choices](/courses/system-design/docs/data-systems/storage-and-database-choices) and [security and API boundaries](/courses/system-design/docs/reliable-services/security-and-api-boundaries).
+
+A file service needs to answer two kinds of questions: “Who owns this file?” and “Where are its bytes?” Separating metadata from content lets those operations use storage suited to their different workloads.
+
+## Model metadata and objects separately
+
+An **object** is stored content identified by a key, usually within a logical container called a bucket. The application database can store file ID, owner, display name, object key, size, version, and upload state.
+
+![The database records ownership and an object key. The key locates file content in object storage.](/course-images/system-design/distributed-patterns/object-storage-and-file-uploads-metadata-and-bytes.png)
+
+Do not infer access rights from an object's name. The API checks the requested action against the file's ownership and sharing policy. Downloads need authorization just as uploads do.
+
+Assume 10,000 files per day at an average 2 MB each. Logical content grows by 20 GB daily and 600 GB over 30 days. At 1 KB of metadata per file, the same 30 days require about 300 MB of logical metadata. Versions, replicas, incomplete uploads, and indexes add capacity beyond those figures.
+
+## Begin with an explicit upload state
+
+The client creates an upload request with validated metadata. The API checks identity, permissions, and allowed size, then records a pending upload. Content transfer happens against that upload identity. The file becomes available only after the required content has been successfully stored and completion is confirmed.
+
+Keeping “pending” separate from “available” avoids advertising an incomplete file as downloadable. If content storage succeeds but the metadata update fails, recovery must reconcile the stored content with the pending record. Metadata and object storage generally do not share one application database transaction.
+
+## Divide a large transfer into parts
+
+With **multipart upload**, the client initiates an upload and receives an upload ID. It splits content into numbered parts, uploads them independently, then completes using the expected part list. A failed part can be retried without retransmitting the whole file. [Amazon S3 multipart workflow](https://docs.aws.amazon.com/AmazonS3/latest/userguide/mpuoverview.html)
+
+![While metadata is pending, parts 1 and 3 succeed and part 2 is retried. The service marks the file available after the object is completed and verified.](/course-images/system-design/distributed-patterns/object-storage-and-file-uploads-retry-one-part.png)
+
+Suppose parts 1 and 3 succeed but part 2 fails. Keep the successful part identifiers, resend part 2 under the same upload ID, and submit the ordered list for completion. On S3 that list contains each part's number and ETag. Use the storage API's documented checksum for integrity verification because a multipart object's ETag can differ from an MD5 digest of the file. [Amazon S3 multipart workflow](https://docs.aws.amazon.com/AmazonS3/latest/userguide/mpuoverview.html)
+
+If the completion response is lost, reconcile the pending record against the intended object, using a key unique to that upload or a known version and checksum. An older object with the same display name cannot confirm this upload succeeded. Abandoned parts also consume storage. Track pending-upload age and abort unfinished transfers according to the cleanup policy.
+
+## Download a specific version
+
+The API checks read permission, loads metadata, then retrieves the referenced object. For files represented as application-managed blocks, metadata includes the ordered block list needed to reconstruct the content. This block model is a design option; it is not a requirement for every object-store API.
+
+Versioning retains earlier content when a file changes. If two devices edit the same original version, the system can preserve both resulting versions for conflict resolution instead of silently overwriting one. A notification that a file changed helps online clients react; reconnecting clients still need to query the current metadata and missed changes.
+
+## Distinguish available from durable
+
+**Availability** concerns whether requests can complete now. **Durability** concerns preserving stored data over time. Copies on separate failure domains can protect against a machine or location failure, while checksums help detect corruption.
+
+Erasure coding stores data and parity fragments so some missing fragments can be reconstructed. It trades reconstruction work and coordination for storage efficiency. Replica count or coding ratio alone does not prove a durability percentage; correlated failures, repair behavior, and metadata protection matter too.
+
+A highly durable object may still be temporarily unavailable. Conversely, a system can serve reads quickly while having inadequate protection against permanent loss.
+
+## Check your understanding
+
+All parts uploaded, but the client disconnected before receiving completion. Should the application mark the file available or immediately upload everything again?
+
+<details>
+<summary>Compare your reasoning</summary>
+
+Neither follows from the disconnect alone. Reconcile the known upload ID and object state with the storage service. Confirm successful completion before making the metadata available, and reuse existing parts where the API permits. Clean up only after distinguishing incomplete work from a completed object.
+
+</details>
+
+## Key Takeaways
+
+- **Separation:** Metadata describes identity, permissions, and versions; object storage holds content.
+- **Multipart uploads:** Retry parts independently and confirm final completion.
+- **Recovery:** Reconcile pending metadata and stored objects across failure windows.
+- **Durability:** Protect both content and metadata, and distinguish preservation from current access.

@@ -60,20 +60,40 @@ For `["tea", "coffee", "tea"]`, the profile is `{ tea: 2, coffee: 1 }`. The keys
 
 Two inputs have matching contents when every value appears the same number of times in both profiles. Order does not matter, but missing keys and different counts do.
 
-```text
-sameContents(first, second):
-    if length(first) != length(second):
-        return false
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```js
+    function sameContents(first, second) {
+      if (first.length !== second.length) return false;
 
-    firstProfile = count(first)
-    secondProfile = count(second)
+      const firstProfile = count(first);
+      const secondProfile = count(second);
 
-    for value in firstProfile:
-        if firstProfile[value] != secondProfile[value]:
-            return false
+      for (const [value, frequency] of firstProfile) {
+        if (secondProfile.get(value) !== frequency) return false;
+      }
 
-    return true
-```
+      return true;
+    }
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    def same_contents(first, second):
+        if len(first) != len(second):
+            return False
+
+        first_profile = count(first)
+        second_profile = count(second)
+
+        for value, frequency in first_profile.items():
+            if second_profile.get(value) != frequency:
+                return False
+
+        return True
+    ```
+  </Tab>
+</Tabs>
 
 The length check is an early exit: if the inputs contain different numbers of items, their frequency profiles cannot match.
 

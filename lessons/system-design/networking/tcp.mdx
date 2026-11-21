@@ -1,126 +1,59 @@
 ---
-title: TCP
-description: Learn how TCP establishes connections and delivers ordered data.
+title: "TCP"
+description: "Trace connection setup, byte ordering, and loss recovery in TCP."
 ---
 
 <Callout title="Lesson goal" type="info">
-  By the end of this lesson, you will understand how TCP establishes reliable connections via the three-way handshake, divides and reassembles data using sequence numbers, and balances reliability against latency and overhead.
+  Trace the three-way handshake and predict what the application can read when data arrives out of order.
 </Callout>
 
-**TCP (Transmission Control Protocol)** is a transport protocol that provides applications with a reliable, ordered byte stream between two endpoints. It divides application data into segments for transmission and reassembles the bytes in order at the receiving end.
+**Before you begin** — [IP](/courses/system-design/docs/networking/ip).
 
-Key reliability functions of TCP include:
-- **Detects loss and corruption:** Checksums and acknowledgements let TCP detect missing or damaged data; it retransmits data when necessary.
-- **Preserves byte order:** Sequence numbers let TCP present received bytes to the application in the original order.
+A server delivering a file needs the receiver to see the original bytes in order. **TCP (Transmission Control Protocol)** gives applications a reliable, ordered byte stream while the connection remains usable. IP can take care of routing each packet even if different packets experience different delays.
 
----
+## Establish a connection
 
-## The Three-Way Handshake
+Before a typical TCP connection carries application data, the endpoints synchronize their starting sequence numbers for the two directions of travel.
 
+1. **SYN.** The client sends its initial sequence number.
+2. **SYN-ACK.** The server acknowledges the client’s SYN and sends its own initial sequence number.
+3. **ACK.** The client acknowledges the server’s SYN. This segment can also carry application bytes.
 
-TCP uses a **connection-oriented model**. Before communication proceeds, TCP uses a **three-way handshake** as part of establishing and synchronizing the connection between client and server.
+![The client sends SYN, the server replies SYN-ACK, and the client sends ACK.](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/54de4736-cbfb-4ca3-add4-542a111f11df/gallery/46e9284c-2dc6-4c6c-ad4d-179a84d1dd49)
 
+The client typically waits one round trip for the SYN-ACK before sending its first application bytes. Reusing an established connection avoids paying that setup cost for another request. [TCP specification, connection establishment](https://www.rfc-editor.org/rfc/rfc9293.html#section-3.5)
 
-![TCP three-way handshake](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/54de4736-cbfb-4ca3-add4-542a111f11df/gallery/46e9284c-2dc6-4c6c-ad4d-179a84d1dd49)
+## Recover a gap in the stream
 
+TCP can divide a block of application bytes into **segments** that travel in IP packets. A segment’s sequence number identifies the position of its first data byte in the stream. Segment boundaries may differ from the boundaries between an application’s writes.
 
-### Why the handshake matters
+![TCP divides a block of application bytes into four segments for transmission.](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/e25a97c7-7bb0-4a6e-a419-05a6f6f3c1fa/gallery/cc752618-d93c-4fcb-ac6c-ee38df3b78c9)
 
-The handshake provides the setup step for a TCP connection. It is the process that supports TCP’s connection-oriented approach, ensuring that communication begins through an established, synchronized connection rather than as unrelated exchanges.
+Imagine four data segments sent in order. The receiver gets the first, third, and fourth. It can deliver the bytes from the first segment to the application and buffer later bytes. It has to wait to deliver the bytes beyond the gap because the application reads one ordered stream.
 
-## How TCP Divides Data (Segmentation)
+![Segment 2 is missing when 3 and 4 arrive. The receiver can deliver the complete ordered sequence once 2 is retransmitted.](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/54de4736-cbfb-4ca3-add4-542a111f11df/gallery/51ee2a4c-a8a1-4410-b75f-47f4bcd778d7)
 
-TCP does not treat all application data as one large block. Instead, it prepares large application data for transmission by dividing it into smaller units called **segments**. This process is known as **segmentation**.
+The numbers 1 through 4 in the figure label pieces of data for illustration. On the wire, TCP counts bytes. A cumulative **acknowledgement (ACK)** tells the sender the next byte the receiver expects in order. When the sender detects loss, it retransmits the missing data. Once the gap is filled, the receiver can deliver the newly contiguous bytes. If the connection breaks before recovery completes, the application must handle failure.
 
-![](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/e25a97c7-7bb0-4a6e-a419-05a6f6f3c1fa/gallery/cc752618-d93c-4fcb-ac6c-ee38df3b78c9)
+## Decide when ordering pays for itself
 
+For a file transfer, losing a piece would leave the file incomplete. TCP’s setup, acknowledgements, and retransmissions support the delivery behavior the application needs. For rapidly changing game positions, a newly arrived snapshot may already replace the missing one. Holding the fresh snapshot behind older bytes can use up its useful lifetime.
 
-These segments are carried as TCP data inside IP packets, as described in the Internet Protocol Suite.
+HTTP/1.1, HTTP/2, email protocols such as SMTP, and SSH commonly use TCP. HTTP/3 uses QUIC, a transport that supplies reliable streams over UDP.
 
----
+## Check your understanding
 
-## How TCP Restores Order
+A receiver expects byte 201. Bytes 301 through 400 arrive while bytes 201 through 300 are missing. What can it deliver next?
 
-Segments may need to be placed back into their original order before the application data can be reconstructed. TCP uses **sequence numbers** to identify each segment’s position in the original data:
+<details>
+<summary>Compare your reasoning</summary>
 
-![TCP ordering and retransmission](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/54de4736-cbfb-4ca3-add4-542a111f11df/gallery/51ee2a4c-a8a1-4410-b75f-47f4bcd778d7)
+It can buffer bytes 301 through 400. When bytes 201 through 300 arrive, the entire range 201 through 400 is contiguous and can be delivered in order.
 
-TCP uses these sequence numbers to determine the correct order of the **segments** and reconstruct the original application data.
+</details>
 
-The process is:
+## Key Takeaways
 
-1. TCP divides large application data into smaller segments.
-2. TCP associates each segment with a sequence number.
-3. TCP uses the sequence numbers to restore the segments to their original order.
-4. TCP reconstructs the application data from the ordered segments.
-
-<Callout title="Core idea" type="info">
-TCP segmentation breaks large application data into smaller segments, while sequence numbers allow TCP to restore those segments to the correct order at the destination.
-</Callout>
-
----
-
-## TCP Overhead and Latency
-
-TCP adds reliability features that require extra network activity. This activity creates **overhead**—additional work or communication—and can increase **latency**, the time involved in communication.
-
-### Where the overhead comes from
-
-| TCP feature | Why it adds cost |
-|---|---|
-| **Acknowledgements** | TCP sends acknowledgements (ACKs) to confirm received data. These messages add network communication. |
-| **Ordering** | TCP maintains the order of data. Supporting that ordering adds processing, memory buffering, and communication work. |
-| **Retransmission** | TCP retransmits data when necessary. Sending the same data again adds traffic and delay. |
-| **Connection setup** | TCP performs a 3-way handshake setup before communication. This introduces latency before data transfer can begin. |
-
-These features support TCP’s communication behavior, but they are not free: each can contribute to additional network overhead or delay.
-
-### The central trade-off
-
-TCP’s acknowledgements, ordering, and retransmission require extra handling during communication. Its connection setup adds work before communication begins. As a result, TCP can introduce both:
-
-- **Overhead during communication**, from acknowledgements, ordering, and retransmission.
-- **Latency before communication**, from connection setup.
-
-TCP's reliability work has a cost, especially when loss causes retransmission or ordered delivery waits for a missing segment. That does not make TCP universally “slower”; the right choice depends on the application's delivery and latency requirements. When an application can tolerate occasional loss and values timely updates, such as voice, live media, or some game state, **UDP** is often a good fit.
-
-<Callout title="Key trade-off" type="info">
-  TCP provides reliable, ordered delivery to the application while the connection remains viable. Choose it when complete, ordered data matters. Choose UDP when the application can handle loss or ordering itself and timely updates matter more than recovering every update.
-</Callout>
-
----
-
-## Applications Built on TCP
-
-TCP serves as the foundation for several common application protocols. Understanding these connections shows where TCP fits into application-level communication.
-
-| Application protocol | Connection to TCP | Primary use case |
-|---|---|---|
-| **HTTP / HTTPS** | HTTP/1.1 and HTTP/2 commonly run over TCP; HTTP/3 runs over QUIC/UDP | Web browsing, REST APIs, web application communication |
-| **Email protocols (SMTP, IMAP, POP3)** | Built on TCP | Reliable sending and receiving of emails |
-| **WebSockets** | Built on TCP | Real-time, bidirectional interactive web connections |
-| **SSH / FTP** | Built on TCP | Secure remote terminal access and file transfers |
-
-### The central relationship
-
-TCP and an application protocol are related layers of communication. TCP provides the transport foundation, while protocols such as HTTP, email protocols, and WebSockets build applications on top of it.
-
-Keep the layers distinct:
-
-- **TCP**: the transport foundation providing reliable, ordered delivery.
-- **HTTP, email protocols, and WebSockets**: application protocols connected to that foundation.
-
-<Callout title="Takeaway" type="info">
-When studying protocols that use TCP, remember that they rely on TCP's connection management, loss recovery, and ordered byte stream beneath the application layer. HTTP itself can also run over QUIC in HTTP/3.
-</Callout>
-
----
-
-## Recap
-
-- **Connection-oriented:** TCP uses a three-way handshake to establish a connection before communication begins.
-- **Segmentation & Ordering:** TCP divides large data into segments, tracks them with sequence numbers, and restores the original sequence upon arrival.
-- **Reliability:** Built-in error checking, acknowledgements, and retransmissions ensure that lost or corrupted packets are resent.
-- **Overhead & Latency:** Handshake setup introduces latency before communication, while ACKs and retransmissions add overhead during transmission.
-- **TCP vs. UDP:** Use TCP when data integrity and complete delivery are required; choose UDP when ultra-fast, low-latency transmission takes priority over reliability.
-- **Application Protocols:** HTTP, email protocols (SMTP/IMAP), and WebSockets build directly on top of TCP.
+- **Connection setup** establishes sequence numbers in both directions and costs about one round trip for the initiating client.
+- **Sequence numbers and ACKs** let TCP detect gaps and recover the ordered byte stream.
+- **Ordered delivery** can make later bytes wait for earlier data. Consider that wait when a message has a deadline.

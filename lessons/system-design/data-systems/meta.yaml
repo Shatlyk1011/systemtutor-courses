@@ -1,0 +1,7 @@
+title: Data systems
+description: Choose storage and reason about replication, partitioning, consistency, and caching.
+pages:
+  - storage-and-database-choices
+  - replication-partitioning-and-consistency
+  - caching-and-content-delivery
+  - quiz-choosing-where-a-read-gets-its-data

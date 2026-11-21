@@ -1,22 +1,38 @@
 ---
-title: System design fundamentals
-description: Understand how applications, networks, and APIs work together.
+title: System design
+description: Learn to scope, estimate, design, and operate reliable applications and distributed systems.
 ---
 
-A good system design starts with requirements. Decide what must be correct, what must stay available, and how much traffic the system needs to handle. Then choose the components and trade-offs that meet those needs.
+Two guests see the last room on a hotel website and both press **Reserve**. What can the site show each guest? Where does it decide who gets the room? By the end of the core course, you’ll be able to draw the booking path, defend that decision, and explain how the service recovers if a reply gets lost.
 
-## Your learning path
+Start here if you can read a short program and recognize a client and a server. The early lessons introduce the networking, API, and database vocabulary used in the case studies.
 
-Work through the course in order, or jump to a topic you need:
+Each module ends with a quiz. Five checkpoints also appear along the way, after UDP, safe retries, the URL shortener, notification delivery, and the distributed key-value store.
 
-- **[Application architecture](/courses/system-design/docs/application-architecture/application-foundations):** Follow requests, explore scaling and caching, and understand production behavior.
-- **[Networking](/courses/system-design/docs/networking/introduction):** Learn how IP, TCP, UDP, DNS, and HTTP move data between machines.
-- **[API design](/courses/system-design/docs/api/introduction):** Compare REST, GraphQL, and RPC as contracts between services.
+## Follow one request
 
-## Before you begin
+| Module | Question you’ll learn to answer |
+| --- | --- |
+| [Application architecture](/courses/system-design/docs/application-architecture/application-foundations) | When someone opens a profile, which component does the work, and how can you tell where the time went? |
+| [Networking](/courses/system-design/docs/networking/introduction) | How does the browser find the server and exchange a request and a response? |
+| [API design](/courses/system-design/docs/api/introduction) | How would the same client express its request through REST, GraphQL, or RPC? |
 
-You should be comfortable with basic programming and the idea of a client and server. You do not need experience building distributed systems.
+## Design a service around a workload
 
-## Make each lesson count
+The short-link service is a running example. Keep a single sketch as you work through these modules. Add a component when you can name the requirement it serves.
 
-After each topic, explain what it does, when you would use it, and what you give up. Connect the answer to a small application you know. That habit turns a list of technologies into a reasoned design.
+| Module | Decision to add to your sketch |
+| --- | --- |
+| [Design foundations](/courses/system-design/docs/design-foundations/design-process-and-requirements) | Set the scope. Estimate reads, writes, storage, and bandwidth with units. |
+| [Data systems](/courses/system-design/docs/data-systems/storage-and-database-choices) | Decide where the mapping lives and how long a cached redirect may remain usable. |
+| [Reliable services](/courses/system-design/docs/reliable-services/asynchronous-work-and-messaging) | Decide what success means when a dependency slows down or a response gets lost. |
+
+## Put the pieces together
+
+Work through the [URL shortener](/courses/system-design/docs/design-practice/url-shortener) and [notification system](/courses/system-design/docs/design-practice/notification-system). At each design exercise, write down what a user would observe before opening the model answer.
+
+Finish the core path with the [reservation service capstone](/courses/system-design/docs/design-practice/reservation-service-capstone). Sketch your own solution, test two guests booking the last room, and score your design with the rubric.
+
+## Extend your design practice
+
+The optional [distributed patterns module](/courses/system-design/docs/distributed-patterns/partitioning-and-consistent-hashing) follows data across machines. Start with key placement and replica agreement, then apply those ideas to chat, file uploads, and feeds.

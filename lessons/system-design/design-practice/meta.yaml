@@ -1,0 +1,9 @@
+title: Design practice
+description: Work through two case studies and design a reservation service independently.
+pages:
+  - url-shortener
+  - quiz-design-review-url-shortener
+  - notification-system
+  - quiz-design-review-notification-delivery
+  - reservation-service-capstone
+  - quiz-design-review-booking-the-last-room

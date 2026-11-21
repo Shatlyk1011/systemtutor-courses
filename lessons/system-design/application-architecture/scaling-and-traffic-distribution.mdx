@@ -3,50 +3,49 @@ title: Scaling and Traffic Distribution
 description: Handle growing traffic with load balancing, horizontal scaling, and caching.
 ---
 
-When a system grows, the question is never **if** you will need to scale — it is **which part** will need to scale first. This lesson covers the core patterns.
+<Callout title="Lesson goal" type="info">
+  Locate a capacity bottleneck and choose between a larger server, more application instances, or a cache.
+</Callout>
 
-Scaling helps a system handle changing demands. Two common approaches are **vertical scaling** and **horizontal scaling**.
+**Before you begin** — [Application Foundations](/courses/system-design/docs/application-architecture/application-foundations).
 
-## Vertical vs. horizontal scaling
+Suppose more people start opening their profiles at the same time. The application runs code for every request, and the database supplies each profile. Which component runs out of capacity first determines which change will help.
 
-![](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/ba63474e-1b92-4442-ad73-e67e7b1b8070/gallery/86f5ac9b-f7cf-4865-be4a-24f9dbe33465)
+## Scale the component doing the work
 
-**Vertical scaling** means giving a single server more resources: more CPU, more RAM, faster disks. It is simple but has hard limits — there is only so large a machine you can buy, and a single machine is a single point of failure.
+**Vertical scaling** gives one machine more resources, such as CPU or memory. If the application server spends most of its time doing computation, more CPU can let it handle more requests. The capacity is still concentrated on that machine.
 
-**Horizontal scaling** means adding more servers and distributing load across them. It can increase capacity and provide redundancy, but it has practical limits: shared state, coordination, and uneven traffic can become bottlenecks. You need a way to decide which server handles each request.
+**Horizontal scaling** adds instances that share the work. Two application servers can handle requests concurrently if either can access the necessary data. If every request still goes to one overloaded database, adding application instances leaves that shared limit in place.
 
-## Load balancers
+![Scaling up gives one server more capacity. Scaling out places several servers behind a load balancer.](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/ba63474e-1b92-4442-ad73-e67e7b1b8070/gallery/86f5ac9b-f7cf-4865-be4a-24f9dbe33465)
 
-A **load balancer** sits in front of your application servers and distributes incoming requests. Common strategies include:
+## Route requests to healthy instances
 
-- **Round robin** — requests are distributed to each server in turn.
-- **Least connections** — the request goes to the server with the fewest active connections.
-- **IP hash** — the client's IP address determines which server handles its requests, enabling session affinity.
+A **load balancer** chooses an application instance for each incoming request or connection. With equally sized servers doing similar work, **round robin** sends traffic to each in turn. **Least connections** favors the server with fewer active connections. **IP hashing** uses the client's address to select a server, which can keep a client's requests together while the server pool remains stable.
 
-The load balancer also performs health checks and stops sending traffic to servers that fail.
+When configured with health checks, the load balancer removes an unresponsive instance from rotation once it detects the failure. The remaining instances now share its work. Whether users experience an outage depends in part on how much spare capacity those instances have.
 
-![](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/ba63474e-1b92-4442-ad73-e67e7b1b8070/gallery/01b2cedc-8c3f-4d25-b4cd-f289e3997f5f-vertical-horizontal-scaling.webp)
+## Avoid a repeated database read
 
-## Caching
+A **cache** holds a reusable result. Suppose the same profile is requested repeatedly. The first lookup misses the cache, so the application reads the profile from storage and can save a copy. A later lookup can use that copy, reducing the work sent to the database.
 
-A **cache** stores a reusable result close to the requester so later requests can avoid slower work, such as a database query or computation. Many caches are in memory, but a cache is defined by this reuse, not by a particular product or location.
+![Clients reach the application, which can reuse data in its memory cache or query the database.](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/ba63474e-1b92-4442-ad73-e67e7b1b8070/gallery/7d7f68c3-ddf7-47f6-8212-d5b663dfa7cb)
 
-![](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/ba63474e-1b92-4442-ad73-e67e7b1b8070/gallery/7d7f68c3-ddf7-47f6-8212-d5b663dfa7cb)
+The author might edit the profile between those two reads. **Invalidation** removes an entry after a change, and a **time to live (TTL)** limits how long the cache can reuse the entry before it expires. The design needs a rule for how long users may see an old display name. You will examine what happens when updates and reads overlap in [Caching and Content Delivery in Practice](/courses/system-design/docs/data-systems/caching-and-content-delivery).
 
+## Check your understanding
 
-Key caching concepts:
+Both application servers have spare CPU. Database reads are at capacity, and many requests ask for the same profiles. What would you expect from adding a third application server?
 
-| Concept | What it means |
-|---|---|
-| **Cache hit** | The requested data is found in the cache and can be returned without the usual source lookup. |
-| **Cache miss** | The data is not in the cache, so the system retrieves or computes it from its source and may populate the cache. |
-| **TTL (time to live)** | How long a cached value is considered valid before it must be refreshed. |
-| **Cache invalidation** | The process of removing stale data from the cache when the underlying data changes. |
+<details>
+<summary>Compare your reasoning</summary>
 
-Caches can sit beside the application (for example, Redis or Memcached) or at the network edge through a CDN. Caching improves speed only when a suitable, fresh value is available, so a design must define what happens when data changes.
+Each profile lookup would still need a database read. Measure how often the same profiles are requested and decide how fresh their values need to be. A cache could remove repeated reads if those values can safely be reused.
 
-## Key takeaways
+</details>
 
-- Prefer **horizontal scaling** for flexibility.
-- A **load balancer** distributes traffic and routes around failures.
-- **Caching** reduces load on your database and improves response times — but cache invalidation is hard, so be deliberate about what you cache.
+## Key Takeaways
+
+- **Vertical scaling** adds capacity to one machine. **Horizontal scaling** spreads work across instances.
+- A **load balancer** routes traffic. The healthy instances need enough capacity to absorb a failed instance's share.
+- A **cache** reduces repeated work on hits. Choose how to handle an edit before reusing a cached profile.

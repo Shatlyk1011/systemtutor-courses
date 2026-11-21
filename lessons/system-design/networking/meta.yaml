@@ -1,9 +1,11 @@
 title: Networking
-description: Follow data between machines through IP, transport, DNS, and HTTP.
+description: Follow a browser request from packet routing and transport to name resolution and HTTP.
 pages:
   - introduction
   - ip
   - tcp
   - udp
-  - http
+  - quiz-routing-streams-and-datagrams
   - dns
+  - http
+  - quiz-from-a-hostname-to-an-http-response

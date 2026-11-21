@@ -1,0 +1,72 @@
+---
+title: "Resilience and Safe Retries"
+description: "Bound waiting and retries while protecting effects from repetition."
+---
+
+<Callout title="Lesson goal" type="info">
+  Explain ambiguous timeouts, bounded backoff, idempotency, and graceful degradation.
+</Callout>
+
+**Before you begin** — [Asynchronous work and messaging](/courses/system-design/docs/reliable-services/asynchronous-work-and-messaging).
+
+A client submits a reservation and receives no response. Did the request fail before reaching the server, or did the booking commit before the response was lost? A timeout tells the caller it stopped waiting. It does not settle what happened remotely.
+
+## Bound how long work can wait
+
+A **timeout** limits waiting for an operation. An overall deadline limits the total time available across attempts and dependencies. Choose them from the operation's latency behavior and the caller's needs. A very short timeout can turn healthy but slower requests into unnecessary retries; an unlimited wait can hold resources indefinitely.
+
+Suppose the caller allows two seconds. The first attempt takes 1.6 seconds and the client waits another 0.3 seconds before retrying. Only 0.1 seconds remain for the next attempt and the response. If a useful attempt cannot fit, stop and return the known status to the caller. [AWS timeout and backoff guidance](https://aws.amazon.com/builders-library/timeouts-retries-and-backoff-with-jitter/)
+
+## Retry only work that can benefit
+
+Retrying the same invalid input will not fix it. A transient connection failure or temporary overload may justify another attempt, provided the operation is safe to repeat.
+
+Use a maximum attempt count and an overall deadline. **Exponential backoff** increases delay between attempts; **jitter** varies the delay so many clients do not retry together. These spread work over time. They do not remove the need for a limit. Respect a server's applicable retry guidance, including a `Retry-After` response when provided.
+
+![Without jitter, clients retry together. Jitter spreads their retry attempts over time.](/course-images/system-design/reliable-services/resilience-and-safe-retries-retry-jitter.png)
+
+If three layers each make three attempts, one top-level operation can cause as many as 27 calls at the deepest layer. Place retry responsibility deliberately and account for retries already performed by clients or libraries.
+
+## Give one logical operation a stable identity
+
+An **idempotency key** identifies one intended action across attempts. The caller creates it once and reuses it when retrying the same action. A new key on every attempt defeats duplicate recognition.
+
+Suppose a caller chooses key `42` for a reservation. The server commits the booking with its result and loses the response. When the caller retries with the same key and details, the server can return that booking.
+
+![The first request with key 42 commits a reservation and its result, then the response is lost. Retrying with 42 returns the recorded booking.](/course-images/system-design/reliable-services/resilience-and-safe-retries-retry-same-key.png)
+
+Scope the key to the authenticated caller and record the original parameters. If the same caller reuses `42` with different dates, return a conflict. Define how long the service remembers keys so callers know how long they can safely retry. [AWS idempotent API design](https://aws.amazon.com/builders-library/making-retries-safe-with-idempotent-APIs/)
+
+For a database-only operation, put the state change and duplicate-protection record in the same transaction. Otherwise, a crash between them can leave either an effect without a record or a record without the effect. A unique key also prevents simultaneous requests from independently claiming the same operation.
+
+## Understand the external-effect boundary
+
+Suppose the effect is sending a notification through another provider. A local database commit cannot atomically include that remote action. The provider may accept the message just before the worker loses its connection.
+
+If supported, pass a stable idempotency identifier to the provider. Otherwise, track the uncertain state and use a status query or reconciliation process where available. Retrying blindly trades possible loss for possible duplication. Claiming “exactly once” requires stating the protected boundary and assumptions; retries alone cannot provide it.
+
+## Protect useful work under overload
+
+**Graceful degradation** reduces optional behavior while preserving essential behavior. A short-link service might continue redirects while temporarily disabling optional analytics. That is an explicit product decision about what can be omitted.
+
+Bound accepted work when dependencies slow down. Continuing to accept everything can grow waiting queues and increase timeouts, which trigger more retries. Rejection can be the behavior that allows already accepted work to finish.
+
+## Check your understanding
+
+A reservation times out after its transaction commits. The client repeats the same payload with a new key. Is it protected from creating a second reservation?
+
+<details>
+<summary>Compare your reasoning</summary>
+
+No. The new key describes a new logical action to the server. Reuse the original key and return its recorded result. Inventory concurrency control is also necessary, because two different legitimate requests can compete for the last available room.
+
+</details>
+
+## Key Takeaways
+
+- **Timeouts:** An absent response leaves the remote outcome uncertain.
+- **Retry budgets:** Bound attempts and elapsed time, and avoid multiplying retries across layers.
+- **Idempotency:** Reuse a stable key and atomically protect the local effect.
+- **Boundaries:** External effects need cooperation or reconciliation beyond local transactions.
+
+[Take the quiz · Durable jobs and safe retries](/courses/system-design/docs/reliable-services/quiz-durable-jobs-and-safe-retries)

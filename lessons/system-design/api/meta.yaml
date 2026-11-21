@@ -1,7 +1,8 @@
 title: API design
-description: Compare REST, GraphQL, and RPC as service contracts.
+description: Trace one profile lookup through resource, field, and operation-based API contracts.
 pages:
   - introduction
   - rest
   - graphql
   - rpc
+  - quiz-choosing-an-api-contract

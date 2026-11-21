@@ -4,52 +4,46 @@ description: Use logs, metrics, and traces to understand production behavior.
 ---
 
 <Callout title="Lesson goal" type="info">
-  By the end of this lesson you will understand the three primary observability signals — logs, metrics, and traces — and how alerts turn those signals into an operational response.
+  Use metrics, a trace, and logs to investigate a slow profile request and decide when a responder needs an alert.
 </Callout>
 
-You cannot improve what you cannot see. Observability is the discipline of making your system's internal state visible from the outside, without having to redeploy code every time something goes wrong.
+**Before you begin** — [Scaling and Traffic Distribution](/courses/system-design/docs/application-architecture/scaling-and-traffic-distribution).
 
-## The three observability signals
+A user reports that their profile took a long time to load. Was this an isolated request, or did many users experience the same delay? **Observability** lets you investigate questions about a running system through the signals it emits.
 
-![](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/de9ef765-c009-496e-b966-629ad6184037/gallery/8de9f362-4325-4f06-b53f-bb38a62b0138)
+## Start with the size of the problem
 
-### Logs
+A **metric** is a numerical measurement. For a user-facing service, track request **rate** (how much traffic arrived), **errors** (how often requests failed), and **duration** (how long requests took). Together these are called the **RED** signals. Resource **saturation**, such as a busy disk with work waiting, helps investigate a possible cause.
 
-A **log** is a timestamped record of a discrete event. Logs tell you *what happened* at a specific moment in time.
+Averages can hide a group of slow requests. The **95th percentile (p95)** is the time at or below which roughly 95% of the observed requests finished. Compare the same operation over comparable time windows. If profile p95 rises while request volume is steady, the delay deserves investigation even when most users still get a fast response.
 
-Good logs are:
-- **Structured** — written as key-value pairs (JSON) rather than free-form strings, so they can be queried programmatically.
-- **Contextual** — they include a request ID, user ID, or trace ID so you can group related events together.
-- **Actionable** — they contain enough information to understand the event without having to look at the source code.
+![A request produces logs, metrics, and traces. A dashboard shows an error-rate spike and alerts the on-call responder to investigate.](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/de9ef765-c009-496e-b966-629ad6184037/gallery/8de9f362-4325-4f06-b53f-bb38a62b0138)
 
-### Metrics
+## Follow a slow profile request
 
-A **metric** is a numeric measurement sampled over time. Metrics tell you *how much* and *how fast*.
+A **trace** records the path of one request. Each timed operation in that path is a **span**. In one example trace, the profile request takes **240 ms** from start to finish. A database read inside that request takes **180 ms**, consuming three quarters of its elapsed time. The read is included in the 240 ms total. Adding the two numbers would count that time twice. [OpenTelemetry's guide to traces and spans](https://opentelemetry.io/docs/concepts/signals/traces/)
 
-Common system metrics include:
-- **Request rate** — how many requests per second your system is handling.
-- **Error rate** — what percentage of requests are failing.
-- **Latency** — how long requests are taking (p50, p95, p99 percentiles matter more than averages).
-- **Saturation** — how close your resources (CPU, memory, disk I/O) are to their limits.
+![A database read takes 180 ms inside a 240 ms profile request. The full time includes the database work.](/course-images/system-design/application-architecture/observability-and-operations/observability-and-operations-request-trace.png)
 
-The first three are the **RED method** (Rate, Errors, Duration). Saturation complements RED by showing whether the resources that serve that work are nearing their limits.
+A **log** records an event at a particular time. Structured fields such as the operation, timestamp, and trace ID let you find events for the database read. Use that trace ID to examine what happened in this request. Compare it with other slow requests before attributing the service-wide p95 increase to the database.
 
-### Traces
+## Decide when to alert
 
-A **trace** follows one request as it crosses service boundaries. It is made of **spans**, timed records for the individual operations within that request. Traces answer questions such as, “Which dependency made this checkout request slow?” They connect the aggregate view from metrics to the detailed events in logs.
+An alert should tell a responder which user operation needs attention. Sustained slow profile loads can justify a page if they cross the service's agreed threshold. CPU and disk metrics can help the responder investigate. A runbook records how to check impact, what action is available, and how to verify recovery.
 
-### Alerts
+## Check your understanding
 
-Observability data is only useful if someone acts on it. A good alerting strategy:
-- Alerts on **symptoms** (high error rate, high latency) rather than causes (high CPU).
-- Avoids alert fatigue by keeping the signal-to-noise ratio high.
-- Defines clear runbooks so on-call engineers know what to do when an alert fires.
+You have one slow trace with a long database span. What would tell you whether other profile users are affected, and what would help explain this particular database call?
 
-![](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/ba63474e-1b92-4442-ad73-e67e7b1b8070/gallery/c6d6bd9a-3c25-4fa9-8c33-0f06c2eb5e91-metrics.webp)
+<details>
+<summary>Compare your reasoning</summary>
 
-## Key takeaways
+Check profile latency and error metrics over the incident window to establish impact. Follow the trace ID into the logs for details of that call. The same span appearing across many slow traces would strengthen the case for investigating the database path.
 
-- **Logs** record discrete events. Make them structured and contextual.
-- **Metrics** measure system behaviour over time. Track rate, errors, and latency as your baseline.
-- **Traces** follow an individual request across services and expose where time was spent.
-- **Alert** on user-facing symptoms, then use metrics, traces, and logs to investigate the cause.
+</details>
+
+## Key Takeaways
+
+- **Metrics** show the extent of a symptom over time.
+- **Traces** show where a particular request spent its time. **Logs** record the events that happened along the way.
+- Alert on a user-facing symptom that a responder can investigate and act on.

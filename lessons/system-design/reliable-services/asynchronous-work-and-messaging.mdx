@@ -1,0 +1,77 @@
+---
+title: "Asynchronous Work and Messaging"
+description: "Use queues to separate acceptance from completion and handle redelivery."
+---
+
+<Callout title="Lesson goal" type="info">
+  Trace an email job through a queue and explain what a worker can safely do after a crash.
+</Callout>
+
+**Before you begin** — [Application foundations](/courses/system-design/docs/application-architecture/application-foundations) and [storage and database choices](/courses/system-design/docs/data-systems/storage-and-database-choices).
+
+A user submits a request that triggers a confirmation email. If the application waits for the email provider, a slow provider delays the user's response. A queue lets the application promise that it has saved the job while a worker handles delivery later.
+
+## Separate the request from the work
+
+The **producer** creates a message describing a job. A **broker** stores and delivers messages. A **consumer**, often called a worker, receives a message and performs the job.
+
+In the email example, the application produces the job and waits for the broker to confirm it has saved it durably. The application can now tell the user the email is queued. A worker may still be waiting for the provider hours later, so the contract also needs a way to report delivery failure. A job kept only in application memory would disappear if that process exited.
+
+Queues absorb temporary differences between arrival and processing rates. If 100 jobs arrive each second and workers finish 80, the backlog grows by 20 jobs each second. After a minute, 1,200 additional jobs are waiting. Even if arrivals now slow to 80 per second, those workers only keep pace. The backlog shrinks when completions exceed arrivals.
+
+## Queue versus publish-subscribe
+
+In a work queue, workers compete for jobs. One worker normally handles a particular delivery, allowing multiple workers to share the load. Redelivery can still cause the same logical job to reach another worker later.
+
+In **publish-subscribe**, independent subscriptions each receive the events they need. A notification workflow and an analytics workflow can both consume a creation event. Within a consumer group, workers can share processing; separate groups maintain separate progress.
+
+![Independent subscriptions each receive their own copy of the same published event.](/course-images/system-design/reliable-services/asynchronous-work-and-messaging-independent-subscriptions.png)
+
+If analytics falls behind, its subscription can retain its own unread events while notifications continue. Putting both workflows in competition for the same delivery would give only one of them a chance to see each event.
+
+## Acknowledgement establishes a recovery point
+
+When the broker delivers a queued job, it still needs a signal that the worker handled it. That signal is the worker's **acknowledgement**. Its timing changes what the broker can recover after a crash.
+
+![The producer submits to a durable queue. The queue delivers to a worker, which processes the job before acknowledging that delivery to the queue.](/course-images/system-design/reliable-services/asynchronous-work-and-messaging-queue-acknowledgement.png)
+
+| Order | Failure window |
+| --- | --- |
+| Acknowledge, then process | A crash after acknowledgement can lose the work |
+| Process, then acknowledge | A crash after processing can cause redelivery |
+
+The second ordering supports at-least-once processing attempts under the system's durability and retry assumptions. The worker must tolerate duplicates. A stable event identifier lets it recognize the same logical job across repeated deliveries.
+
+Deduplication needs to protect the effect. Checking an identifier and then separately changing data leaves a race between workers. When the effect is a database update, recording completion and applying the update in one transaction can protect that boundary. An external provider call introduces a separate boundary that a local transaction cannot cover.
+
+## Retries and dead-letter handling
+
+A temporary provider outage may justify another attempt after a delay. An invalid recipient may need correction instead. Bound attempts and elapsed time so a job cannot consume resources forever.
+
+After the retry policy is exhausted, retain the failed job and its reason in a **dead-letter queue** or equivalent failed-job store. Someone or something must inspect it. Redriving it means trying the same logical job again, so preserve its identifier and duplicate protection.
+
+Monitor both queue depth and the age of waiting work. A queue containing a small number of very old jobs can still violate the delivery expectation.
+
+## Ordering and retained logs
+
+Some messaging systems partition a retained log and identify positions with offsets. A consumer records progress and can replay retained events. Order is usually scoped to a partition, not the entire topic. If work for one user must stay ordered, its partitioning and processing rules must preserve that order.
+
+More parallel workers can increase throughput, but independent processing can finish out of order. Decide whether ordering is required before increasing concurrency.
+
+## Check your understanding
+
+A worker sends an email and crashes before acknowledging the queue message. What should the next worker assume?
+
+<details>
+<summary>Compare your reasoning</summary>
+
+The email may already have been accepted. Redelivery does not prove the previous attempt failed. Use a stable event identifier, recorded delivery state, and provider duplicate protection where supported. Without cooperation at that external boundary, duplicate email remains possible.
+
+</details>
+
+## Key Takeaways
+
+- **Asynchrony:** Acceptance and completion are different events.
+- **Acknowledgements:** Their timing determines loss and redelivery windows.
+- **Duplicates:** Record a job's identity together with its effect when both belong to one database.
+- **Backlogs:** Queues need capacity, age monitoring, and a failed-job recovery path.

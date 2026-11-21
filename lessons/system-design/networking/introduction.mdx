@@ -1,45 +1,50 @@
 ---
-title: Introduction
-description: Understand network layers and how data travels across the internet.
+title: "How a Request Crosses a Network"
+description: "Trace an HTTP request through the network layers and distinguish delay from throughput."
 ---
 
 <Callout title="Lesson goal" type="info">
-  By the end of this lesson, you will understand the fundamentals of computer networking, the layered architecture models (OSI and TCP/IP), and how data travels across interconnected networks.
+  Follow a request from a browser to a server and identify which layer is responsible at each step.
 </Callout>
 
-Networking is the backbone of distributed systems. Every interaction between clients, load balancers, application servers, and databases relies on network protocols to deliver packets accurately and efficiently.
+**Before you begin** — [Application foundations](/courses/system-design/docs/application-architecture/application-foundations).
 
-## The layered network model
+A browser asks a server for a page. The browser knows which page it wants. The router in your home only needs enough information to send the packet one step closer to its destination. Dividing the work this way allows the same browser request to travel over Wi-Fi or Ethernet.
 
-Modern networking is organized into abstraction layers. Each layer offers a service to the one above it and hides lower-level details, so an application can use HTTP without deciding how a Wi-Fi frame is transmitted.
+## Follow the request down the stack
 
-| Layer | Primary Responsibility | Common Protocols |
-|---|---|---|
-| **Application** | High-level data exchange and business logic | HTTP, HTTPS, WebSockets, DNS, SSH |
-| **Transport** | End-to-end delivery, connection management, reliability | TCP, UDP, QUIC |
-| **Network / Internet** | Addressing, packet routing across networks | IP (IPv4, IPv6), ICMP |
-| **Data Link & Physical** | Frame transfer across local media / physical hardware | Ethernet, Wi-Fi, Fiber Optics |
+Suppose the browser uses HTTP/1.1 over TCP. Each layer adds the information its peer will need to interpret the data. This process is called **encapsulation**.
 
-The **OSI model** is commonly taught as seven conceptual layers, while the **TCP/IP model** is the practical Internet suite. This lesson uses the four-layer TCP/IP grouping: OSI application, presentation, and session concerns are grouped into **Application**; transport maps to **Transport**; network maps to **Internet**; and data link plus physical map to **Link / Physical**.
+| Layer | What it contributes to this request |
+|---|---|
+| Application | HTTP expresses an operation such as `GET /users/42`. |
+| Transport | TCP identifies the connection and tracks the order of its bytes. |
+| Internet | IP adds addresses that routers use to forward packets toward the destination. |
+| Link | Wi-Fi or Ethernet delivers a frame across the current local link. |
 
-### How data travels
-![How packets travel](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/54de4736-cbfb-4ca3-add4-542a111f11df/gallery/ad8e566d-e48a-4cef-8c98-764718d7bc7b)
+![As application data travels down the stack, transport, IP, and link headers are added for delivery.](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/54de4736-cbfb-4ca3-add4-542a111f11df/gallery/ad8e566d-e48a-4cef-8c98-764718d7bc7b)
 
-When a client sends an HTTP request, each layer adds the information it needs: HTTP creates the application message, TCP or UDP adds transport information, IP adds source and destination addresses, and the local network carries the resulting frame to the next hop. Routers forward the IP packet across networks. At the destination, the layers remove their own information in reverse order and deliver the original application data to the receiving program.
+A switch can forward the frame within a local network. A router receives the packet and forwards it on another link, using a new frame for that hop. At the destination, IP delivers the payload to TCP. TCP makes the ordered bytes available to the server, which can then read the HTTP request.
 
+This four-layer grouping describes the Internet protocol suite. You may also encounter the seven-layer **OSI model**. Its session, presentation, and application layers fit roughly into the application row above. Its data-link and physical layers fit into the link row.
+
+## Measure waiting and completed work
+
+**Round-trip time (RTT)** measures how long a signal takes to reach a peer and receive a reply. **Throughput** measures work completed per unit of time, such as bytes delivered per second. If a client needs two sequential exchanges on a path with a 40 ms RTT, it spends about 80 ms on round trips alone, before adding processing or transfer time. More bandwidth can help with a large response, while the client still has to wait for each dependent reply.
+
+## Check your understanding
+
+A request crosses three routers. Which part changes with each local link, and which information keeps the packet headed toward the server?
+
+<details>
+<summary>Compare your reasoning</summary>
+
+The link-layer frame carries the packet to the next hop. In ordinary routing, each router uses the packet’s destination IP address to select where to forward it. The HTTP operation matters when the packet’s contents reach the application.
+
+</details>
 
 ## Key Takeaways
 
-- **Encapsulation:** Each layer wraps data with the metadata it needs; the receiver unwraps it in reverse order.
-- **Routing vs. switching:** Routers choose paths between networks, while switches forward frames within a local network.
-- **Latency and throughput:** RTT measures delay; throughput measures completed work per unit of time. They are related but not interchangeable.
-
-## Continue with networking
-
-Each next lesson zooms in on one layer or protocol from this overview.
-
-- **[IP](/courses/system-design/docs/networking/ip):** Learn how IP addresses and packets let routers direct traffic between networks.
-- **[TCP](/courses/system-design/docs/networking/tcp):** See how a connection-oriented transport provides reliable, ordered delivery.
-- **[UDP](/courses/system-design/docs/networking/udp):** Explore connectionless datagrams and the trade-off between delivery guarantees and timely updates.
-- **[HTTP](/courses/system-design/docs/networking/http):** Understand the request-response protocol that web clients and services use to communicate.
-- **[DNS](/courses/system-design/docs/networking/dns):** Follow how domain names resolve to DNS records and reach the correct destination.
+- **Layers** divide a request into application meaning, transport, routing, and local delivery.
+- **Encapsulation** adds each layer’s metadata on the sender and lets the receiver recover the original message.
+- **Round trips** add waiting time. Throughput describes how much data or work finishes in an interval.

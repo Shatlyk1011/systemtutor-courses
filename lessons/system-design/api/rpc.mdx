@@ -1,155 +1,77 @@
 ---
 title: "RPC"
-description: Understand remote procedure calls and when to choose gRPC.
+description: "Follow a remote procedure call and reason about a result that arrives after the client’s deadline."
 ---
 
 <Callout title="Lesson goal" type="info">
-  By the end of this lesson, you will understand what **RPC** and **gRPC** are, how Protocol Buffers define type-safe API contracts, how remote operations work under the hood, and how RPC compares with REST.
+  Trace a unary call through a stub and handler, then choose between a resource-based contract and a named operation.
 </Callout>
 
-When applications communicate across a network, they need a structured way to exchange messages. While REST models communication around manipulating *resources*, **RPC (Remote Procedure Call)** introduces one of the most intuitive models in computing: **calling a function that runs on another machine**.
+**Before you begin** — [GraphQL](/courses/system-design/docs/api/graphql).
 
-![](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/15aa5af8-3541-4385-b8bf-900901675665/gallery/3df35062-a673-4b25-840a-fad051302844)
+A profile service exposes a named operation, `GetUser`. A caller supplies user ID 42 and expects a user record. **Remote procedure call (RPC)** lets the caller express this action as a function call while a runtime carries the request to the service that performs it.
 
----
+## Trace one call across the network
 
-## What is RPC?
+A **stub** is a local object or function that exposes the remote method to client code. Calling the stub starts work on the caller’s machine before anything reaches the server.
 
-{/*
-IMAGE PROMPT — Remote function call
-Show a developer calling `getUser(42)` in a client application. Visualize the call being serialized into a network message, executed by the same-named function on a remote server, and returning a result.
-*/}
+![The client calls getUser through an RPC request. The remote server handles it and sends the result back.](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/15aa5af8-3541-4385-b8bf-900901675665/gallery/3df35062-a673-4b25-840a-fad051302844)
 
-**RPC (Remote Procedure Call)** is a communication paradigm for invoking a procedure that executes on another computer. A client stub can make the call look similar to a local function call:
+1. The client calls `GetUser` with ID 42. Its stub encodes the input as a message.
+2. The runtime sends the message and identifies the target method.
+3. The server decodes the request and invokes its handler. The handler looks up the user.
+4. The server sends back a result and call status. The client runtime checks the status and decodes the result for its caller.
 
-> **Call a procedure (function) that physically executes on another server.**
+This is a **unary call**, with one request and one response. A **deadline** limits how long the caller will wait. If it expires first, the caller can see a failure even when the server finished the operation. [gRPC call lifecycle](https://grpc.io/docs/what-is-grpc/core-concepts/#rpc-life-cycle)
 
-Instead of constructing HTTP request URLs, query parameters, and headers manually, developers write standard function calls.
+## Describe the contract with gRPC
 
-```ts
-// Local function call (executes in the local memory space)
-getUser(42)
+**gRPC** is one implementation of RPC. Its usual setup uses Protocol Buffers to describe methods and messages and to encode their fields on the wire. From the same definition, teams can generate client stubs and server interfaces in different programming languages.
 
-// Remote Procedure Call (looks identical, but executes across the network)
-const user = await getUser(42)
+```proto
+syntax = "proto3";
+
+service UserService {
+  rpc GetUser (GetUserRequest) returns (User);
+}
+
+message GetUserRequest {
+  string id = 1;
+}
+
+message User {
+  string id = 1;
+  string name = 2;
+}
 ```
 
-Behind the scenes, the client runtime transforms the function invocation into a network message:
+Read the method signature from left to right. It accepts one `GetUserRequest` and returns one `User` on success. Generated code supplies the message and call machinery. The team still implements the handler that finds the user. gRPC commonly carries calls over HTTP/2 and also supports server streaming, client streaming, and bidirectional streaming. [gRPC service definitions](https://grpc.io/docs/what-is-grpc/core-concepts/#service-definition)
 
-![](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/15aa5af8-3541-4385-b8bf-900901675665/gallery/f054e008-8354-4eda-a89e-1817bb60528f)
+## Choose what the contract should expose
 
-The client transmits the target function name and serialized parameters over the network. The server receives the payload, executes the function, and returns the result.
-
-<Callout title="Core idea" type="info">
-  **RPC abstracts message construction, but a remote call still has network latency, timeouts, and partial-failure risks that a local function call does not.**
-</Callout>
-
----
-
-## Simple RPC Example
-
-Imagine a remote microservice that exposes a simple math function:
-
-```ts
-add(a: number, b: number): number
-```
-
-The client invokes it like any standard asynchronous function:
-
-```ts
-const result = await add(10, 20)
-
-console.log(result) // 30
-```
-
-Under the hood, the client and server exchange a structured request-response message:
-
-![](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/15aa5af8-3541-4385-b8bf-900901675665/gallery/8e1a5011-dc4e-426e-80cc-7a4fcd6d1012)
-
-The client developer does not need to know what database, operating system, or internal logic the server uses to produce the result.
-
----
-
-## What is gRPC?
-
-**gRPC** is an open-source RPC framework originally created at Google. It uses Protocol Buffers for its interface definition language and default message format, and commonly uses HTTP/2 for transport.
-
-Instead of requiring teams to build custom networking logic, gRPC provides a standardized framework that handles:
-- **Binary Serialization:** Compact, high-speed encoding using Protocol Buffers.
-- **Modern Transport:** Multiplexed streaming over **HTTP/2**.
-- **Automated Code Generation:** Type-safe client stubs and server boilerplate across multiple programming languages.
-
-## RPC vs. gRPC
-
-It is important to distinguish the general computing concept from the specific framework:
-
-- **RPC** is the **architectural concept** (*calling remote functions*).
-- **gRPC** is a modern, production-grade **implementation** of that concept created by Google.
-
----
-
-## RPC vs. REST
-
-{/*
-IMAGE PROMPT — Resource-oriented versus operation-oriented APIs
-Show a split comparison: REST uses resource paths and HTTP verbs for a User resource; RPC uses action-style function calls such as `getUser` and `createUser`. Keep the contrast focused on the two mental models.
-*/}
-
-The fundamental difference between REST and RPC lies in the **mental model** used to design the API:
-
-### REST (Resource-Oriented)
-APIs are modeled around **nouns (resources)** manipulated through standard HTTP verbs:
-
-```http
-GET    /users/42        # Retrieve user
-POST   /users           # Create user
-DELETE /users/42        # Delete user
-```
-
-### RPC (Operation-Oriented)
-APIs are modeled around **verbs (procedures / actions)**:
-
-```ts
-getUser(42)             // Retrieve user
-createUser({ ... })     // Create user
-deleteUser(42)          // Delete user
-```
-
-### Comparison Table
-
-| Feature | REST | RPC (gRPC) |
+| Client need | One possible interface | Design consequence |
 |---|---|---|
-| **Core Abstraction** | **Resources** (*"What entity am I modifying?"*) | **Operations** (*"What function am I invoking?"*) |
-| **Transport** | HTTP/1.1 or HTTP/2 | HTTP/2 (Multiplexed streams) |
-| **Payload Format** | JSON, XML (Human-readable text) | Protocol Buffers (Compact binary) |
-| **Contract / Schema** | Optional (OpenAPI / Swagger) | Strict & Required (`.proto` files) |
-| **Streaming** | Limited (Server-Sent Events, WebSockets) | Native Unary, Server, Client, & Bidirectional Streaming |
-| **Best Use Cases** | Public APIs, web apps, standard CRUD, HTTP/CDN caching | Typed service-to-service APIs and streaming where its tooling fits |
+| Fetch a user profile through a standard HTTP interface | `GET /users/42` | The resource has a URI, and the response can specify HTTP caching rules. |
+| Select fields for a profile screen | A GraphQL `user` query selecting `name` | The schema defines client choices, and resolvers supply the values. |
+| Call a known service operation from multiple languages | A generated `GetUser` stub | The service definition fixes the input and output types for callers. |
 
-<Callout title="Choosing the right model" type="info">
-  Neither paradigm is universally superior. REST is often a good fit for public APIs and web clients benefiting from HTTP caching; gRPC is often a good fit for typed service-to-service APIs. Choose based on clients, operations, tooling, and operational constraints.
-</Callout>
+If public web clients need a profile representation they can cache, the first contract fits that access pattern. If internal teams need a named operation with generated interfaces, gRPC offers that tooling. In either case, the service must define what happens when a user is missing or the caller stops waiting.
 
----
+## Check your understanding
 
-## Under the Hood: The Network Lifecycle
+A `CreateUser` RPC times out after the handler saves the new record. Can the caller assume the operation had no effect and send a second creation?
 
-Even though RPC syntax looks identical to a local function call, **it is still a network transaction**.
+<details>
+<summary>Compare your reasoning</summary>
 
-When you execute an RPC call, the framework coordinates a multi-step lifecycle:
+The caller knows only that it did not receive a successful result in time. The first creation may have committed. A repeat that must avoid duplicates needs a contract for recognizing the same logical request or looking up its outcome.
 
-![](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/15aa5af8-3541-4385-b8bf-900901675665/gallery/930c7ee8-5c58-4954-b6f8-ef1719a47af2)
-
-The RPC framework hides the serialization, transport, and deserialization boilerplate so you can focus on application logic.
-
----
+</details>
 
 ## Key Takeaways
 
-- **RPC (Remote Procedure Call):** An architectural paradigm that makes invoking a function on a remote server feel like calling a local function.
-- **gRPC:** A high-performance, open-source RPC framework created by Google, built on **HTTP/2** and **Protocol Buffers**.
-- **Protocol Buffers:** A language-neutral, type-safe IDL and binary serialization format used to define service interfaces and data schemas.
-- **REST vs. RPC:** REST is **resource-oriented** (*nouns*), while RPC is **operation-oriented** (*verbs*).
-- **Microservices Powerhouse:** gRPC is widely adopted for internal microservices due to its compact binary payloads, HTTP/2 multiplexing, and cross-language code generation.
+- **RPC** gives remote work a named method, input, and result that a caller can use through a local stub.
+- **gRPC** uses a service definition to generate matching interfaces and offers unary and streaming calls.
+- **Deadlines** bound the caller’s wait. A timed-out write can still have taken effect on the server.
 
-> **RPC makes remote communication feel like calling a function, while gRPC provides the modern protocol, serialization, and tooling to make that communication fast, reliable, and scalable.**
+[Take the quiz · Choosing an API contract](/courses/system-design/docs/api/quiz-choosing-an-api-contract)

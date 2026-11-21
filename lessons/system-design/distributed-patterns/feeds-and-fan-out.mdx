@@ -1,0 +1,96 @@
+---
+title: "Feeds and Fan-Out"
+description: "Choose when to assemble a feed and handle high-follower accounts."
+---
+
+<Callout title="Lesson goal" type="info">
+  Compare fan-out on write and read, trace feed caching, and explain a hybrid strategy.
+</Callout>
+
+**Before you begin** — [Asynchronous work and messaging](/courses/system-design/docs/reliable-services/asynchronous-work-and-messaging) and [caching and content delivery](/courses/system-design/docs/data-systems/caching-and-content-delivery).
+
+A feed shows recent posts from accounts a user follows. Publishing one post may affect many readers, while reading one feed may require posts from many authors. The design decision is when to perform that combining work.
+
+## Scope and access patterns
+
+Support publishing text posts and reading a reverse-chronological feed. Leave ranking, advertisements, and media processing outside this exercise. Store posts, authorship, following relationships, and visibility rules.
+
+Assume 10,000 daily active users each publish two posts per day. That gives 20,000 posts daily. If a post reaches 100 eligible followers on average, pushing each one to its followers requires about two million feed-reference insertions per day, or 23 per second averaged across the day.
+
+The average hides the important extreme: one author with a million followers produces a million feed updates from a single post. The distribution of follower counts can matter more than the overall post rate.
+
+## Fan-out on write
+
+In **fan-out on write**, publishing a post creates references in recipients' feeds before those recipients ask to read them.
+
+```text
+Publish → authorize → commit post + fan-out event together
+Relay → queue → workers → recipient feed references
+Read → feed references → load post details → ordered page
+```
+
+Storing references such as post IDs avoids copying the full post into every feed. A separate content cache can supply popular post bodies. Bound each materialized feed to a recent window and keep authoritative posts available for reconstruction or older-history access.
+
+The advantage is fast reading because much of the selection work is already done. The cost is write amplification, including work for followers who never open the application.
+
+## Fan-out on read
+
+In **fan-out on read**, publishing stores the post under its author. A reader's request finds followed authors, obtains their recent posts, and merges them into the feed order.
+
+This avoids writing an entry for every follower at publication time. It also avoids maintaining unused feeds for inactive readers. The trade-off is more work during each read, especially for users following many accounts.
+
+Cache recent author posts or feed results where freshness permits. Caching does not remove the need to evaluate visibility and ordering, and it creates an expiry or invalidation decision.
+
+## Combine the approaches deliberately
+
+A **hybrid** approach pushes ordinary authors' posts and pulls high-follower authors' posts when a reader opens the feed. Merge those results in reverse chronological order using a stable tie-breaker such as post ID.
+
+![Ordinary authors’ post IDs are pushed into recipient feeds. At read time the service fetches high-follower authors’ posts and merges both streams for the viewer.](/course-images/system-design/distributed-patterns/feeds-and-fan-out-hybrid-feed.png)
+
+Suppose a reader already has pushed posts from 10:04 and 10:00. A high-follower author they follow published at 10:02. Reading the first two items means merging the streams first, then returning the posts from 10:04 and 10:02. Taking the first two pushed IDs alone would omit a newer eligible post.
+
+| Choice | Work shifts toward | Main pressure |
+| --- | --- | --- |
+| Fan-out on write | Publishing/background workers | Large follower sets and inactive recipients |
+| Fan-out on read | Feed retrieval | Many followed authors and repeated merging |
+| Hybrid | Both paths | More complex merging and policy management |
+
+Choose the high-follower threshold from measured costs and latency goals. There is no universal follower count at which every application should switch strategies.
+
+## Recover partial fan-out
+
+For an ordinary author, insert the post and a pending fan-out event keyed by post ID in one transaction. If the publisher crashes just after commit, a relay finds that event on its next scan. It marks the event sent only after the queue confirms durable acceptance. A crash before marking can enqueue another copy of the same job. [Transactional outbox pattern](https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/transactional-outbox.html)
+
+A worker may update some recipient feeds and crash before finishing. Retain the job's progress or replay its bounded batches. Use a unique recipient/post relationship so repeated work does not create duplicate feed entries. Do not equate a completed post save with completed propagation to every follower.
+
+![Replaying an interrupted fan-out fills the missing recipient inbox while preserving a single reference in each already updated inbox.](/course-images/system-design/distributed-patterns/feeds-and-fan-out-fan-out-replay.png)
+
+If the feed cache disappears, reconstruct from authoritative posts and relationships. That can be expensive, so recovery must be rate-controlled and capacity-tested. A cache of feed references should not become the only record that a post exists.
+
+Deletion and visibility changes require special care. An old feed reference may remain after the post becomes private or is removed. Check current visibility when returning content or use a policy that gives an equivalent guarantee. A cached ID does not authorize access to the referenced post.
+
+## API, security, and operational signals
+
+`POST /v1/posts` authenticates the author and validates content. `GET /v1/feed` returns a bounded ordered page for the authenticated viewer. Use stable ordering for continuation and state how ongoing inserts affect paging.
+
+Rate-limit publishing abuse, protect following relationships as required, and enforce post visibility. Monitor publish latency, fan-out queue age, updates per post, feed-read latency, cache hit rate, and duplicate-suppression counts. A hot author may increase fan-out delay while the publication API itself still looks healthy.
+
+## Check your understanding
+
+Most users post rarely, but one account has a million followers. Why might moving only that account to fan-out on read help, and what new work appears?
+
+<details>
+<summary>Compare your reasoning</summary>
+
+It avoids a million background feed insertions for each post from that account. Readers following it now fetch and merge its recent posts with their already materialized feeds. The design reduces exceptional write work while adding retrieval and deduplication complexity.
+
+</details>
+
+## Key Takeaways
+
+- **Write fan-out:** Precompute recipient references for faster feed reads.
+- **Read fan-out:** Assemble feeds on demand to avoid unused publication work.
+- **Hybrid designs:** Handle exceptional authors with an explicit merge policy.
+- **Recovery:** Replay safely, rebuild from authoritative data, and enforce current visibility.
+
+[Take the quiz · Delivering messages, files, and feeds](/courses/system-design/docs/distributed-patterns/quiz-delivering-messages-files-and-feeds)

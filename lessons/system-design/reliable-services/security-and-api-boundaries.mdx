@@ -1,0 +1,72 @@
+---
+title: "Security and API Boundaries"
+description: "Protect resources and bound the work exposed through an API."
+---
+
+<Callout title="Lesson goal" type="info">
+  Distinguish authentication from authorization and apply validation, least privilege, and pagination to an API.
+</Callout>
+
+**Before you begin** — [REST](/courses/system-design/docs/api/rest) and [safe retries](/courses/system-design/docs/reliable-services/resilience-and-safe-retries).
+
+A visitor can follow a public short link. Changing its destination is a different action with a different audience. The same link therefore needs two access rules, and the service must decide which one applies to each request.
+
+## Identify the caller, then check the action
+
+**Authentication** establishes who or what is calling. **Authorization** determines whether that caller may perform this action on this resource.
+
+For a short-link service, public resolution and private management are different capabilities. Visitors can resolve active public links. Owners can list and manage their own links. An administrator may disable abusive links. The server derives the caller's identity from verified credentials rather than trusting an owner identifier supplied in the body.
+
+![Authentication identifies the caller. The service permits a management action only after checking the caller’s permission for the specific link.](/course-images/system-design/reliable-services/security-and-api-boundaries-resource-authorization.png)
+
+Apply authorization to each protected endpoint and object. Guessing or knowing a resource ID must not grant access. HTTPS protects data in transit, but does not decide whether an authenticated caller may change a particular record. [OWASP REST security](https://cheatsheetseries.owasp.org/cheatsheets/REST_Security_Cheat_Sheet.html)
+
+## Use least privilege across components
+
+**Least privilege** means giving a caller or component only the permissions needed for its job. A notification worker needs access to the jobs and provider operations it performs; it need not manage every user or change administrative settings.
+
+Keep provider secrets on the server side and out of client bundles, URLs, and logs. Restrict access and plan how to replace a credential. Authenticate the worker when it calls another service and grant it the permissions needed to deliver notifications. [OWASP secrets management](https://cheatsheetseries.owasp.org/cheatsheets/Secrets_Management_Cheat_Sheet.html) · [OWASP authorization guidance](https://cheatsheetseries.owasp.org/cheatsheets/Authorization_Cheat_Sheet.html)
+
+## Validate meaning and bound resource use
+
+Validation checks both form and permitted values. A short-link creation endpoint should accept the intended URL schemes and enforce a size limit. A reservation endpoint needs sensible dates and a positive room count. Parameterized database operations keep supplied values separate from query syntax.
+
+Validation does not replace authorization. A perfectly formatted request can still target someone else's resource. Likewise, authentication does not make unlimited work safe: enforce request-size limits and rate limits for expensive or abuse-prone operations.
+
+Avoid returning internal errors, secrets, or unnecessary personal data. Log enough context to investigate a denial or failure, while excluding credentials and sensitive payloads. [OWASP REST security](https://cheatsheetseries.owasp.org/cheatsheets/REST_Security_Cheat_Sheet.html)
+
+## Paginate growing collections
+
+An endpoint that returns every link owned by a user exposes an unbounded query and response. **Pagination** returns a limited portion of a collection and a way to continue.
+
+Suppose an owner's links, newest first, are A, B, C, and D. Page one returns A and B. If a new link appears at the front, skipping two rows for page two now starts at B and repeats it. This is the risk of **offset pagination** when a collection changes. [PostgreSQL ordering and pagination](https://www.postgresql.org/docs/current/queries-limit.html)
+
+With **cursor pagination**, the server remembers the position of B in the sort order. The next request asks for links after that position and returns C and D. Use a stable sort key such as creation time paired with a unique code so ties have an unambiguous order.
+
+![Page one contains A and B. The cursor marks B’s position so page two starts at C.](/course-images/system-design/reliable-services/security-and-api-boundaries-pagination-cursor.png)
+
+The server caps page size, validates the cursor, and checks the caller's access on every page. Carrying a valid continuation token grants no additional permissions. Later pages can reflect later changes unless the API explicitly promises a snapshot. [Google API pagination guidance](https://google.aip.dev/158)
+
+## Follow an access-control failure
+
+A user requests a management record using a code they saw publicly. If the server only checks login, it may expose another owner's management fields. The fix is to check ownership or an explicitly granted administrative role before returning the protected representation.
+
+This check remains necessary even if codes are hard to guess. Public redirect access and private management access are separate policies on the same underlying mapping.
+
+## Check your understanding
+
+An authenticated user changes the `owner_id` in a list request to another user's ID. What should the service do?
+
+<details>
+<summary>Compare your reasoning</summary>
+
+Derive the permitted owner scope from the authenticated identity, or verify explicit authority for cross-owner access. Apply that scope to every page. Neither valid credentials nor a well-formed cursor authorizes another user's data.
+
+</details>
+
+## Key Takeaways
+
+- **Authentication:** Establish the caller's identity.
+- **Authorization:** Check the requested action on the specific resource.
+- **Boundaries:** Limit permissions, input sizes, exposed data, and work per request.
+- **Pagination:** Define a bounded page size, stable order, and authorization on every page.

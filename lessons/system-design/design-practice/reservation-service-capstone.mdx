@@ -1,0 +1,142 @@
+---
+title: "Independent Capstone: Reservation Service"
+description: "Design and assess a booking workflow that remains correct under concurrency and retry."
+---
+
+<Callout title="Lesson goal" type="info">
+  Produce a scoped reservation design, defend its concurrency and retry safety, and evaluate it with a concrete rubric.
+</Callout>
+
+**Before you begin** — Complete the [URL shortener](/courses/system-design/docs/design-practice/url-shortener) and [notification system](/courses/system-design/docs/design-practice/notification-system) case studies.
+
+Two guests try to reserve the last room of the same type for the same night. Both may have seen “available” on the search page. Your design must ensure that only the permitted inventory is committed, even when requests arrive together or are retried.
+
+## Your design brief
+
+![Two guests request the same room type for the same nights. Only one room remains.](/course-images/system-design/design-practice/reservation-service-capstone-last-room.png)
+
+Design a service for one hotel with several room types. Support availability lookup, reservation creation, viewing a guest's reservations, and cancellation. Guests reserve a room type rather than a numbered physical room. Exclude payments, deliberate overbooking, multi-hotel bookings, and distributed transactions.
+
+Treat stays as **check-in inclusive and checkout exclusive**. A stay from June 1 to June 3 consumes June 1 and June 2 inventory. Validate positive room counts and a checkout date after check-in. Cap the supported stay length and booking horizon.
+
+![A June 1 check-in and June 3 checkout consume the nights of June 1 and June 2.](/course-images/system-design/design-practice/reservation-service-capstone-occupied-nights.png)
+
+Assume 10,000 availability lookups and 1,000 reservation creations daily, a ten-times peak multiplier, 20 room types, and 365 days of future inventory. Use a hypothetical 1 KB reservation record retained for a year. Choose and state availability, latency, and recovery objectives rather than borrowing unmeasured guarantees.
+
+## Produce your design before reading the model
+
+1. State your scope and quality objectives. Estimate peak lookups, peak creations, the number of room-type/date inventory rows, and a year of stored reservations.
+2. Draw the request path and mark the database commit. Show which records change for a two-night stay.
+3. Test your drawing with two guests requesting the last room, a successful booking whose response gets lost, and a cancellation submitted twice. Write the result each guest sees.
+4. Identify the bottleneck, the permissions each operation requires, and how you would detect and recover from database loss. Compare your design with one alternative using the workload you estimated.
+
+Your design is ready to review when another person can follow one reservation from the request through its committed inventory change and explain every failure point along that path.
+
+<details>
+<summary>Model solution — a small transactional service</summary>
+
+```text
+Guest → authenticated API → reservation transaction → relational database
+                        └→ availability lookup → optional read cache
+```
+
+Keep inventory and reservations in one database so their updates can commit atomically. A cache can accelerate availability browsing, but the booking transaction checks authoritative inventory again. A stale availability page must not authorize overselling.
+
+For this exercise, aim for 99.9% of valid booking attempts over a rolling 30 days to receive either a committed booking or a correct unavailable result. Count service errors and timeouts as misses. Aim to return 95% of valid availability lookups within 300 ms at the API. For database loss, choose a recovery point objective (RPO) of five minutes and a recovery time objective (RTO) of one hour. In a restore drill, compare the last recovered commit with the time of failure, reconcile reservation and inventory counts, and time the return to accepting bookings.
+
+The workload estimates are modest:
+
+```text
+Average availability reads = 10,000 / 86,400 ≈ 0.116/second
+Peak availability reads ≈ 1.16/second
+Average reservation writes ≈ 0.0116/second; peak ≈ 0.116/second
+Inventory rows = 20 room types × 365 dates = 7,300
+Reservation payload = 1,000/day × 365 days × 1 KB = 365 MB/year
+```
+
+These averages do not exclude contention on a popular date. One highly contested inventory row can be a bottleneck even when total throughput is low.
+
+### API and stored invariants
+
+| API | Contract |
+| --- | --- |
+| `GET /v1/availability` | Return bounded room-type availability for validated dates |
+| `POST /v1/reservations` | Create a booking with a stable caller-scoped idempotency key |
+| `GET /v1/reservations` | List only the signed-in guest's bookings, newest first by creation time and ID, with a cursor and a maximum of 50 per page |
+| `GET /v1/reservations/{id}` | Return an authorized guest's booking |
+| `DELETE /v1/reservations/{id}` | Cancel once; repeating cancellation does not release inventory again |
+
+Use inventory rows keyed by hotel, room type, and date, with total and reserved counts. Enforce nonnegative counts and reserved count no greater than total. Store guest, room type, date range, count, and status in the reservation. Store the caller/key/request identity and result for retry protection.
+
+A unique idempotency key prevents duplicate execution of the same intent. It does not prevent two different guests with different keys from consuming the same last room. Inventory concurrency control solves that separate problem.
+
+### Reserve every night in one transaction
+
+In this transaction outline, all inventory changes belong to the same commit.
+
+```text
+Begin transaction
+Claim the unique (caller, idempotency key) for these exact parameters
+If the key already exists, compare parameters and reject a mismatch
+If the parameters match a completed request, end the transaction and replay its result
+Lock all inventory rows for the stay in a consistent date order
+If a night is missing or total − reserved < requested rooms on any night:
+    Record unavailable, commit without changing inventory, and return
+Add the requested room count to reserved on every occupied night
+Insert the reservation and record the successful retry result
+Commit
+Return the reservation
+```
+
+For example, a guest asks for two rooms for two nights. Three rooms remain on the first night and one on the second. The stay cannot be fulfilled. Leave both counts unchanged. In this model, commit the unavailable result against the retry key. A retry then receives the same answer even if another guest has since cancelled. The guest can make a fresh booking attempt with a new key. A technical failure before commit rolls back the whole transaction.
+
+With row locking, a competing request waits and then checks the updated counts. The final-room example produces one successful booking and one unavailable result. Keep the transaction short and avoid provider calls while holding its locks. Consistent lock ordering reduces deadlock risk; transaction failures still need bounded retry handling. [PostgreSQL row locking](https://www.postgresql.org/docs/current/explicit-locking.html)
+
+![Guest A holds the inventory lock and commits the last room. Guest B waits, then rechecks the updated inventory and sees that it is sold out.](/course-images/system-design/design-practice/reservation-service-capstone/reservation-service-capstone-last-room-transaction.png)
+
+An alternative is conditional updates or version-based optimistic concurrency with all nights in the same transaction. Verify that every required update succeeded and roll back on a conflict. The required property is atomic enforcement of capacity across the full stay, not a specific locking technique.
+
+### Cancel and retry safely
+
+Cancellation locks the reservation and its affected inventory in a documented order. If already cancelled, return the existing cancelled result. Otherwise, subtract the booked room count from the reserved count on every occupied night and change the reservation status in the same transaction. The booking must not be cancelled while leaving its rooms consumed, or release rooms twice after repeated requests.
+
+If creation commits but the response is lost, the retry uses the same key and receives the stored result. Concurrent requests with that key must be serialized by the unique claim, and changed parameters must be rejected. Query status after an uncertain response rather than assuming nothing happened.
+
+If the database is unavailable, do not confirm reservations from cache. Restore or fail over according to the database's recovery policy, then verify inventory and booking consistency. A restore within the five-minute RPO can still omit a booking already confirmed to a guest, along with its retry record. Hold affected inventory out of sale and reconcile confirmations against an independently retained record before accepting bookings there again. If the hotel has no such record, a five-minute data-loss allowance leaves a risk of reselling a confirmed room. Meeting a zero-loss requirement for acknowledged bookings would require a more durable commit policy.
+
+### Protect and observe the workflow
+
+Authorize guests to view and cancel their own reservations; reserve inventory-management privileges for authorized staff. Validate dates, room types, counts, and request size. Rate-limit expensive queries and mutation attempts.
+
+Track booking success, unavailable results, lock waits, transaction retries, duplicate-key replays, cancellation errors, and request latency. An unavailable-room response is a normal business outcome; database failure is a service failure. Keep them distinct in service indicators.
+
+The main trade-off is local simplicity versus distributed scale. One transactional boundary makes correctness easier to explain. Sharding may eventually help, but adds routing and cross-shard questions that this workload has not established a need for.
+
+</details>
+
+## Assess your design
+
+Give each dimension **0** if it is missing, **1** if you state a choice, or **2** if you demonstrate how that choice works for this workload.
+
+| Dimension | Evidence for 2 points |
+| --- | --- |
+| Scope and assumptions | Dates, room types, exclusions, and quality objectives are explicit |
+| Estimates | Reads, writes, inventory, and storage carry correct units |
+| Flow and model | Each API maps to stored data and a clear commit boundary |
+| Concurrent correctness | Concurrent requests and a multi-room stay with one short night preserve every night’s capacity |
+| Retry and cancellation safety | Lost responses and repeated cancellations do not repeat effects |
+| Recovery | Failure states, backups, and restoration checks are explained |
+| Security and observability | Resource permissions and actionable signals are present |
+| Trade-offs | Alternatives are compared against this workload |
+
+A strong submission scores at least 13 of 16 and earns 2 in both concurrent correctness and retry/cancellation safety. Repair either correctness gap even if the total score is high. Then test your explanation with two simultaneous bookings and a response lost immediately after commit.
+
+## Key Takeaways
+
+- **Inventory:** Check and update every occupied night atomically.
+- **Concurrency:** Different guests need capacity protection beyond idempotency.
+- **Retries:** Stable keys and committed results resolve repeated intent.
+- **Cancellation:** Release inventory and change status together, exactly once locally.
+- **Review:** Demonstrate failure behavior and invariants, not merely component names.
+
+[Take the quiz · Design review: booking the last room](/courses/system-design/docs/design-practice/quiz-design-review-booking-the-last-room)

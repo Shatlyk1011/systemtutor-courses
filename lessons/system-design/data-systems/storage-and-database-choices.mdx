@@ -1,0 +1,81 @@
+---
+title: "Data Storage and Database Choices"
+description: "Choose storage from access patterns, relationships, and correctness needs."
+---
+
+<Callout title="Lesson goal" type="info">
+  Model stored entities, explain an index trade-off, and identify where a transaction or constraint protects correctness.
+</Callout>
+
+**Before you begin** — [Back-of-the-envelope estimation](/courses/system-design/docs/design-foundations/back-of-the-envelope-estimation).
+
+The short-link service already creates, resolves, and disables links. Now suppose owners need a page listing their newest links. Finding a destination by its code and finding recent links by owner are different requests against the same data.
+
+## Model the data and its access patterns
+
+Store the code, destination URL, owner identifier, creation time, and active state for each mapping. The code supports public redirects. The owner identifier and creation time support the owner’s listing. The active state lets the service stop redirecting a disabled link.
+
+Write down the queries before choosing storage:
+
+| Operation | Data needed | Correctness requirement |
+| --- | --- | --- |
+| Create a link | New code and destination | Two mappings cannot claim the same code |
+| Resolve a link | Mapping for one code | Respect the active state |
+| List an owner's links | Mappings for one owner | Return a bounded, ordered result |
+| Disable an abusive link | Mapping and administrator permission | Only an authorized administrator may disable the link |
+
+For code `abc`, the redirect query needs one row. For owner `42`, the management query needs several rows in creation-time order. The second query can become expensive as the table grows even if the first stays fast.
+
+![A unique code index finds one link. An owner and creation-time index lists the same owner’s links newest first. Both indexes refer to rows in Links.](/course-images/system-design/data-systems/storage-and-database-choices-mapping-access-patterns.png)
+
+## Compare three storage models
+
+A **relational database** stores rows in tables and can represent relationships between entities. It is a natural starting point when mappings belong to users and operations need constraints or transactions. This does not mean that every application needs joins on its busiest path.
+
+A **key-value store** retrieves a value by its key. A code-to-destination mapping fits that interface directly. Listing by owner needs additional support or a separately maintained lookup structure; it does not follow automatically from a key-based interface. Durability and consistency depend on the particular store and configuration.
+
+**Object storage** keeps content such as uploaded files under object keys, with associated metadata. A file-sharing application can put file bytes there while keeping ownership and version information in a database. That separates large content transfers from metadata queries.
+
+For this first release, a relational table can enforce code uniqueness and support both queries through indexes. If the design uses a key-value store, explain how it will maintain the owner listing when a link is created.
+
+## Indexes trade write work for faster lookup
+
+An index is an additional structure that helps the database find relevant rows without examining every row. The unique code needs an efficient lookup path. An owner-and-creation-time index may help list an owner's recent links in order.
+
+Maintaining indexes takes storage and work when rows change. Add an index when it serves an important access pattern. Indexing every field can make writes more expensive without helping those queries. Verify query behavior using the database's tools. [PostgreSQL index introduction](https://www.postgresql.org/docs/current/indexes-intro.html)
+
+## Put correctness rules in the data model
+
+A **constraint** rejects data that breaks a declared rule. A primary or unique key protects code uniqueness even if two requests race. A foreign key can require a referenced owner to exist. A check constraint can express a condition on a row. Application validation gives useful feedback, while database constraints guard the stored state. [PostgreSQL constraints](https://www.postgresql.org/docs/current/ddl-constraints.html)
+
+A **transaction** groups changes so they commit together or are rolled back. In a reservation service, recording a booking and updating inventory must succeed together. Otherwise, a crash could leave a booking without reserved inventory. When multiple transactions overlap, the database’s isolation rules determine what each can observe. If two transactions can both read the last available room before either reserves it, the inventory rule also needs a concurrency control such as a conditional update. [PostgreSQL transactions](https://www.postgresql.org/docs/current/tutorial-transactions.html)
+
+## Follow a collision failure
+
+```text
+Request A proposes code → database accepts mapping A
+Request B proposes same code → unique constraint rejects mapping B
+Request B chooses another code → database accepts mapping B
+```
+
+Two requests might both check whether `abc` exists while the code is still free. The unique constraint settles the race when the transactions insert their rows. The rejected request can choose a different generated code, preserving the destination already stored for `abc`.
+
+![A unique index accepts the first mapping for a code and rejects a second insertion for that same code.](/course-images/system-design/data-systems/storage-and-database-choices-unique-constraint.png)
+
+## Check your understanding
+
+You add a page that lists an owner's newest links. Does fast lookup by code guarantee that this page is fast?
+
+<details>
+<summary>Compare your reasoning</summary>
+
+No. It is a different access pattern. A relational design might add an index supporting owner filtering and ordering. A key-value design needs an appropriate secondary lookup or maintained collection. Either choice adds storage and update work that must be included in the design.
+
+</details>
+
+## Key Takeaways
+
+- **Access patterns:** Model reads and writes before choosing a storage technology.
+- **Indexes:** Faster lookup has storage and write costs.
+- **Constraints:** Protect stored invariants even when requests race.
+- **Transactions:** Group related changes, then choose appropriate concurrency control.

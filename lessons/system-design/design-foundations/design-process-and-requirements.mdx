@@ -1,0 +1,70 @@
+---
+title: "Design Process and Requirements"
+description: "Turn an ambiguous request into a scoped design with explicit trade-offs."
+---
+
+<Callout title="Lesson goal" type="info">
+  Define requirements, trace a request and its data, and choose one important design question to investigate.
+</Callout>
+
+**Before you begin** — Recall how clients and services agree on an [API contract](/courses/system-design/docs/api/introduction) and how to define a [user-visible requirement](/courses/system-design/docs/application-architecture/the-system-design-mindset).
+
+“Build a URL shortener” sounds specific until you try to implement it. Must users sign in? Can destinations change? What happens when a stored link is unavailable? A useful design starts by making these decisions visible.
+
+## Define what the system must do
+
+**Functional requirements** describe behavior. For a first short-link service, users submit a destination URL and receive a short link. Visitors open that link and are redirected. Administrators can disable abusive links. These are actions you can demonstrate.
+
+**Non-functional requirements** describe qualities and constraints of that behavior. Redirects might need to remain available during a server failure, or complete within an agreed latency target. Traffic, retention, cost, and acceptable data loss shape the implementation even though they are not separate user features.
+
+Make each target testable. For example, a team might propose, “At peak load, 95% of redirect requests receive a response within 200 ms, measured at the application.” That gives the team an operation, a threshold, and a place to measure. Link creation needs its own target because it performs different work. The numbers here illustrate the decision the team must make.
+
+For this exercise, assume public redirects, authenticated creation, immutable destinations, and the ability to disable a link. Leave custom aliases and click analytics outside the first version. Recording exclusions prevents a small service from silently becoming a much larger product.
+
+![The first release includes creation, resolution and disabling. Aliases and analytics sit outside the agreed scope.](/course-images/system-design/design-foundations/design-process-and-requirements-scope-boundary.png)
+
+## Trace the simplest complete design
+
+Start with a client, one application, and persistent storage. On creation, the application records a mapping between a short code and the submitted destination. On resolution, it reads the mapping and checks its active state before sending a redirect. Disabling changes that state, so subsequent authoritative lookups find an inactive link and return no destination. These three paths tell us what data the database must hold.
+
+![Creating a link saves a mapping. A visitor resolves the active mapping. An administrator can disable it so later visitors receive no redirect.](/course-images/system-design/design-foundations/design-process-and-requirements-link-lifecycle.png)
+
+The creation response should follow the successful save. Returning a short link first creates a failure window: the application might crash before recording the destination, leaving the user with a link that never worked.
+
+## Use scale to choose the deep dive
+
+Suppose, as a teaching assumption, the service creates 100,000 links and handles 1,000,000 redirects daily. Reads outnumber writes ten to one. That suggests investigating the lookup path, but the ratio alone does not prove that a cache is necessary. Estimate peak demand and measure the proposed implementation.
+
+Choose one design question and follow it through. If the problem is repeated database reads for popular links, a cache may reduce database work. The next question is then how a disabled link stops being served from that cache. Improving performance creates a freshness decision.
+
+Record a decision in a form another person can review:
+
+| Question | Initial decision | Consequence to investigate |
+| --- | --- | --- |
+| Can destinations change? | No, but links can be disabled | Cached active state still needs invalidation |
+| Where is the mapping authoritative? | Persistent database | A cache miss needs database access |
+| What needs to scale first? | Determine from peak lookup demand | Measure before adding infrastructure |
+
+## Review failure as part of the flow
+
+Ask what the client knows if a creation request times out. The mapping may have been saved even though the response was lost. Repeating the request can create another mapping unless the API defines retry behavior. The same logical creation needs a way to recognize an earlier attempt. You will design that behavior in [Resilience and Safe Retries](/courses/system-design/docs/reliable-services/resilience-and-safe-retries).
+
+End a design review by stating what is decided, what remains uncertain, and which measurement or experiment will reduce that uncertainty. A high-level design is useful because people can challenge its assumptions before they become implementation costs.
+
+## Check your understanding
+
+A proposal adds five services, a cache, and two databases before defining whether destinations can change. What should the next review focus on?
+
+<details>
+<summary>Compare your reasoning</summary>
+
+Establish the required behaviors and trace creation, resolution, and disabling through persistent state. Then use traffic and failure requirements to justify each additional component. Destination mutability affects correctness and cache behavior, so it belongs before that implementation choice.
+
+</details>
+
+## Key Takeaways
+
+- **Scope:** Define behavior, quality requirements, assumptions, and exclusions separately.
+- **Flows:** Trace both the request and the state it reads or changes.
+- **Deep dives:** Investigate the bottleneck or correctness question most relevant to the requirements.
+- **Trade-offs:** Explain the consequence of a choice and how you will validate it.

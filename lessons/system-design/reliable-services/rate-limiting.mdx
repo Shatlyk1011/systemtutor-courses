@@ -1,0 +1,74 @@
+---
+title: "Rate Limiting"
+description: "Protect shared capacity with an explicit traffic policy."
+---
+
+<Callout title="Lesson goal" type="info">
+  Work through a token bucket, choose an enforcement point, and explain shared-state races and failure policy.
+</Callout>
+
+**Before you begin** — [Security and API boundaries](/courses/system-design/docs/reliable-services/security-and-api-boundaries).
+
+One client repeatedly creates short links while everyone else waits. Adding capacity may postpone the problem, but it does not define how clients share that capacity. A rate limiter admits or rejects work according to a policy.
+
+## State what is limited
+
+Choose the operation, identity, time behavior, and response. “Ten requests per second” is incomplete without saying whether that applies per account, per IP address, or across the service, and whether short bursts are permitted.
+
+Authenticated creation can use an account-based limit. Public redirects may need different rules because they have different users and costs. IP-based limits can group many legitimate users behind one address, so they are not equivalent to per-person fairness.
+
+Enforce the policy on the server, in application middleware, or at an API gateway. A client-side control can improve the interface but callers can bypass it. Place the check before expensive work where the necessary identity and policy information are available.
+
+## Follow a token bucket
+
+A **token bucket** holds permission to perform requests. Each admitted request removes a token. Tokens refill at a chosen rate up to a maximum capacity.
+
+Assume a full ten-token bucket with a refill rate of two tokens per second. Eight requests arrive together, immediately followed by three more. Trace the balance from left to right.
+
+![From ten tokens, eight admissions leave two. Of the next three requests, two pass and one is rejected. One idle second refills two tokens.](/course-images/system-design/reliable-services/rate-limiting-token-balance.png)
+
+The first eight requests leave two tokens for the next three requests. The eleventh request finds the bucket empty. One idle second replenishes two tokens, so two more requests could now pass. After a long quiet period the bucket still holds at most ten tokens. Capacity sets the burst limit and refill rate sets the sustained rate.
+
+For continuous refill, calculate the updated balance from elapsed time, cap it at capacity, then consume a token if enough is available. This update must be one protected operation when requests share the bucket.
+
+## Compare time-window alternatives
+
+A **fixed-window counter** counts requests within intervals such as each minute. It is simple, but permits a burst at the boundary: ten requests just before the minute changes and ten just after can fit two ten-per-minute windows.
+
+A **sliding-window log** tracks request timestamps and checks the recent interval directly, using more memory. A **sliding-window counter** approximates a rolling interval with less state. A **leaky bucket** smooths processing using a queue and controlled drain rate, introducing waiting and a queue-capacity decision.
+
+Choose the algorithm based on whether you need bursts, a rolling limit, or a smooth output rate. These are different policies, not interchangeable implementations of an unspecified limit.
+
+## Coordinate across application instances
+
+If three servers each allow ten requests per second for the same account independently, the combined limit may reach 30. A shared policy needs coordinated state or an explicitly approximate distributed allocation.
+
+![Three application instances consult one shared bucket to enforce the same account limit.](/course-images/system-design/reliable-services/rate-limiting-shared-bucket.png)
+
+An unprotected read-then-write is unsafe: two instances can both observe one remaining token and both admit work. A store-side atomic operation or suitable synchronization must combine the check and consumption.
+
+Shared state adds latency and a dependency. During a store outage, **fail-open** lets traffic through at the risk of overload. **Fail-closed** rejects traffic, including requests that had tokens left. A team might pause new link creation to protect write capacity while keeping existing redirects available. Record the choice for each operation.
+
+## Make rejection useful
+
+For HTTP APIs, use an appropriate rate-limit response such as `429 Too Many Requests` and communicate retry timing when known. Clients should delay and follow their bounded retry policy instead of immediately repeating the request. [OWASP REST security](https://cheatsheetseries.owasp.org/cheatsheets/REST_Security_Cheat_Sheet.html)
+
+Track admitted and rejected traffic by operation, limiter latency, and state-store failures. An unexpectedly high rejection rate may indicate abuse, a policy mistake, or changed legitimate demand.
+
+## Check your understanding
+
+A bucket has capacity 20 and refills at five tokens per second. After a long idle period, can it admit 100 immediate requests?
+
+<details>
+<summary>Compare your reasoning</summary>
+
+No. It holds at most 20 tokens, so only 20 immediate requests are admitted under the stated policy. Waiting longer does not increase the burst capacity. Refill allows later requests over time.
+
+</details>
+
+## Key Takeaways
+
+- **Policy:** Specify the operation, identity, burst behavior, and rejection response.
+- **Token buckets:** Capacity controls bursts; refill controls sustained admission.
+- **Shared state:** Check and consume atomically across instances.
+- **Failure:** Choose and monitor the consequence of unavailable limiter state.

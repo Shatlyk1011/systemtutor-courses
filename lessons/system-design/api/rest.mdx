@@ -1,247 +1,51 @@
 ---
 title: "REST"
-description: Design resource-oriented APIs with HTTP methods and stateless requests.
+description: "Design a resource-oriented interface with representations, HTTP methods, and explicit cache rules."
 ---
 
 <Callout title="Lesson goal" type="info">
-  By the end of this lesson, you will understand **REST** principles, resource modeling, HTTP verbs, statelessness, and caching.
+  Follow a user resource from creation to retrieval and explain how different servers or caches can serve the same contract.
 </Callout>
 
-**REST** is an architectural style for building APIs over HTTP. It lets clients interact with server-side resources using standard HTTP methods like GET, POST, PUT, and DELETE.
+**Before you begin** — [API contracts](/courses/system-design/docs/api/introduction).
 
-![](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/15aa5af8-3541-4385-b8bf-900901675665/gallery/3fe25bc4-d2b0-4bd7-ae27-823f62c5b5ba)
+A client needs to create a user, retrieve that user’s profile, and later change the profile. **Representational State Transfer (REST)** organizes these interactions around resources. In an HTTP API, a URI identifies the resource, a method expresses the operation, and a representation carries information about its state.
 
-## The Client-Server Model
+## Create a resource
 
-**REST** includes a **client-server separation of concerns**:
+The client sends `POST /api/v1/users` with a JSON body containing Alice’s name and email. The target is the collection of users. The server assigns ID 42, creates Alice’s account, and returns `201 Created` with `Location: /api/v1/users/42`. That URI identifies the individual user.
 
-- The **Client** acts on resources by issuing self-contained HTTP requests.
-- The **Server** manages resource state, enforces business rules, and returns representations of those resources in HTTP responses.
+![A REST client uses GET, POST, PUT, and DELETE to act on resources over HTTP.](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/15aa5af8-3541-4385-b8bf-900901675665/gallery/3fe25bc4-d2b0-4bd7-ae27-823f62c5b5ba)
 
-![](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/15aa5af8-3541-4385-b8bf-900901675665/gallery/ef05ef62-bc07-4ff6-805f-1d30709a25ff)
+These examples illustrate the same exchange against a sample API. Each sets the request’s media type and reads the location from the response.
 
-Because the client only interacts with the server through standardized representations, the client does not need to know anything about the server's internal database, storage format, or server-side architecture.
-
----
-
-## The Core Building Blocks
-
-A **REST** interaction consists of four related parts:
-
-| Part | Role | Example |
-|---|---|---|
-| **Resource** | The conceptual entity or object being worked with. | `User #42`, `Order #1098`, `Article` |
-| **HTTP Method (Verb)** | Describes the intended operation on the resource. | `GET`, `POST`, `PUT`, `PATCH`, `DELETE` |
-| **Representation** | The format and payload in which resource state is transferred. | JSON document, XML, form data |
-| **HTTP Status Code** | Standardized number communicating the outcome of the request. | `200 OK`, `201 Created`, `404 Not Found` |
-
-The client sends an HTTP request specifying the target resource URI and the desired operation method. The server processes the request and returns an HTTP response containing a status code and an updated representation of the resource.
-
----
-
-## Resources and Representations
-
-A fundamental principle of **REST** is the separation between a **resource** and its **representation**:
-
-- **Resource** — the conceptual thing identified by a URI, e.g. user `42`. It is not the database row or storage format behind it.
-- **Representation** — the format used to send that resource over the network, e.g. JSON, XML, or HTML.
-
-```text
-┌────────────────────────────────────────────────────────┐
-│                   Resource (Concept)                   │
-│                     e.g., User #42                     │
-└───────────────────────────┬────────────────────────────┘
-                          │
-            ┌───────────────┴───────────────┐
-            ▼                               ▼
-┌───────────────────────┐       ┌───────────────────────┐
-│  JSON Representation  │       │  XML Representation   │
-│  {"id": 42, "name":   │       │  <user id="42">       │
-│   "Alice"}            │       │    <name>Alice</name> │
-│                       │       │  </user>              │
-└───────────────────────┘       └───────────────────────┘
-```
-
-### Content negotiation
-
-This separation allows a single resource to be accessed in multiple formats depending on client needs. Using standard HTTP headers, the client requests its preferred representation:
-
-```http
-GET /api/v1/users/42 HTTP/1.1
-Host: api.example.com
-Accept: application/json
-```
-
-The server inspects the `Accept` header and returns the appropriate format along with a `Content-Type` response header:
-
-```http
-HTTP/1.1 200 OK
-Content-Type: application/json
-
-{
-  "id": 42,
-  "name": "Alice",
-  "email": "alice@example.com"
-}
-```
-
----
-
-## A RESTful Interface
-
-REST is defined by several architectural constraints, including client-server separation, stateless communication, cacheability, a uniform interface, and a layered system. The uniform interface is often taught through these practical qualities:
-
-```text
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                    Four Qualities of a RESTful Interface                    │
-├────────────────────────────────┬────────────────────────────────────────────┤
-│ Quality                        │ Implementation in HTTP                     │
-├────────────────────────────────┼────────────────────────────────────────────┤
-│ 1. Identify Resources          │ Uniform Resource Identifiers (URIs)        │
-│ 2. Change with Representations │ HTTP Verbs, Headers, and Request Bodies    │
-│ 3. Self-Descriptive Errors     │ Standard HTTP Status Codes                 │
-│ 4. HATEOAS                     │ Hypermedia links within representations    │
-└────────────────────────────────┴────────────────────────────────────────────┘
-```
-
-### 1. Identify resources (URI in HTTP)
-
-Every resource is identified by a stable, unique **URI (Uniform Resource Identifier)**. The URI should represent the resource itself (a noun), using the **same URI** regardless of the operation being performed.
-
-Avoid putting action verbs in the endpoint path:
-
-| ❌ Non-RESTful (RPC style) | ✅ RESTful (Uniform Resource URI) |
-|---|---|
-| `/api/getUser?id=42` | `GET /api/v1/users/42` |
-| `/api/createUser` | `POST /api/v1/users` |
-| `/api/updateUser?id=42` | `PUT /api/v1/users/42` or `PATCH /api/v1/users/42` |
-| `/api/deleteUser?id=42` | `DELETE /api/v1/users/42` |
-
-### 2. Change with representations (Verbs in HTTP)
-
-Clients manipulate server resources by sending representations accompanied by standard HTTP verbs, headers, and bodies:
-
-- **`GET`**: Retrieve the current representation of a resource without modifying server state.
-- **`POST`**: Submit a new representation to create a subordinate resource.
-- **`PUT`**: Replace an existing resource completely with the supplied representation.
-- **`PATCH`**: Apply partial modifications to an existing resource.
-- **`DELETE`**: Remove the specified resource.
-
-### 3. Self-descriptive error messages (Status codes in HTTP)
-
-RESTful APIs use standard HTTP status codes rather than inventing custom error protocols:
-
-- **`1xx` (Informational):** `100 Continue`, `101 Switching Protocols`.
-- **`2xx` (Success):** `200 OK`, `201 Created`, `204 No Content`.
-- **`3xx` (Redirection):** `301 Moved Permanently`, `302 Found`, `304 Not Modified`.
-- **`4xx` (Client Error):** `400 Bad Request`, `401 Unauthorized`, `403 Forbidden`, `404 Not Found`, `409 Conflict`.
-- **`5xx` (Server Error):** `500 Internal Server Error`, `502 Bad Gateway`, `503 Service Unavailable`.
-
-### 4. HATEOAS (hypermedia controls)
-
-**HATEOAS** means Hypermedia As The Engine Of Application State.
-The idea is simple: the server tells the client what actions are available by including links in the response.
-It's similar to a website: you don't need to know every URL beforehand—you follow the links provided by the page.
-
-```json
-{
-  "id": 42,
-  "name": "Alice",
-  "status": "active",
-  "_links": {
-    "self": { "href": "/api/v1/users/42" },
-    "orders": { "href": "/api/v1/users/42/orders" },
-    "deactivate": { "href": "/api/v1/users/42/deactivate", "method": "POST" }
-  }
-}
-```
-
-By including links, the client does not need to hardcode transition URLs across application versions.
-
----
-
-## Statelessness and Cacheability
-
-Two core architectural constraints give **REST** its power in distributed systems:
-
-### 1. Stateless communication
-
-Each request must contain the information needed to understand that request, including relevant authentication credentials, parameters, and payloads. The server does not keep **client session state** between requests; it can still keep resource state such as users, orders, and inventory.
-
-```text
-Request 1: [Token: ABC] GET /api/users/42
-Request 2: [Token: ABC] GET /api/orders  
-```
-
-Each request is handled **independently**. The server stores no client session context between requests.
-
-#### Why statelessness matters:
-
-- Scaling: Any server can handle any request.
-- Reliability: If one server fails, another can handle the next request.
-- Simplicity: Requests are easier to debug and monitor.
-
-### 2. Cacheable responses
-
-**REST** responses **should** indicate whether they can be cached.
-
-HTTP headers like `Cache-Control`, `ETag`, and `Last-Modified` help clients and proxies cache responses, which reduces server load and improves response time.
-
-## Code Example: A Complete REST Interaction
-<Tabs items={["JavaScript", "Python", "Go"]} >
+<Tabs items={["JavaScript", "Python", "Go"]}>
   <Tab value="JavaScript">
     ```js
-    // 1. Identify Resource URI & 2. Express Verb (POST)
-    const response = await fetch("https://api.example.com/v1/users", {
+    const response = await fetch("https://api.example.com/api/v1/users", {
       method: "POST",
-      headers: {
-        // 3. Define Representation format and metadata
-        "Content-Type": "application/json",
-        "Accept": "application/json",
-        "Authorization": "Bearer token_xyz",
-      },
-      body: JSON.stringify({
-        name: "Alice",
-        email: "alice@example.com",
-      }),
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: "Alice", email: "alice@example.com" }),
     });
-
-    // 4. Verify HTTP Status Code
     if (response.status === 201) {
-      const newUser = await response.json();
-      console.log("Created user representation:", newUser);
-    } else {
-      console.error(`Request failed with status ${response.status}`);
+      console.log(response.headers.get("Location"));
     }
     ```
   </Tab>
   <Tab value="Python">
     ```python
-    import urllib.request
     import json
+    from urllib.request import Request, urlopen
 
-    # 1. Identify Resource URI & 3. Prepare Representation
-    url = "https://api.example.com/v1/users"
-    payload = json.dumps({"name": "Alice", "email": "alice@example.com"}).encode("utf-8")
-
-    # 2. Configure HTTP Verb & Headers
-    req = urllib.request.Request(
-        url,
-        data=payload,
+    request = Request(
+        "https://api.example.com/api/v1/users",
         method="POST",
-        headers={
-            "Content-Type": "application/json",
-            "Accept": "application/json",
-            "Authorization": "Bearer token_xyz",
-        },
+        headers={"Content-Type": "application/json"},
+        data=json.dumps({"name": "Alice", "email": "alice@example.com"}).encode(),
     )
-
-    # 4. Execute request and inspect Status Code
-    with urllib.request.urlopen(req) as res:
-        status_code = res.getcode()
-        if status_code == 201:
-            data = json.loads(res.read().decode("utf-8"))
-            print("Created user representation:", data)
+    with urlopen(request) as response:
+        if response.status == 201:
+            print(response.headers.get("Location"))
     ```
   </Tab>
   <Tab value="Go">
@@ -249,56 +53,77 @@ HTTP headers like `Cache-Control`, `ETag`, and `Last-Modified` help clients and 
     package main
 
     import (
-        "bytes"
-        "encoding/json"
         "fmt"
-        "io"
         "net/http"
+        "strings"
     )
 
     func main() {
-        // 1. Identify Resource URI & 3. Prepare Representation
-        payload, _ := json.Marshal(map[string]string{
-            "name":  "Alice",
-            "email": "alice@example.com",
-        })
-
-        // 2. Configure HTTP Verb (POST)
-        req, err := http.NewRequest("POST", "https://api.example.com/v1/users", bytes.NewBuffer(payload))
+        body := strings.NewReader(`{"name":"Alice","email":"alice@example.com"}`)
+        response, err := http.Post(
+            "https://api.example.com/api/v1/users", "application/json", body,
+        )
         if err != nil {
             panic(err)
         }
-
-        req.Header.Set("Content-Type", "application/json")
-        req.Header.Set("Accept", "application/json")
-        req.Header.Set("Authorization", "Bearer token_xyz")
-
-        // 4. Execute request and verify Status Code
-        resp, err := http.DefaultClient.Do(req)
-        if err != nil {
-            panic(err)
-        }
-        defer resp.Body.Close()
-
-        if resp.StatusCode == http.StatusCreated {
-            body, _ := io.ReadAll(resp.Body)
-            fmt.Println("Created user representation:", string(body))
+        defer response.Body.Close()
+        if response.StatusCode == http.StatusCreated {
+            fmt.Println(response.Header.Get("Location"))
         }
     }
     ```
   </Tab>
 </Tabs>
 
----
+## Read one resource in two formats
+
+The client can now send `GET /api/v1/users/42`. Suppose the service supports JSON and XML. The diagram follows two clients requesting the same user. Each asks for a media type the service supports.
+
+![Two requests for the same user choose JSON and XML representations with Accept. The response identifies its chosen media type with Content-Type.](/course-images/system-design/api/rest/rest-content-negotiation.png)
+
+The JSON response includes the selected media type and the header used to choose it.
+
+```http
+HTTP/1.1 200 OK
+Content-Type: application/json
+Vary: Accept
+
+{"id":42,"name":"Alice"}
+```
+
+A client requesting XML at the same URI can receive `<user id="42"><name>Alice</name></user>` with `Content-Type: application/xml`. Both clients are reading the same resource. **Content negotiation** lets the server select a representation. `Accept` expresses a preference, `Content-Type` identifies the actual format, and `Vary: Accept` tells caches that this request header factors into the selection. [HTTP content negotiation](https://www.rfc-editor.org/rfc/rfc9110.html#section-12)
+
+## Update state through a uniform interface
+
+| Intent | Example | What the server reads |
+|---|---|---|
+| Replace the profile | `PUT /api/v1/users/42` | The desired complete representation under this contract. |
+| Change one field | `PATCH /api/v1/users/42` | A patch describing the change. |
+| Remove the resource | `DELETE /api/v1/users/42` | The target URI and the caller’s authority to remove it. |
+
+A message is **self-descriptive** when the method or status, headers, and representation give the recipient the information it needs to interpret it. For example, `204 No Content` tells the client that an update succeeded and there is no response body to parse.
+
+REST also uses **hypermedia controls**, sometimes called HATEOAS. A representation can include a link to `/api/v1/users/42/orders` under a documented relation such as `orders`. A client that understands that relation can follow the link the server supplied. [REST uniform interface](https://ics.uci.edu/~fielding/pubs/dissertation/rest_arch_style.htm#sec_5_1_5)
+
+## Let another server handle the next request
+
+**Statelessness** means each request carries the context needed to process it, including the target and any required credentials. Suppose one server creates user 42 and another receives the profile request. The second can check the credentials and load user 42 from shared storage. It can do this without relying on a conversation remembered by the first server. The user’s stored account is resource state and can persist across requests.
+
+Responses also communicate whether a cache may reuse them. For a response intended only for one user’s browser, `Cache-Control: private, max-age=60` permits a private cache to reuse it while fresh and prevents a shared cache from storing it. For a resource that may be revalidated, an `ETag` lets a client ask whether its stored representation has changed. [HTTP caching](https://www.rfc-editor.org/rfc/rfc9111.html)
+
+## Check your understanding
+
+A mobile app requests user 42 as JSON. Another client requests the same URI as XML. What could go wrong if a shared cache stored the JSON reply for both requests using only the URI?
+
+<details>
+<summary>Compare your reasoning</summary>
+
+The second client could receive the wrong representation. For a shareable response chosen using `Accept`, `Vary: Accept` tells the cache to account for that header before reusing a stored response. A private response belongs outside the shared cache altogether.
+
+</details>
 
 ## Key Takeaways
 
-- **REST** is an architectural style for building APIs over **HTTP**, where clients interact with server-side **resources**.
-- **Resource vs. Representation:** A resource is the actual entity; a representation is how it is sent, usually as **JSON**.
-- **Four REST principles:**
-  1. **Identify resources:** Use URLs to name resources, usually as nouns.
-  2. **Use HTTP methods:** `GET`, `POST`, `PUT`, `PATCH`, `DELETE` describe the operation.
-  3. **Use standard status codes:** `2xx` for success, `4xx` for client errors, `5xx` for server errors.
-  4. **HATEOAS:** Responses can include links that tell the client what actions are available.
-- **Stateless:** Each request contains the needed context; the server does not keep client session state between requests.
-- **Cacheable:** Responses can define caching rules to reduce server load and improve performance.
+- **A URI** identifies a resource that can have multiple representations.
+- **Methods, status codes, and headers** let clients and intermediaries interpret messages consistently.
+- **Stateless requests and explicit cache policies** help multiple components handle traffic while preserving the meaning of each response.

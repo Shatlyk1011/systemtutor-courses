@@ -1,0 +1,10 @@
+title: Distributed patterns
+description: Trace how data moves between machines in a partitioned store, a chat service, file uploads, and a feed.
+pages:
+  - partitioning-and-consistent-hashing
+  - distributed-key-value-store
+  - quiz-key-placement-quorums-and-conflicting-versions
+  - real-time-chat
+  - object-storage-and-file-uploads
+  - feeds-and-fan-out
+  - quiz-delivering-messages-files-and-feeds

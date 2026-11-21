@@ -1,0 +1,82 @@
+---
+title: "Observability and Operational Readiness"
+description: "Connect service objectives to alerts, incident response, and tested recovery."
+---
+
+<Callout title="Lesson goal" type="info">
+  Define a measurable service objective, choose actionable alerts, and distinguish failover from backup recovery.
+</Callout>
+
+**Before you begin** — [Observability and operations](/courses/system-design/docs/application-architecture/observability-and-operations) and [rate limiting](/courses/system-design/docs/reliable-services/rate-limiting).
+
+A dashboard can show healthy CPU usage while users cannot resolve links. Operational readiness starts with user-visible behavior and then connects that behavior to the signals and procedures needed to keep it working.
+
+## Define the measurement before the target
+
+A **service-level indicator (SLI)** measures an aspect of service behavior. A **service-level objective (SLO)** gives it a target and measurement window.
+
+For a redirect service, define eligible requests and count how many produce the expected successful response. Decide explicitly how invalid codes, policy rejections, and timeouts are classified. A latency indicator can measure the fraction of eligible successful redirects completed within a threshold.
+
+Suppose a teaching objective requires 99.9% success over a rolling 30-day window. For 1,000,000 eligible requests, 1,000 unsuccessful requests consume the corresponding 0.1% error budget. This is a request-based budget; converting it directly into downtime minutes would change the measurement model. [Google SRE: implementing SLOs](https://sre.google/workbook/implementing-slos/)
+
+## Build a useful observation path
+
+```text
+Application/database/queue → collector → time-series storage
+                                      → dashboard
+                                      → alert evaluation → responder
+```
+
+Metrics record timestamped values such as request count, duration, queue depth, or database errors. Labels distinguish operations and environments. Keep label values bounded: attaching every unique short code to a metric can create an enormous number of time series.
+
+A pull collector requests metrics from known endpoints. A push approach sends metrics from applications or agents. Both need failure detection and access controls. Missing measurements must not automatically appear as healthy zero values.
+
+Dashboards should connect user symptoms to likely causes. For redirects, view success, latency, traffic, cache hit rate, and database pressure together. For notifications, add oldest queued-job age and provider failures. Logs and traces help investigate particular failures after metrics reveal the pattern.
+
+## Alert when someone needs to act
+
+An alert should identify the affected operation, observed symptom, owner, and first investigation steps. Prefer a meaningful sustained problem over paging for every brief fluctuation. Group related notifications so one incident does not drown the responder in duplicates.
+
+With the 99.9% objective, the budget allows one failed redirect per thousand eligible requests. Suppose 100 of the last 10,000 failed. That 1% failure rate consumes the budget ten times as fast per request as the allowed 0.1% rate. A sustained high **burn rate** can trigger a page while there is still time to intervene. [Google SRE on alerting from SLOs](https://sre.google/workbook/alerting-on-slos/)
+
+![Eligible redirect outcomes determine the success SLI. Rapid error-budget consumption triggers an alert that directs a responder to the runbook.](/course-images/system-design/reliable-services/operational-readiness-redirect-error-budget.png)
+
+Link the page to the redirect dashboard and recovery runbook. CPU pressure may help a responder diagnose the failure. Also test that the page reaches its intended recipient.
+
+## Rehearse the incident response
+
+Imagine a deployment increases database timeouts. First establish impact and assign an incident lead. Separate the people making technical changes from the person keeping affected stakeholders informed. Record the timeline and the actions taken.
+
+Use the runbook to mitigate, for example by rolling back a known bad release when that is the supported recovery action. Verify recovery through user-facing indicators. Afterwards, document contributing conditions and concrete improvements without treating the incident as an individual blame exercise. [Google SRE: incident response](https://sre.google/workbook/incident-response/)
+
+## Backups address a different failure
+
+Replication can help during a machine failure, but it may also replicate an accidental deletion. Backups preserve recoverable historical state. A backup that has never been restored does not establish that recovery works.
+
+**Recovery point objective (RPO)** states how much recent data loss is acceptable, expressed as time. **Recovery time objective (RTO)** states how long recovery may take. For an exercise, choose an RPO of 15 minutes and an RTO of one hour. These are requirements to test, not guarantees created by writing them down.
+
+![RPO bounds the acceptable gap back to the recovery point. RTO bounds the time from disruption to restored service.](/course-images/system-design/reliable-services/operational-readiness-recovery-objectives.png)
+
+Suppose a deletion occurs at 10:00. Restoring data from 09:50 loses ten minutes of changes. If users regain access at 11:10, service recovery took 70 minutes. This drill meets the 15-minute RPO and misses the one-hour RTO.
+
+Run a restore drill in an isolated environment with the required configuration and credentials. Verify representative mappings and permissions, then record both the latest data recovered and the time service became usable. [AWS recovery strategies](https://docs.aws.amazon.com/wellarchitected/latest/reliability-pillar/rel_planning_for_recovery_disaster_recovery.html)
+
+## Check your understanding
+
+The team has three database replicas and a nightly backup. Can it claim a 15-minute RPO after an accidental deletion reaches all replicas?
+
+<details>
+<summary>Compare your reasoning</summary>
+
+Not from those facts. The nightly backup may lose much more than 15 minutes of changes. A suitable recovery mechanism and a restore exercise must demonstrate the objective. Replicas alone do not recover the deleted historical state.
+
+</details>
+
+## Key Takeaways
+
+- **Objectives:** Define the measured population, outcome, target, and window.
+- **Alerts:** Connect actionable user impact to an owner and runbook.
+- **Incidents:** Coordinate mitigation, communication, and subsequent learning.
+- **Recovery:** Test backups against both data-loss and recovery-time objectives.
+
+[Take the quiz · Protecting and operating a live service](/courses/system-design/docs/reliable-services/quiz-protecting-and-operating-a-live-service)

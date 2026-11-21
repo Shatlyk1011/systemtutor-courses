@@ -1,0 +1,92 @@
+---
+title: "Case Study: Notification System"
+description: "Build a bounded email and push workflow with observable delivery state."
+---
+
+<Callout title="Lesson goal" type="info">
+  Design acceptance, worker delivery, preference checks, duplicate protection, and recovery after provider failure.
+</Callout>
+
+**Before you begin** — [URL shortener case study](/courses/system-design/docs/design-practice/url-shortener) and [asynchronous work](/courses/system-design/docs/reliable-services/asynchronous-work-and-messaging).
+
+A user asks for an email notification. The API replies immediately, but the email provider is slow. What can the API truthfully promise at that moment? Follow the job from acceptance to a recorded delivery outcome.
+
+## Scope and capacity assumptions
+
+Support email and push, stored templates, per-channel preferences, and delivery status. Exclude SMS, campaigns, and strict real-time deadlines. Assume 100,000 notification jobs daily, one selected channel per job, a ten-times arrival peak, and a logical 1 KB stored job record retained for 30 days.
+
+```text
+Average arrivals = 100,000 / 86,400 ≈ 1.16 jobs/second
+Peak arrivals ≈ 11.57 jobs/second
+Logical retained jobs = 100,000 × 1 KB × 30 = 3 GB
+```
+
+Provider payloads, logs, queue copies, and database indexes are additional storage. If effective worker capacity is 20 jobs per second, a backlog of 6,000 jobs takes about 12 minutes to clear while new arrivals remain near 11.57 per second: `6,000 / (20 - 11.57) ≈ 712 seconds`. Recovery capacity must exceed incoming work.
+
+## Define acceptance and status
+
+`POST /v1/notifications` accepts an authorized event identifier, recipient, channel, and template parameters. Return `202 Accepted` with a job ID after the pending record commits. If that write fails, the service cannot acknowledge acceptance. `GET /v1/notifications/{id}` exposes permitted status information to the caller.
+
+Store the logical event ID, recipient, channel, template reference, creation time, status, attempt count, and next-attempt time. Deduplicate the intended delivery by event, recipient, and channel so a repeated producer event does not become another independent job. Keep channel preferences and contact information separately.
+
+Distinguish **pending**, **processing**, **provider accepted**, **suppressed**, and **failed** states. Provider acceptance is not proof the user received or read the message. Record later delivery feedback separately when the provider supplies it.
+
+## Trace the model solution
+
+![A dispatcher routes each durable pending job to its selected channel. Email and push each have their own queue, worker, and provider.](/course-images/system-design/design-practice/notification-system-channel-dispatch.png)
+
+The API validates the request and records a pending job. A dispatcher publishes pending jobs to the appropriate channel queue. Keeping the durable pending record allows another dispatcher pass to find work if the process crashes before publication. Publishing and marking progress can itself repeat, so queue deliveries remain duplicate-tolerant.
+
+The worker checks current preferences and contact information, renders the template, and sends to the appropriate provider. A suppressed job is a recorded outcome, not a mysterious disappearance. Give each channel its own queue and reserve worker capacity for push. If email sends stall, email jobs can wait while push workers continue to claim jobs from the push queue.
+
+## Protect the delivery boundary
+
+A worker first changes a pending job to processing with one conditional write. Only the worker that wins the claim proceeds. Give each claim a lease and attempt number. A recovery scan makes expired claims eligible again. Condition outcome writes on the current claim so a late worker cannot overwrite a newer attempt's result.
+
+Use the stable job ID for provider idempotency when the provider supports it. Now follow a failed reply.
+
+1. The provider accepts the notification.
+2. The worker loses the response or crashes.
+3. The queue redelivers the job.
+
+At step 3 the job store and the provider can tell different stories. Locally the send is unfinished, while the provider may already have accepted it. Query provider status where possible, reuse its idempotency mechanism, or explicitly accept the remaining duplicate/loss trade-off. This design does not promise exactly-once user delivery from queue acknowledgements alone.
+
+![The provider accepts the notification, but its reply is lost before the worker can confirm acceptance.](/course-images/system-design/design-practice/notification-system-provider-uncertainty.png)
+
+## Recover from an outage
+
+Acknowledge the channel-queue delivery only after committing its outcome in the job store. On provider acceptance, record `provider accepted` and the provider reference when available. For an opt-out or permanent error, record `suppressed` or `failed` with its reason. If the commit fails, leave the delivery unacknowledged. If the commit succeeds and the worker crashes before acknowledgement, the next worker sees the terminal state and acknowledges without sending again. [Consumer acknowledgements](https://www.rabbitmq.com/docs/confirms)
+
+For a temporary failure, the same commit records the attempt count, failure reason, and a new pending attempt with a future `nextAttemptAt` chosen using bounded backoff and jitter. Then acknowledge the old delivery. The dispatcher scans due attempts and publishes the same job ID with the new attempt number to its channel queue. A replay of an older attempt cannot claim the newer one. When the retry budget runs out, commit a terminal failure for investigation.
+
+During a provider outage, waiting work accumulates. Track oldest-job age, not only total depth. When the provider recovers, cap dispatch at its supported rate while providing enough capacity to drain the backlog. Replaying failed work preserves the original job identity and checks current preferences again.
+
+The bottleneck can be the provider quota even when workers are mostly idle. Adding workers beyond that quota increases rejected attempts rather than useful throughput. Prefer controlled recovery to an immediate surge of retries.
+
+## Security and operational choices
+
+Authenticate sending services and authorize which templates and recipients they may target. Keep provider credentials server-side, restrict contact-data access, and redact sensitive payloads from logs. User preferences are part of the delivery decision, not merely a screen setting.
+
+Monitor acceptance errors, job age, per-channel success and failure, suppression, attempt counts, provider latency, and uncertain outcomes. If the pending-job store cannot commit a new job, the API cannot acknowledge it. If only the email provider or its queue is down, the durable pending record can wait for recovery within the service’s capacity limit.
+
+## Design exercise and model answer
+
+The email provider is unavailable for ten minutes while push remains healthy. What should happen?
+
+<details>
+<summary>Compare your reasoning</summary>
+
+Continue accepting only what can be durably retained within the service's capacity policy. Keep push processing independently. Delay email retries, expose pending status, and alert on job age. After recovery, drain email at a bounded rate and inspect exhausted jobs. Reuse job IDs during replay; do not turn every retry into a new notification.
+
+</details>
+
+This solution accepts asynchronous completion and some operational complexity to isolate provider latency. A synchronous path is simpler for tiny workflows, but its caller directly inherits provider delays and ambiguous responses.
+
+## Key Takeaways
+
+- **Acceptance:** A durable job is not a delivered notification.
+- **Recovery:** Retained pending state bridges failed publication attempts, with deduplication for repeats.
+- **Providers:** Duplicate safety must extend to the external effect boundary.
+- **Capacity:** Recovery throughput and provider quotas determine how fast a backlog drains.
+
+[Take the quiz · Design review: notification delivery](/courses/system-design/docs/design-practice/quiz-design-review-notification-delivery)

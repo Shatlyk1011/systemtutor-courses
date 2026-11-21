@@ -1,143 +1,60 @@
 ---
 title: "IP"
-description: Understand IP addressing and how packets reach their destination.
+description: "Read IP addresses and trace a packet from a private network to a public service."
 ---
 
 <Callout title="Lesson goal" type="info">
-  By the end of this lesson, you will understand how network endpoints are addressed, how IPv4 and IPv6 work, how IP packets carry routing metadata, and how protocol layers connect application data with HTTP.
+  Explain what a router does with a destination address and how private devices can share a public IPv4 address.
 </Callout>
 
-## Why networks need addresses
+**Before you begin** — [How a request crosses a network](/courses/system-design/docs/networking/introduction).
 
-When machines communicate, the network needs a way to identify a destination at a particular point in the network. **IP addresses** provide that routing identity.
+When your laptop requests a page, it sends packets toward the service’s **Internet Protocol (IP) address**. Each router uses the destination address to choose a next hop. The address identifies a network interface in a particular network context. A device can have several addresses, and an address can be reassigned.
 
-### IP addresses identify endpoints
+## Read an address
 
-An **IP address** identifies a network interface or endpoint for routing. It is not a permanent identity for a person or a physical machine: an address can be reassigned, and a private address can be reused in many separate local networks.
-
-<Callout title="Core idea" type="info">
-Routers need a destination address to forward traffic. IP addresses provide that routing information within the relevant network scope.
-</Callout>
-
-## IPv4 addressing
-
-An IPv4 address is a **32-bit address** used to represent a value in four parts.
-
-It is written as **four decimal octets**, separated into four sections. Each octet ranges from **0 to 255**.
-
-```text
-[octet] . [octet] . [octet] . [octet]
-```
-
-### Key IPv4 rules
-
-- IPv4 addresses are **32 bits** long.
-- They are written as **four decimal octets** (e.g., `192.168.1.1`).
-- Each octet must be between **0 and 255**.
-
-## IPv4 and IPv6
-
-IPv4 and IPv6 use fundamentally different address spaces to handle network connectivity.
-
-- **IPv4:** Has a limit of roughly **4 billion addresses** (2^32). This address exhaustion is the key constraint of IPv4.
-- **IPv6:** Uses a **128-bit address space** (2^128), providing a practically inexhaustible pool of unique addresses.
-
-| Version | Address Size | Address Space | Example Format |
+| Version | Size | Example | How to read it |
 |---|---|---|---|
-| **IPv4** | 32 bits | ~4.3 billion ($2^{32}$) | `192.0.2.1` |
-| **IPv6** | 128 bits | ~$3.4 \times 10^{38}$ ($2^{128}$) | `2001:0db8:85a3::8a2e:0370:7334` |
+| IPv4 | 32 bits | `192.0.2.1` | Four decimal numbers separated by dots. Each number represents eight bits and ranges from 0 to 255. |
+| IPv6 | 128 bits | `2001:db8::1` | Groups of hexadecimal digits separated by colons. A double colon can stand for a run of zero groups. |
 
-## Public and private IPs
+IPv4 has about 4.3 billion possible addresses. IPv6 provides a much larger address space. Both protocols carry packets with a source and destination address.
 
-![](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/54de4736-cbfb-4ca3-add4-542a111f11df/gallery/8fb060a9-f6a4-42c6-b9f4-bf017cd77b6a)
+## Follow a packet out of a private network
 
-IP addresses serve two different roles depending on where they are used: **public addresses** enable internet access, while **private addresses** identify devices inside a local network.
+A phone and a laptop on your home network can have different **private IPv4 addresses**. Another home can reuse those same addresses because Internet routers do not forward traffic to private ranges across the public Internet.
 
-### Public IP addresses
+![Several private devices access the internet through a router with one public IP address.](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/e25a97c7-7bb0-4a6e-a419-05a6f6f3c1fa/gallery/3deb6b01-5261-46f5-9cb7-68140f5594eb)
 
-A public IP address is globally routable on the public internet. A network can expose services through one, although firewalls, routing rules, and address translation still control whether a particular service is reachable.
+1. The laptop sends a packet addressed to a public service. On the home network its source is its private address.
+2. The home router performs **network address translation (NAT)**. In a common home setup, it substitutes a public source address and keeps a mapping that includes transport ports. Connections from several devices can now share that public address.
+3. The service replies to the translated address and port. The router uses the mapping to forward the reply to the laptop.
 
-### Private IP addresses
+A public address can be routed on the Internet. Whether a client can actually reach a service at that address also depends on routing and firewall rules.
 
-A private IP address identifies a device within a local network. Private ranges are not routed on the public internet, so many networks can reuse the same private addresses; a gateway commonly translates outbound traffic to a public address.
+## Separate scope from assignment
 
-| Address type | Purpose | Scope |
-|---|---|---|
-| **Public** | Enables internet access | Global / Internet-wide |
-| **Private** | Identifies devices inside a local network | Local Area Network (LAN) |
+**Public** and **private** describe where an address is usable. **Static** and **dynamic** describe how the address is assigned. A private database address can be static. A router’s public address can be dynamically assigned and may change. Dynamic assignment does not require the address to change at every renewal.
 
-![Private IP addresses](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/e25a97c7-7bb0-4a6e-a419-05a6f6f3c1fa/gallery/3deb6b01-5261-46f5-9cb7-68140f5594eb)
+## Deliver the payload to the right program
 
-## Static and dynamic IPs
+An IP header identifies the source, destination, and the protocol carried inside. For a web request using TCP, IP routes the packets to the host, and TCP uses connection information including ports to deliver the bytes to the right endpoint. The server can then interpret the HTTP message.
 
-An IP address can be either **static** or **dynamic**. The difference is whether the address stays fixed or changes over time.
+![An HTTP message uses TCP for transport in this example. IP routes the resulting packets.](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/e25a97c7-7bb0-4a6e-a419-05a6f6f3c1fa/gallery/3c1ff4c6-09d2-49f6-abf1-6437df9bc942)
 
-- **Static IP address:** Stays fixed and remains the same over time.
-- **Dynamic IP address:** Can change periodically, assigned dynamically by network controllers (such as DHCP).
+## Check your understanding
 
-| Type | Behavior | Common Usage |
-|---|---|---|
-| **Static** | Stays fixed | Servers, DNS infrastructure, static gateways |
-| **Dynamic** | Changes over time | Client devices, home routers, mobile clients |
+Two laptops on different home networks both use `192.168.1.10`. Why can they each open the same public website and receive the right reply?
 
-## IP packets and headers
+<details>
+<summary>Compare your reasoning</summary>
 
-An **IP packet** is a fundamental unit of IP data. Each packet consists of a payload and an **IP header**, which contains metadata required for routing.
+Each private address belongs to a separate network. Each home gateway translates the outgoing connection and records where its replies belong. The website replies to the translated endpoint.
 
-### Source and destination metadata
+</details>
 
-| Metadata | Meaning |
-|---|---|
-| **Source IP** | The IP address associated with where the packet originates from |
-| **Destination IP** | The IP address associated with where the packet is destined |
+## Key Takeaways
 
-The header provides the source and destination IP metadata that routers inspect at each hop to choose the next hop toward the destination. The final delivery to a particular application also depends on the transport protocol and port.
-
----
-
-## Protocol layers
-
-A single network communication typically involves multiple protocol layers:
-
-- **Network protocols** (e.g., IP)
-- **Transport protocols** (e.g., TCP, UDP - upcoming lessons)
-- **Application protocols** (e.g., HTTP, DNS - upcoming lessons)
-
-These layers divide responsibility within the communication. Instead of one monolithic protocol handling everything, each layer handles a specialized part of the overall process.
-
-| Layer | Role in Communication | Example Protocols |
-|---|---|---|
-| **Application** | Handles application data and user-facing protocols | HTTP, HTTPS, WebSockets |
-| **Transport** | Manages port-to-port connections and delivery | TCP, UDP |
-| **Network** | Manages host addressing and routing across networks | IPv4, IPv6 |
-
-<Callout title="Main takeaway" type="info">
-Protocol layers divide responsibility among network, transport, and application protocols while allowing them to work together in one communication.
-</Callout>
-
-![](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/e25a97c7-7bb0-4a6e-a419-05a6f6f3c1fa/gallery/3c1ff4c6-09d2-49f6-abf1-6437df9bc942)
-
-## Application data and HTTP
-
-### Application data
-
-**Application data** is the actual content accessed and manipulated by software (such as JSON payloads, HTML documents, or images).
-
-### HTTP
-
-**HTTP (Hypertext Transfer Protocol)** is a common protocol at the **application layer**. It provides a standardized format for application software to request and exchange application data between clients and servers.
-
-- **Application data** is the *content*.
-- **HTTP** is the *application-layer protocol* used to transfer that content.
-
-<Callout type="info">
-We will learn about each topic deeper in upcoming lessons
-</Callout>
-
-## Key takeaways
-
-- **Unique Endpoint Addressing:** IP addresses identify network endpoints so machines can be distinguished.
-- **IPv4 vs IPv6:** IPv4 uses 32-bit addresses (4 decimal octets, 0–255, ~4 billion limit), whereas IPv6 uses 128-bit addresses to overcome capacity limits.
-- **Scope & Behavior:** Public IPs face the global internet; private IPs operate within local networks.
-- **IP Packet Headers:** Contain critical routing metadata, notably the source and destination IP addresses.
-- **Layer Separation & HTTP:** Communication divides responsibilities across Network, Transport, and Application layers. Application data is the content, and HTTP is the application-layer protocol used to exchange it.
+- **Addresses** let routers forward packets toward a destination within the appropriate network scope.
+- **NAT** lets devices share a public IPv4 address by tracking translations for their traffic.
+- **Ports** help the destination’s transport layer deliver incoming data to the right endpoint.

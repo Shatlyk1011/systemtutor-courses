@@ -1,0 +1,84 @@
+---
+title: "Real-Time Communication: Chat"
+description: "Trace durable messages through live connections and reconnects."
+---
+
+<Callout title="Lesson goal" type="info">
+  Compare polling and WebSockets and explain message persistence, conversation ordering, and reconnect recovery.
+</Callout>
+
+**Before you begin** — [Asynchronous work and messaging](/courses/system-design/docs/reliable-services/asynchronous-work-and-messaging) and [safe retries](/courses/system-design/docs/reliable-services/resilience-and-safe-retries).
+
+A chat message must reach an online recipient quickly and remain available when the recipient disconnects. A live connection solves only the first part. Stored history and synchronization solve the second.
+
+## Bound the design
+
+Support text messages in one-to-one and small group conversations, multiple devices, history, and approximate online presence. Leave large channels and media uploads outside the initial design. Require authenticated membership checks for every conversation operation.
+
+Assume 10,000 daily active users each send 20 messages daily. That is 200,000 messages per day, or about 2.31 per second on average. At a hypothetical 1 KB per stored message, logical growth is 200 MB daily before indexes and replicas. Concurrent connections and peak fan-out are additional sizing inputs; daily message rate does not measure them.
+
+## Choose the live transport
+
+**Polling** repeatedly asks whether new messages exist. It is simple but causes empty requests when nothing has changed. **Long polling** holds a request until data or a timeout arrives, after which the client starts another request.
+
+**WebSockets** provide a persistent bidirectional connection, allowing either side to send data. They fit active chat, but servers must track connected clients and handle connection loss. A load balancer spreading new connections does not move an existing socket to another server.
+
+```text
+Sender ↔ chat server → message store
+                    → recipient's chat server ↔ recipient
+                    → notification job when recipient is offline
+```
+
+## Store before claiming durable acceptance
+
+Define a message with conversation ID, server-assigned sequence, sender, body, and a client message ID used for retries. Membership belongs in separate conversation data. History reads ask for messages after a sequence or before a history cursor, with a page-size limit.
+
+After checking membership and validating the message, commit the message and a pending delivery event in one database transaction. This event table is a **transactional outbox**. A unique conversation, sender, and client message ID ties retries to the original message. Acknowledge the sender after commit.
+
+![One database transaction commits the chat message and a pending event. The sender can then receive acknowledgement, while a relay can publish the event to the broker.](/course-images/system-design/distributed-patterns/real-time-chat/real-time-chat-transactional-outbox.png)
+
+If the server crashes before publishing the event, a relay can still find it in the outbox. The relay marks it sent only after the broker confirms durable acceptance. A crash between confirmation and marking can publish twice. Workers route both copies with the same stored message ID and sequence. A device can deduplicate a repeat or fill a gap from durable history whether it first sees the message live or during catch-up. [Transactional outbox pattern](https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/transactional-outbox.html)
+
+Give each message a position in its conversation. This example assigns consecutive numbers to committed messages in their conversation order. The service must coordinate that assignment within each conversation. Timestamps alone cannot settle the order of simultaneous messages from different machines.
+
+## Reconnect from durable progress
+
+Each device remembers the last position through which it has applied every message in a conversation. A phone that disconnected after message 10 can use that stored position, or **cursor**, to request everything after 10.
+
+![A device whose contiguous cursor is 10 reconnects and requests later messages from durable history. After applying 11 and 12 in order it advances to 12.](/course-images/system-design/distributed-patterns/real-time-chat-device-catch-up.png)
+
+Consider a message published while the phone is catching up. One approach is to subscribe to live delivery first, buffer incoming messages, then fetch history after 10. If 12 arrives live before 11 is fetched, hold 12 until 11 has been applied. If history also returns 12, recognize its ID and apply it once. Advancing the cursor only through consecutive messages leaves the phone a safe place to resume after another disconnect.
+
+If a chat server crashes after storage commits but before the sender receives acknowledgement, the sender retries using the same client message ID. The next server returns the existing message rather than adding another. The message store, not the socket, preserves this result.
+
+## Presence is a separate signal
+
+Heartbeats indicate that a device was reachable recently. After a timeout, presence can become offline. A lost connection does not prove the user intentionally left, and a green indicator does not guarantee immediate delivery.
+
+![Recent heartbeats support an online indicator. After a quiet interval the presence estimate times out.](/course-images/system-design/distributed-patterns/real-time-chat-presence-heartbeats.png)
+
+A user's phone might stop sending heartbeats while their laptop stays connected. Maintain reachability per device and define how those signals roll up to the user's presence. Delivery progress remains per device, so a read on the laptop need not advance the phone's cursor.
+
+## Failure, security, and monitoring
+
+After server failure, clients reconnect to an available server, authenticate again, and catch up from durable history. Limit reconnection retries to avoid an outage producing a synchronized connection surge.
+
+Authorize both history access and live subscriptions. Rate-limit sending and bound message size. Monitor active connections, reconnect rate, persistence latency, delivery lag, and storage failures. A high socket count with rising delivery lag is not a healthy chat experience.
+
+## Check your understanding
+
+A recipient disconnects just after a message is stored. Is a push notification enough to recover the chat history?
+
+<details>
+<summary>Compare your reasoning</summary>
+
+No. Push can prompt the user to return, but durable messages and a progress-based catch-up flow restore history. The reconnecting device requests missing messages and deduplicates any repeated live deliveries.
+
+</details>
+
+## Key Takeaways
+
+- **Transport:** WebSockets enable live exchange but do not replace durable storage.
+- **Ordering:** Define the required scope and protect synchronization from gaps.
+- **Reconnects:** Resume from durable progress using stable message identities.
+- **Presence:** Recent reachability is an approximate signal, separate from delivery.

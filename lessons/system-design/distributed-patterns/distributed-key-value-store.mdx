@@ -1,0 +1,82 @@
+---
+title: "Distributed Key-Value Store"
+description: "Combine placement, replication, versioning, and recovery in an illustrative store."
+---
+
+<Callout title="Lesson goal" type="info">
+  Trace replicated reads and writes, explain quorum limitations, and resolve concurrent versions.
+</Callout>
+
+**Before you begin** — [Partitioning strategies and consistent hashing](/courses/system-design/docs/distributed-patterns/partitioning-and-consistent-hashing).
+
+A client saves a value and receives a success response while one of its three replicas is unreachable. Which value will the next reader see? To answer that, follow a `put(key, value)` and a `get(key)` through the same replica set.
+
+## Define the illustrative contract
+
+Design for small values, key-based lookup, and continued operation during some node failures. This design borrows two ideas from Dynamo. A consistent hash ring identifies placement, and each key has three replicas on distinct machines.
+
+A **coordinator** receives the client request and contacts the replicas responsible for the key. Any eligible node can play that role; the coordinator is not necessarily the permanent owner of all data.
+
+```text
+Client → coordinator → replica A
+                    → replica B
+                    → replica C
+```
+
+## Work through reads and writes
+
+Let `N` be the replica count, `W` the number of write acknowledgements required, and `R` the number of read responses collected. With `N=3`, `W=2`, and `R=2`, the coordinator can complete without waiting for every replica.
+
+A write acknowledged by A and B intersects any two-replica read drawn from A, B, and C. Reading B and C encounters at least one participant from that acknowledged write. This is the intuition behind `R + W > N`.
+
+![A and B acknowledge the write. B and C answer the read, so B belongs to both sets.](/course-images/system-design/distributed-patterns/distributed-key-value-store-quorum-overlap.png)
+
+Suppose B reports the updated value and C still reports the old one. The coordinator needs a rule for choosing between them. Overlap alone cannot establish **linearizability**, the promise that operations behave as though each took effect at a single moment between its call and response. Concurrent and incomplete writes, version selection, and changes in replica membership all affect that promise. [Dynamo design paper](https://www.allthingsdistributed.com/files/amazon-dynamo-sosp2007.pdf)
+
+With two replicas reachable, this example can still meet its read and write thresholds. With only one reachable, it must wait, return an error, or explicitly allow a different set of replicas.
+
+## Detect versions that cannot be ordered
+
+If disconnected clients both change the same value, neither change necessarily contains the other. A **vector clock** records version counters associated with participating nodes and can distinguish an ancestor from a concurrent sibling.
+
+Read each pair in the diagram as (A's counter, B's counter). From (1, 0), an update at A produces (2, 0). An independent update at B, based on that same original version, produces (1, 1).
+
+![Two versions derived from (1, 0) are concurrent because each advances a counter the other does not.](/course-images/system-design/distributed-patterns/distributed-key-value-store-vector-clock-siblings.png)
+
+Compare matching counters. One version precedes another when every counter is less than or equal to its counterpart and at least one is strictly less. The original precedes both updates. Between the two updates, A's counter is larger in the first and B's is larger in the second. They are **concurrent siblings**.
+
+The application can merge siblings if its data model defines a meaningful merge, or it can preserve both until a user resolves the conflict. Discarding either sibling immediately could throw away a legitimate change. The store must also budget space for the version metadata.
+
+## Recover from temporary and lasting failures
+
+Heartbeats and gossip distribute observations of node health. A missing heartbeat suggests an unreachable or slow node; it does not prove the machine has stopped. Failure detection feeds placement and recovery decisions under uncertainty.
+
+In **hinted handoff**, another node temporarily retains a write intended for an unavailable replica and forwards it after recovery. A **sloppy quorum** can accept healthy fallback nodes outside the normal replica set. This favors availability but changes the overlap assumptions used earlier.
+
+For replicas that have diverged, a **Merkle tree** compares hashes of ranges. Equal hashes avoid transferring matching ranges; unequal branches identify where to investigate and synchronize. The tree locates differences. It still needs the store's version policy to resolve conflicting values.
+
+## Persist each node's local state
+
+One possible local engine writes an append-only recovery log, updates an in-memory table, and later flushes sorted data to disk files. A read checks recent in-memory state and relevant disk files. A Bloom filter can rule out some files that definitely do not contain a key; a positive result still needs a lookup.
+
+These are local storage choices, separate from replica coordination. A node acknowledging a write must obey the durability contract; merely placing it in volatile memory does not establish persistence through a crash.
+
+## Check your understanding
+
+The normal replicas are A, B, and C. A and a temporary fallback D acknowledge a write. Which pair of normal replicas could answer a read without seeing that write?
+
+<details>
+<summary>Compare your reasoning</summary>
+
+B and C could both return the old value. The sets `{A, D}` and `{B, C}` have no member in common. Hinted handoff can repair a missing copy later, but that reader may already have received stale data.
+
+</details>
+
+## Key Takeaways
+
+- **Contracts:** A small API still needs explicit consistency and durability semantics.
+- **Quorums:** Overlap depends on replica sets and does not resolve concurrent versions by itself.
+- **Versions:** Detecting a conflict and resolving it are separate operations.
+- **Recovery:** Handoff and repair restore copies according to the chosen conflict policy.
+
+[Take the quiz · Key placement, quorums, and conflicting versions](/courses/system-design/docs/distributed-patterns/quiz-key-placement-quorums-and-conflicting-versions)

@@ -4,80 +4,45 @@ description: Follow an application from development and deployment to a user req
 ---
 
 <Callout title="Lesson goal" type="info">
-  By the end of this lesson, you will be able to trace how code becomes a running application and how user requests travel through the application to reach persistent data and return a response.
+  Trace how a code change reaches production and how a profile request uses the running application.
 </Callout>
 
-A modern application is more than source code. It is a system that connects **code, execution, data, and user requests**.
+A developer adds a display name to a profile page. Saving the change in source control records the new version. For a user to see it, that version must be running when their browser asks for the profile. These two events belong to different paths that meet at the application.
 
-## The application path
+## Follow a change into production
 
-An application has two paths that must work together:
+The **delivery path** starts when the developer commits a change to source control. The build turns the source into something the runtime can execute, such as a package or container image. Tests check that the change behaves as expected.
 
-- the **delivery path**, which turns source code into a running version of the application
-- the **request path**, which carries a user action to the right service and returns a result
+![A developer commits code to source control. Build and test precede deployment to the runtime.](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/ba63474e-1b92-4442-ad73-e67e7b1b8070/gallery/d5eb3c7f-c468-4a2f-8be2-e51ddcf0b879)
 
-The paths meet at the running application. A deployment changes the code that the application executes; a request uses that running code to do useful work.
+Deployment places the selected build into its target environment. The **runtime** executes it with the configuration, network access, and credentials it needs to serve requests. A profile request reaches the version currently serving traffic. A newer commit can still be waiting for deployment.
 
+## Trace a profile request
 
-### 1. Delivery: from code to a running service
+The **request path** begins when a user opens their profile. The browser acts as the client. It calls the application's **API**, the interface through which the client asks for data or actions. The application can expose that interface directly or receive requests through a gateway.
 
-**Developer → Source control → Build and test → Deployment → Running application**
+![The browser requests a profile from the application. Only the application reads the database and returns the profile to the browser.](/course-images/system-design/application-architecture/application-foundations/application-foundations-profile-request.png)
 
-A developer writes a change and saves it in source control. A build process turns that source into something the runtime can execute, such as a compiled program, package, or container image. 
+1. The browser asks the application for the user's profile.
+2. The application checks who is making the request and whether that person may view the profile.
+3. The application reads the record from persistent storage. The database returns the profile data to the application.
+4. The application forms a response. The browser receives it and displays the profile.
 
-Deployment places the approved version into an environment. The runtime starts the application with its configuration, network access, and credentials. At that point, the application is ready to **receive requests**.
+When the user edits their display name, the request follows the same route to the application. This time the application validates the change, writes the new value to storage, and confirms the update. Reading and writing have different effects on the stored record.
 
-![](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/ba63474e-1b92-4442-ad73-e67e7b1b8070/gallery/d5eb3c7f-c468-4a2f-8be2-e51ddcf0b879)
+## Check your understanding
 
-### 2. Requests: from a user action to data and back
+The profile change passed its build and tests. Users still see the old display, and profile reads succeed. Which path would you check first?
 
-**User → Front-end or client → API entry point → Application → Storage or other services → Application → Response → User**
+<details>
+<summary>Compare your reasoning</summary>
 
-A user might click a button in a web page, open a mobile screen, or call an API from another system. The front-end or client sends that action to an entry point, commonly an API or gateway. The entry point routes the request to application code running on an available server.
+Start with delivery. Find out which build is serving users. A successful profile read confirms that a running version handled the request. The deployment record tells you whether it was the version with the new display.
 
-The application validates the request, applies business rules, and reads or writes the data it needs. That data may live in a database, cache, object store, or another service. The application then constructs a response, which travels back through the entry point to the client so the user can see the result.
+</details>
 
-![](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/ba63474e-1b92-4442-ad73-e67e7b1b8070/gallery/3b2a61a0-33c4-4972-82d1-543f44072167)
+## Key Takeaways
 
-The path is not a single physical machine or a single program. Different stages can run on different machines and can scale independently, but each stage has to pass the correct work to the next one.
-
-## Core stages
-| Stage | Role |
-|---|---|
-| **Source control, build, and deployment** | Version code, check it, and release a runnable version to an environment. |
-| **Runtime / servers** | Provide compute, configuration, and network access for the running application. |
-| **Front-end / API entry point** | Accepts actions from users or other systems and directs them to the appropriate application capability. |
-| **Application** | Authenticates and validates requests, applies business logic, coordinates dependencies, and creates responses. |
-| **Storage and supporting services** | Persist data or provide shared capabilities such as caching, file storage, messaging, or search. |
-
-<Callout title="Key idea" type="info">
-  An application is not just code. It must be built and deployed, run in an environment, receive requests through an entry point, use data or services, and return a response.
-</Callout>
-
-## Trace a request
-
-Consider a user loading their **profile**:
-
-**User → Front-end → API → Application Server → Storage → Application Server → API → Front-end → User**
-
-
-![](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/ba63474e-1b92-4442-ad73-e67e7b1b8070/gallery/3b2a61a0-33c4-4972-82d1-543f44072167)
-
-The request starts at the user-facing interface. The front-end calls an API, and the API routes the request to an application server. The application checks that the user is allowed to view the profile, reads the profile from storage, and builds a response. If the application needs data from another service, it can make that call before responding.
-
-The response then travels back through the API to the front-end, which displays the profile to the user. The same route works in reverse for updates: the application validates the new information, writes it to storage, and returns confirmation.
-
-## Connect the two paths
-
-When a developer deploys a new version, the runtime begins serving requests with that version. This is why delivery and request handling cannot be treated as separate concerns: deployment determines what behavior users receive, and request handling shows whether that version works correctly in practice.
-
-This gives us two connected paths:
-
-- **Delivery path:** source code → build and test → deployment → running application
-- **Request path:** user or system → client/API → application → data or services → response
-
-Together, these paths form the foundation of a running application.
-
-<Callout title="Key idea" type="info">
-  To understand an application, trace both directions: **how code becomes a running service** and **how a user request travels through that service to reach data and return a response**.
-</Callout>
+- The **delivery path** turns a source change into a running version.
+- The **request path** carries a client action through application logic to data and back.
+- The paths meet at the runtime. Checking the deployed version and tracing a request answer different diagnostic questions.

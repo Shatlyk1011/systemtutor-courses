@@ -1,0 +1,98 @@
+---
+title: "Back-of-the-Envelope Estimation"
+description: "Estimate request rates, storage, and bandwidth with explicit units."
+---
+
+<Callout title="Lesson goal" type="info">
+  Calculate average and peak demand, separate logical data from physical storage, and check whether an estimate answers the design question.
+</Callout>
+
+**Before you begin** — [Design process and requirements](/courses/system-design/docs/design-foundations/design-process-and-requirements).
+
+A daily traffic total cannot tell you directly how much work a server must handle each second. Estimation translates product assumptions into quantities that you can compare with measurements.
+
+## Write the assumptions first
+
+Suppose the team is planning the first year of the short-link service. Use the following assumptions for that estimate.
+
+| Input | Assumption |
+| --- | --- |
+| New mappings | 100,000 per day |
+| Redirect requests | 1,000,000 per day |
+| Peak multiplier | 5 times the daily average |
+| Mapping size | 500 bytes, including the chosen record fields |
+| Retention | 365 days |
+| Redirect response size | 1,000 bytes for this estimate |
+
+There are 86,400 seconds in a day. Use decimal storage units here: 1 KB is 1,000 bytes and 1 GB is 1,000,000,000 bytes. Binary units such as KiB use powers of 1,024. Label the convention instead of silently mixing them.
+
+## Calculate request rates by operation
+
+![100,000 creations per day divided by 86,400 seconds gives about 1.16 requests per second. A fivefold peak gives about 5.8.](/course-images/system-design/design-foundations/back-of-the-envelope-estimation-daily-to-peak.png)
+
+```text
+Average creates = 100,000 / 86,400 ≈ 1.16 requests/second
+Average redirects = 1,000,000 / 86,400 ≈ 11.57 requests/second
+
+Peak creates = 1.16 × 5 ≈ 5.8 requests/second
+Peak redirects = 11.57 × 5 ≈ 57.9 requests/second
+```
+
+Keep reads and writes separate because they perform different work. A redirect looks up an existing mapping. Creation allocates a code and saves a new mapping. A server's measured capacity for one operation does not establish its capacity for the other.
+
+Use the fivefold multiplier as a planning scenario. A sudden popular link can produce a much higher peak than the average suggests. Replace the multiplier with measured peak intervals when those measurements exist.
+
+## Estimate retained data
+
+```text
+Daily logical data = 100,000 records/day × 500 bytes/record
+                   = 50,000,000 bytes/day = 50 MB/day
+
+One year = 50 MB/day × 365 days = 18,250 MB = 18.25 GB
+Three complete copies = 18.25 GB × 3 = 54.75 GB
+```
+
+The first result describes logical record data. The three-copy result still excludes indexes, database bookkeeping, logs, backups, and unused capacity. List these omissions rather than presenting 54.75 GB as the final disk requirement.
+
+At a steady creation rate, retaining two years of records instead of one doubles the retained payload once both years have accumulated. With a rolling 365-day retention policy, the service instead settles near 18.25 GB of logical mappings as old records leave at the same rate that new ones arrive.
+
+![Three complete copies of 18.25 GB require 54.75 GB before indexes, backups and storage overhead.](/course-images/system-design/design-foundations/back-of-the-envelope-estimation-replicated-storage.png)
+
+## Estimate bandwidth on the relevant boundary
+
+```text
+Average response bandwidth ≈ 11.57 responses/second × 1,000 bytes
+                           ≈ 11,570 bytes/second
+Peak response bandwidth ≈ 57,870 bytes/second
+                        ≈ 0.463 megabits/second
+```
+
+The conversion to bits multiplies bytes by eight. Count the short redirect response crossing from the shortener to the client. The browser then contacts the destination website, whose page may be much larger. Those page bytes cross a different service boundary. The estimate also excludes transport overhead and incoming requests.
+
+For cache planning, choose a working-set assumption. If 20,000 mappings are kept at 500 bytes each, their logical payload is 10 MB. Cache keys and internal bookkeeping add to that amount. “Cache the most popular links” becomes useful only when you can estimate how many links that means.
+
+## Sanity-check and use the result
+
+Multiply the average rate by 86,400: it should recover the daily total approximately. Check that each multiplication cancels units correctly. Distinguish a stored byte from a transmitted byte and an average from a peak.
+
+Use the estimates to specify a load test. If both operations peak together, send roughly 58 redirects and six creations each second. Measure latency for each operation while they share the same database. That measurement can tell you whether the proposed implementation meets its targets at the estimated peak.
+
+## Check your understanding
+
+Redirect traffic doubles, while creation and retention stay fixed. What changes?
+
+<details>
+<summary>Compare your reasoning</summary>
+
+Average redirects become about 23.15 requests/second and the assumed peak becomes about 115.74. Estimated redirect bandwidth doubles. After 365 days the retained mapping payload is still 18.25 GB before overhead. The number and size of stored records did not change.
+
+</details>
+
+## Key Takeaways
+
+- **Assumptions:** Write down traffic, payload sizes, retention, and peak behavior.
+- **Units:** Carry units through calculations and distinguish bytes from bits.
+- **Storage:** Separate logical records from replicas, indexes, logs, and backups.
+- **Validation:** Use estimates to define measurements, not to invent capacity guarantees.
+
+[Take the quiz · Scope and size a short-link service](/courses/system-design/docs/design-foundations/quiz-scope-and-size-a-short-link-service)

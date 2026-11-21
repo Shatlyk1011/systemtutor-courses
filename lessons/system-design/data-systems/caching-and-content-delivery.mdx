@@ -1,0 +1,76 @@
+---
+title: "Caching and Content Delivery in Practice"
+description: "Trace cache hits, invalidation, expiry, and failure without losing the source of truth."
+---
+
+<Callout title="Lesson goal" type="info">
+  Design a cache-aside lookup, choose a freshness policy, and explain the different roles of application caches and CDNs.
+</Callout>
+
+**Before you begin** — [Replication, partitioning, and consistency](/courses/system-design/docs/data-systems/replication-partitioning-and-consistency).
+
+Many visitors may open the same short link. Reading the same mapping from persistent storage for every visit repeats work. A cache keeps a reusable copy closer to the request path, trading extra state management for fewer expensive reads.
+
+## Walk through cache-aside
+
+In **cache-aside**, the application checks the cache for the short code. On a hit, it uses the cached record. On a miss, it queries the database, saves a reusable copy if it finds one, and uses that record for the response.
+
+![On a hit the application uses the cached mapping. On a miss it reads the authoritative database, fills the cache, and uses the mapping.](/course-images/system-design/data-systems/caching-and-content-delivery-hit-and-miss.png)
+
+The database remains authoritative. A cache miss means the copy is absent, not that the mapping does not exist. On a database miss, return the appropriate not-found result instead of inventing a destination.
+
+For a hit, the application still needs the information required by its policy. If disabled links must not redirect, a cached record containing only the destination may be insufficient. Cache the fields needed to decide whether the mapping can be used.
+
+## Expiration and eviction answer different questions
+
+A **time to live (TTL)** limits how long an entry may be reused before it expires. A short TTL can reduce how long an old copy survives, but increases misses. A longer TTL reduces repeated reads while allowing older state to remain visible longer.
+
+**Eviction** removes entries to make space. A least-recently-used policy favors entries accessed recently, but does not know whether the data is correct. A hot entry can still be stale. Capacity management and freshness are separate concerns.
+
+Suppose the cache serves 90% of 60 redirect requests per second. Ignoring background work, about six lookups per second reach the database. If the cache becomes empty, that can rise to 60. The database must be evaluated against misses and recovery, not only steady-state cache hits.
+
+## Follow an update and its race
+
+When an administrator disables a link, the application can update the database and invalidate the cache entry. The next lookup reloads the current record. Updating storage and cache are usually separate operations, so the sequence has a failure window.
+
+Follow two requests that overlap. First, a visitor reads the active mapping from the database and pauses before filling the cache. Next, the administrator commits the disable and removes the cached entry. Finally, the visitor resumes and puts the earlier *active* record back in the cache. The next visitor can now receive a stale redirect.
+
+![An in-flight read can put its old active value back into the cache after an administrator disables the link and evicts the entry.](/course-images/system-design/data-systems/caching-and-content-delivery-cache-invalidation-race.png)
+
+A TTL starting when that delayed reader fills the cache gives the stale value a fresh lifetime. If the disable policy promises a maximum delay, account for the age of the underlying read as well as the time the entry spends in cache. For a new lookup that must respect a completed disable immediately, the decision needs coordination with authoritative state.
+
+## Cache failure can become database overload
+
+Bypassing a failed cache may preserve function, but all misses now reach storage. That is only safe when the remaining system can absorb the demand. Use the resilience and rate-limiting policies developed later to bound accepted work.
+
+On recovery, an empty cache gradually fills through misses. Track hit rate, lookup latency, database traffic, and errors. A restored cache process does not instantly restore the previous hit rate.
+
+## Put static content near users with a CDN
+
+A **content delivery network (CDN)** places cached responses at geographically distributed edge servers. Suppose two visitors request the same stylesheet through the same edge. On the first miss, the edge fetches it from the **origin**, the server responsible for the asset, then returns the file and stores a cacheable copy. The next visitor can receive that fresh copy directly from the edge.
+
+![A fresh edge copy serves the browser. When the edge needs the asset, it fetches from the origin and caches the returned copy.](/course-images/system-design/data-systems/caching-and-content-delivery/caching-and-content-delivery-edge-and-origin.png)
+
+Choose expiry and invalidation policies for changes to the stylesheet. If traffic bypasses the CDN during an outage, requests that once ended at many edge servers concentrate at the origin. Include this load when planning fallback capacity.
+
+The shortener's application cache accelerates mapping lookup. A CDN serving the website's static assets handles a different part of the request path. Naming both “cache” should not hide those different responsibilities.
+
+## Check your understanding
+
+A link uses a five-minute TTL. An administrator disables it and deletes its cache entry. Can you promise nobody will redirect after that deletion?
+
+<details>
+<summary>Compare your reasoning</summary>
+
+No. An in-flight reader may still hold the active value and install it after deletion. If its five-minute TTL starts at that later fill, the stale redirect can outlast five minutes measured from the disable. Decide what new lookups must observe and when the freshness clock starts.
+
+</details>
+
+## Key Takeaways
+
+- **Cache-aside:** Load misses from authoritative storage and cache reusable results.
+- **Freshness:** Expiration, invalidation, and concurrent requests interact.
+- **Failure:** Cache bypass transfers work to storage and can overload it.
+- **CDNs:** Edge caching improves content delivery while adding expiry and origin-capacity decisions.
+
+[Take the quiz · Choosing where a read gets its data](/courses/system-design/docs/data-systems/quiz-choosing-where-a-read-gets-its-data)

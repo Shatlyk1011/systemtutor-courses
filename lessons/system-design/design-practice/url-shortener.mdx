@@ -1,0 +1,102 @@
+---
+title: "Case Study: URL Shortener"
+description: "Design link creation and redirects with explicit storage, cache, and failure policies."
+---
+
+<Callout title="Lesson goal" type="info">
+  Combine requirements, estimates, APIs, storage, and failure handling into a complete short-link design.
+</Callout>
+
+**Before you begin** — Complete [design foundations](/courses/system-design/docs/design-foundations/design-process-and-requirements), data systems, and reliable services.
+
+A customer prints a short link on a poster. A week later, thousands of visitors scan the same code. The service creates the mapping once and reads it many times. What should a visitor see if an administrator disables the link while it is still popular?
+
+## Scope and assumptions
+
+Support authenticated link creation, public redirects, an owner's link list, and administrative disabling. Destinations are immutable. Custom aliases and click analytics are outside this first version. A disabled link must stop being served according to a declared freshness policy.
+
+Carry forward the estimates from [back-of-the-envelope estimation](/courses/system-design/docs/design-foundations/back-of-the-envelope-estimation). Assume 100,000 creations and 1,000,000 redirects daily, a five-times peak multiplier, 500 bytes per mapping, and one-year retention.
+
+```text
+Average writes ≈ 1.16/second; peak writes ≈ 5.8/second
+Average reads ≈ 11.57/second; peak reads ≈ 57.9/second
+Logical storage = 100,000 × 500 × 365 = 18.25 GB/year
+```
+
+These inputs justify testing a small application and database first. They do not require a distributed ID service or many shards. Indexes, backups, and replicas increase physical storage beyond the logical estimate.
+
+## APIs and data model
+
+| API | Behavior |
+| --- | --- |
+| `POST /v1/links` | Validate a destination and create a mapping; accept a stable idempotency key |
+| `GET /s/{code}` | Resolve an active code and return a redirect |
+| `GET /v1/links` | Return a bounded page of the caller's mappings |
+| `DELETE /v1/links/{code}` | Disable a mapping when the caller has authority |
+
+Store a mapping's unique numeric ID, unique short code, destination, owner, creation time, and active state. Record creation idempotency by caller and key, including the request identity and result. Save that record atomically with the new mapping.
+
+A relational database fits both reads. A unique index on the code supports redirects. An index on owner, creation time, and ID supports a stable newest-first listing. A transaction commits the mapping and its retry record together. A key-value design is an alternative if its secondary access patterns and consistency guarantees are addressed.
+
+## Choose how codes are allocated
+
+One option allocates a unique integer and encodes it using 62 characters. Base 62 is an encoding, not encryption and not a reversible hash of the destination. The database mapping is still needed to find the original URL.
+
+Seven base-62 positions can represent `62^7 = 3,521,614,606,208` values. Capacity of the code space is different from collision probability when codes are chosen randomly. A unique integer encoded without truncation stays unique; shortening a hash or randomly drawing a code requires collision handling.
+
+For this small design, a database-backed ID allocator is simple. A distributed timestamp/worker/sequence design adds worker-identity and clock-handling requirements and is only justified by a demonstrated allocation need. Sequential IDs also make neighboring codes predictable, so code secrecy must not stand in for authorization.
+
+If choosing candidate hashes instead, attempt insertion under the unique-code constraint and generate a new candidate on collision. Never overwrite another mapping. A probabilistic lookup filter cannot replace the authoritative uniqueness check.
+
+![On a code collision the service chooses another candidate and preserves the original mapping.](/course-images/system-design/design-practice/url-shortener-collision-retry.png)
+
+## Trace both request paths
+
+![Creation allocates a unique code and commits its destination mapping. On a public redirect cache miss the service looks up the active mapping by code.](/course-images/system-design/design-practice/url-shortener-create-and-resolve.png)
+
+1. **Create.** Authenticate the caller, validate the destination, and check the rate limit. Commit the new mapping and its retry result together. If the response is lost, a retry with the same caller, key, and parameters receives the original short link.
+2. **Resolve.** Look up the code in the application cache. On a miss, read the database. An active mapping can populate the cache and supply the redirect. A confirmed missing code returns `404`. If the database cannot answer, return a service error.
+
+Return `302 Found` with `Location` and `Cache-Control: no-store` for active links. This keeps browsers and shared HTTP caches from saving the redirect. The application can still keep a short-lived mapping in its own cache. [HTTP caching specification](https://www.rfc-editor.org/rfc/rfc9111.html)
+
+## Bottleneck and failure analysis
+
+A popular code creates repeated reads. Cache-aside can reduce database work, but cache loss shifts those reads back to storage. Measure miss traffic and bound overload. Adding shards does not distribute one hot key automatically.
+
+### Set a deadline for disabled links
+
+Allow a cached redirect for up to 30 seconds after a disable commits. Once that window closes, a fresh lookup of the disabled link returns `410 Gone` when the database is reachable. A visitor who already received a redirect may have followed it.
+
+Start the cache deadline when the authoritative read **begins**. A read can fetch an active row, pause, and resume after an administrator disables the link. Starting a new 30-second window when that old read returns would extend the stale redirect. Use a monotonic clock on each instance, leave the deadline unchanged on hits, and discard a result that reaches its deadline before use. Read from the leader on the next lookup. If it cannot answer, return a service error.
+
+**Test the deadline.** A cache miss starts at second 0 and reads an active row. At second 5 an administrator disables the link and evicts it. The paused read returns at second 32. Its deadline was second 30, so the application discards the result, reads the disabled row, and returns `410` without a `Location` header. Also test an ordinary warm entry with eviction delayed. It must stop serving at its original deadline.
+
+If the application crashes after creation commits, another instance can return the saved result on retry. Database failover requires its own acknowledged-write policy. Backups and restore tests cover historical loss that replicas might copy.
+
+## Security and observability
+
+Validate URL size and permitted schemes, authenticate creation, check ownership for management, and rate-limit abuse-prone operations. Public resolution is intentional; private management data must remain protected even when a code is known.
+
+Track creation failures, redirect success and latency, cache hit rate, database errors, and limiter rejections. Keep arbitrary codes out of metric labels. A useful incident drill empties the cache and measures whether redirect latency and storage demand stay within the design's limits.
+
+## Design exercise and model answer
+
+The product now requires destinations to be editable. Identify the affected decisions.
+
+<details>
+<summary>Compare your reasoning</summary>
+
+Add an authorized update operation and a destination version or equivalent update policy. Revisit cache invalidation and stale reads. In this design, the browser receives a temporary redirect with `no-store`, so a subsequent visit checks with the service again. The application’s own cached mapping can still point to the old destination until invalidation or expiry. Define the new freshness contract before selecting redirect/cache behavior. The storage model needs to preserve code uniqueness while allowing controlled changes to its destination.
+
+</details>
+
+The model solution favors a small transactional database and explicit cache semantics. A distributed store may become useful later, but it must improve a measured constraint enough to justify more complicated queries and consistency handling.
+
+## Key Takeaways
+
+- **Codes:** Encoding a unique ID preserves uniqueness; truncated or random candidates need collision handling.
+- **Creation:** Commit the mapping and retry result before returning success.
+- **Redirects:** Cache behavior and disabling requirements must agree.
+- **Scale:** Measure hot reads and cache-loss behavior before distributing storage.
+
+[Take the quiz · Design review: URL shortener](/courses/system-design/docs/design-practice/quiz-design-review-url-shortener)

@@ -1,0 +1,78 @@
+---
+title: "Replication, Partitioning, and Consistency"
+description: "Distinguish copies from shards and reason about freshness during failure."
+---
+
+<Callout title="Lesson goal" type="info">
+  Explain replica lag, failover, partition keys, and the consistency-versus-availability decision during a network partition.
+</Callout>
+
+**Before you begin** — [Data storage and database choices](/courses/system-design/docs/data-systems/storage-and-database-choices).
+
+Suppose one machine holds all the short-link mappings. The database is filling up, and a failure of that machine would interrupt redirects. Splitting the records and keeping extra copies address different parts of that problem.
+
+## Copies and subsets
+
+**Replication** maintains multiple copies of data. In a leader-and-replica design, writes go to the leader and changes reach replicas. Replicas can provide redundancy and, when the consistency policy permits, serve reads.
+
+**Partitioning**, also called sharding in this context, divides records into subsets. Each shard owns some records. Partitioning can distribute storage and work, but a shard without replicas still has a single-copy failure problem.
+
+```text
+Partition by code:
+  Shard A: some mappings → leader A + replica A
+  Shard B: other mappings → leader B + replica B
+```
+
+Adding replicas does not divide the dataset into smaller pieces. Adding shards does not automatically make each piece redundant. A design may need both, but each adds coordination and operational work.
+
+## Trace replica lag
+
+A creation request writes mapping `abc` to the leader. The application returns the short link. A visitor immediately resolves `abc`, but the selected read replica has not received the change yet. That replica can return “not found” even though creation succeeded.
+
+![Each shard has a leader and its own replica. A new mapping on leader A can be missing on replica A until replication catches up.](/course-images/system-design/data-systems/replication-partitioning-and-consistency-shards-and-lag.png)
+
+This is **replication lag**: a replica is behind the leader. It does not mean every replica read is stale. Reads can be current when replication has caught up. The problem is whether the application can rely on freshness for a particular operation.
+
+One policy is to send freshness-sensitive reads to the leader. Another is to require stronger replication coordination. Either policy has a cost in load, latency, or availability. State which guarantee the user needs before choosing it.
+
+## Failover needs a data policy
+
+When a leader fails, a replica may be promoted. If acknowledged writes had not reached that replica, promotion can expose older state. “We have a replica” therefore does not establish zero data loss.
+
+The design must define which replica can take over, what happens to writes during the transition, and how the old leader is prevented from continuing conflicting work. Treat failover as a coordinated procedure, not simply a load-balancer change. [PostgreSQL replication guidance](https://www.postgresql.org/docs/current/warm-standby.html)
+
+## Choose partition keys from queries
+
+Hashing the short code can spread mappings across shards and route an exact-code lookup to one shard. Listing all mappings for an owner may then require querying several shards. Partitioning by owner makes that listing easier but changes how redirects find their data.
+
+A **hot spot** occurs when a shard receives disproportionately high demand. Even an even distribution of records can contain a single extremely popular code. Moving or adding shards does not split that one key's traffic automatically; caching and read distribution may be more relevant.
+
+Range partitioning assigns ordered intervals to shards, which can help range queries. Hash partitioning distributes based on a hash value, which can improve distribution but loses the original ordering. Neither scheme removes the need to plan data movement as capacity changes.
+
+## Consistency during a network partition
+
+A **network partition** occurs when running nodes lose communication with one another. In the CAP theorem, **consistency** means operations behave as if there were one copy and respect the real-time order of completed operations. **Availability** requires every request to a non-failing node to complete with a valid result. A refusal to serve a request falls short of that guarantee.
+
+Suppose nodes A and B acknowledge disabling link `abc` while node C is isolated. A later lookup reaches C, which still has the active mapping. If C redirects, the caller observes a value older than the completed disable. If C waits for communication to return, the caller loses availability for the duration of the partition.
+
+An **eventually consistent** design can serve divergent copies and reconcile them once updates propagate. Under a majority-based coordination policy, A and B may continue operating together while isolated C declines operations it cannot safely serve. [Gilbert and Lynch on CAP](https://groups.csail.mit.edu/tds/papers/Gilbert/Brewer2.pdf)
+
+![A and B can still coordinate with each other while a network partition isolates C.](/course-images/system-design/data-systems/replication-partitioning-and-consistency-network-partition.png)
+
+## Check your understanding
+
+The application adds two read replicas, but one popular link still overloads the shard leader. What information is missing?
+
+<details>
+<summary>Compare your reasoning</summary>
+
+Determine where reads are routed, whether replicas can serve this operation's freshness requirement, and whether the traffic is mostly reads or writes. Replicas only reduce leader read load if the routing policy uses them. More shards alone do not distribute a single hot key.
+
+</details>
+
+## Key Takeaways
+
+- **Replication:** Copies support redundancy, with explicit freshness and failover policies.
+- **Partitioning:** Subsets distribute data and work according to a routing key.
+- **Hot spots:** Even record counts do not guarantee even traffic.
+- **Partitions:** Coordinating a current view can require refusing some disconnected operations.
