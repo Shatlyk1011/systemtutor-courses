@@ -1,7 +1,9 @@
 ---
-title: "HTTP"
-description: "Read one HTTP exchange and use its method and status to reason about the outcome."
+title: "HTTP Requests and Responses"
+description: "Learn how HTTP requests and responses work, what methods and status codes tell you, when a retry is safe, and what HTTPS protects."
 ---
+
+**HTTP (Hypertext Transfer Protocol)** defines how clients and servers exchange requests and responses. A request uses a method such as `GET` or `POST` to describe the requested action. The response uses a status code such as `200 OK` or `201 Created` to describe the outcome. These meanings are defined in [RFC 9110, HTTP Semantics](https://www.rfc-editor.org/rfc/rfc9110.html).
 
 <Callout title="Lesson goal" type="info">
   Inspect a request and its response, explain what HTTPS protects, and decide when repeating a request is safe.
@@ -9,7 +11,7 @@ description: "Read one HTTP exchange and use its method and status to reason abo
 
 **Before you begin** — [DNS](/courses/system-design/docs/networking/dns).
 
-After resolving a hostname and opening a connection, a browser needs a way to ask for a page or submit data. **HTTP (Hypertext Transfer Protocol)** defines methods, headers, and status codes that give those messages meaning. HTTP/1.1 and HTTP/2 commonly use TCP. HTTP/3 uses QUIC over UDP.
+After resolving a hostname and opening a connection, a browser can use HTTP to ask for a page or submit data. HTTP/1.1 and HTTP/2 commonly use TCP. HTTP/3 uses QUIC over UDP.
 
 ## Read a request and response together
 
