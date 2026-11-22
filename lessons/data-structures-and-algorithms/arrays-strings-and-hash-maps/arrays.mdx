@@ -14,7 +14,7 @@ Indexes start at `0`, so the first element is at index `0` and the last element 
 
 ## How Arrays Store and Access Values
 
-![Indexed access](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/63971361-6f04-4a9f-a7d2-538fc84c4adc/gallery/c31d9d60-214d-440c-9378-eabd971490a7)
+![Index 2 points directly to C, while searching for D scans the sequence from A.](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/63971361-6f04-4a9f-a7d2-538fc84c4adc/gallery/c31d9d60-214d-440c-9378-eabd971490a7)
 
 A traditional fixed-size array reserves adjacent memory slots for elements of one type. Knowing the starting address and an index lets a program locate an element directly.
 
@@ -111,7 +111,7 @@ Both loops visit each of the `n` elements once, so a complete traversal takes **
 
 ## Inserting Elements
 
-![Insertion shifts](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/63971361-6f04-4a9f-a7d2-538fc84c4adc/gallery/efdb7e95-33ef-4f0b-a3da-cb523b57fd2e)
+![Appending X leaves A, B and C in place. Inserting X at index 1 shifts B and C right.](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/63971361-6f04-4a9f-a7d2-538fc84c4adc/gallery/efdb7e95-33ef-4f0b-a3da-cb523b57fd2e)
 
 Insertion adds an element at a chosen index. Adding at the end usually avoids moving existing elements. Adding at the beginning or middle shifts later elements one position to the right to make room.
 
@@ -163,7 +163,11 @@ Moving all existing elements makes beginning insertion `O(n)`.
   </Tab>
 </Tabs>
 
-Appending is **amortized `O(1)`**: most appends take constant time, though a collection occasionally needs to grow its storage and copy elements.
+Suppose a dynamic array has four slots, all occupied by `A`, `B`, `C`, and `D`. In a model that doubles capacity, appending `E` copies four elements into eight slots and writes `E` into the fifth. The next three appends fit in spare slots.
+
+![A full four-slot array grows to eight slots. A through D are copied and E occupies the fifth slot.](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/ba5422b9-c8ef-4672-b067-9c87b70f4f60/gallery/8dfcb010-c5de-44bc-af6c-1c50767b2598)
+
+One resize takes `O(n)` work. Across a series of appends, capacity grows geometrically, so the total copying is linear in the number of appends. The average cost *over that sequence* is constant. This is **amortized `O(1)`**. Different runtimes choose different growth factors.
 
 ### Insert at a Specific Index
 
@@ -192,7 +196,7 @@ Middle insertion can shift many elements, so it takes `O(n)` time.
 
 ## Deleting Elements
 
-![Deletion and order](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/63971361-6f04-4a9f-a7d2-538fc84c4adc/gallery/065409b7-7fc6-4719-9fcc-b0f0f966e207)
+![Removing B gives A, C, D when order matters and A, D, C when the last value replaces B.](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/63971361-6f04-4a9f-a7d2-538fc84c4adc/gallery/065409b7-7fc6-4719-9fcc-b0f0f966e207)
 
 Deletion removes an element at a known index. Choose the technique based on whether the remaining elements must keep their order.
 

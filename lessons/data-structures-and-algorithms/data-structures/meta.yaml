@@ -2,8 +2,8 @@ title: "Linked Lists, Stacks & Queues"
 description: "Study linked lists, stacks, and queues and the operations each structure supports."
 pages:
   - single-linked-list
-  - double-linked-list
   - practice-reverse-linked-list
+  - double-linked-list
   - quiz-data-structure-and-linked-list-trade-offs
   - practice-merge-two-sorted-lists
   - practice-medium-remove-nth-node-from-end

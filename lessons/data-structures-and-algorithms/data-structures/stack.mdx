@@ -7,9 +7,6 @@ A **stack** is a linear data structure that follows **LIFO: Last In, First Out**
 
 Think of a stack of plates. A clean plate is placed on top, and the next plate is also removed from the top. Reaching a plate in the middle requires removing every plate above it first.
 
-![The last value pushed onto a stack is the first value popped from its top.](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/d6728834-bda9-4849-9f64-fc67a890e1a8/gallery/9184e593-884f-4349-9bd0-8ac3361dd4d4)
-
-
 <Callout title="One Point of Access" type="info">
 A stack adds, removes, and reads items at one end, called the **top**.
 </Callout>
@@ -18,11 +15,12 @@ A stack adds, removes, and reads items at one end, called the **top**.
 
 ## How LIFO Works
 
-Start with an empty stack and follow three operations:
+Start with an empty stack. In the table, the rightmost value is the top.
 
 | Operation | Stack State | What Happened |
 |---|---|---|
-| `push(10, 20)` | `[10, 20]` | `20` becomes the top item. |
+| `push(10)` | `[10]` | `10` is the only item. |
+| `push(20)` | `[10, 20]` | `20` becomes the top item. |
 | `push(30)` | `[10, 20, 30]` | `30` is placed above `20`. |
 | `pop()` | `[10, 20]` | `30`, the last item added, is removed first. |
 
@@ -144,12 +142,14 @@ The values come out in the reverse of their insertion order, which confirms the 
 
 ## Performance
 
-| Operation | How It Works |
-|---|---|
-| Push | Add an item at the end. |
-| Pop | Remove the item at the end. |
-| Peek | Read the last item without removing it. |
-| Is empty | Check whether the collection has any items. |
+| Operation | Time in the dynamic-array model | Reason |
+|---|---|---|
+| Push | $O(1)$ amortized | Most pushes write one slot. A resize can copy $n$ items. |
+| Pop | $O(1)$ amortized | Removing the last item avoids shifting the others. Some arrays occasionally shrink. |
+| Peek | $O(1)$ | Read the top slot. |
+| Is empty | $O(1)$ | Read the stored length. |
+
+A stack of $n$ values occupies $O(n)$ space. Check that the stack contains a value before reading or popping its top. Python raises `IndexError` for an empty pop, while JavaScript's `pop()` returns `undefined`.
 
 ---
 

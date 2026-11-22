@@ -15,9 +15,9 @@ Submit your implementation when it passes the examples. Handle shared prefixes a
 
 ## Solution
 
-![Largest-number comparator]https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/03ce588b-f581-46ee-b98b-277331400e55/gallery/29f770f3-f275-44e8-bb95-9df817d3ba39()
+![Largest-number comparator](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/03ce588b-f581-46ee-b98b-277331400e55/gallery/29f770f3-f275-44e8-bb95-9df817d3ba39)
 
-Convert every number to a string and merge-sort using a custom comparison. Place a before b when a + b is lexicographically greater than b + a.
+Convert every number to a string and merge-sort using a custom comparison. For `3` and `30`, placing `3` first gives `330`, while the other order gives `303`. The two concatenations have equal length, so comparing their digit strings tells us which ordering yields the larger number. The surrounding prefix and suffix are identical for both orders.
 
 Join the sorted strings. If the first string is zero, every value must be zero, so return a single zero.
 

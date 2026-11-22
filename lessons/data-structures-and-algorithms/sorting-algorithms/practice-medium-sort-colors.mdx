@@ -17,7 +17,7 @@ Submit your implementation when it passes the examples. Do not use a built-in so
 
 ![Three-way partition pointers](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/03ce588b-f581-46ee-b98b-277331400e55/gallery/f3b4e980-effa-4236-b436-685a8a429b27)
 
-Everything before the left boundary is zero, and everything after the right boundary is two. The current pointer inspects the unknown region between them.
+Four regions explain the three pointers. Entries before `left` are zeros. Entries from `left` up to (and excluding) `current` are ones. Entries from `current` through `right` are unclassified. Every entry after `right` is a two.
 
 Swap zeros left and advance both left and current. Swap twos right but inspect the replacement value before advancing. Ones are already in their middle region.
 
@@ -73,5 +73,5 @@ Swap zeros left and advance both left and current. Swap twos right but inspect t
 
 | Measure | Complexity | Explanation |
 |---|---:|---|
-| Time | `O(n)` | The current and right boundaries process every value at most once. |
+| Time | `O(n)` | Each iteration shrinks the unclassified region by one position. |
 | Auxiliary space | `O(1)` | Sorting is performed in place with three indices. |

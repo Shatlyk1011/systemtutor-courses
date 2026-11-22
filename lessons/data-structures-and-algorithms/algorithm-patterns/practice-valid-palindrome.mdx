@@ -15,11 +15,11 @@ Submit your implementation when it passes the examples. A complete submission al
 
 ## Solution
 
-![Palindrome scan ](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/1e3e13b6-0db0-43d8-9eab-205bdcf6fa8f/gallery/edb545f1-1a4a-4bf6-acb7-297e7548b173)
+![Skipping the punctuation in A,b!b?A leaves the mirrored pairs a/a and b/b.](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/1e3e13b6-0db0-43d8-9eab-205bdcf6fa8f/gallery/edb545f1-1a4a-4bf6-acb7-297e7548b173)
 
 The two-pointers approach compares the next meaningful character from each end of the string. The `left` pointer moves forward and the `right` pointer moves backward. Before comparing characters, each pointer skips anything that is not a letter or digit.
 
-When both pointers reach valid characters, compare their lowercase forms. A mismatch means the string cannot be a palindrome. If they match, move both pointers inward and repeat until they meet.
+The normalized row in the figure shows which characters count. The implementation walks the original printable ASCII string and skips punctuation in place. When both pointers reach valid characters, compare their lowercase forms. A mismatch means the string cannot be a palindrome. If they match, move both pointers inward and repeat until they meet.
 
 <Tabs items={["JavaScript", "Python"]}>
   <Tab value="JavaScript">

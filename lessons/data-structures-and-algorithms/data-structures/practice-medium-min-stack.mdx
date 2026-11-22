@@ -15,11 +15,11 @@ Submit your implementation when it passes the examples. Duplicate minimum values
 
 ## Solution
 
-![Stack with running minimum](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/03ce588b-f581-46ee-b98b-277331400e55/gallery/6cf2f7a8-7f7e-4d2b-bf6f-63f984c86624)
+![Values 5, 2, 7, 1 have running minima 5, 2, 2, 1. The minimum is read from the top of the second stack.](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/03ce588b-f581-46ee-b98b-277331400e55/gallery/6cf2f7a8-7f7e-4d2b-bf6f-63f984c86624)
 
-Keep a normal value stack and a second stack of minimums. Push onto the minimum stack whenever the new value is less than or equal to its current top.
+For every entry in the value stack, store the minimum at that depth in a second stack. On the first push, the minimum is the value itself. On later pushes, append the smaller of the new value and the previous minimum.
 
-When popping a value equal to the current minimum, pop the minimum stack too. Its new top then restores the previous minimum.
+In the diagram, pushing `7` onto `[5, 2]` records another `2` in the minimum stack. Pushing `1` records `1`. A pop removes one entry from each stack, restoring the minimum at the previous depth. The same rule handles duplicate minimum values.
 
 <Tabs items={["JavaScript", "Python"]}>
   <Tab value="JavaScript">
@@ -33,18 +33,13 @@ When popping a value equal to the current minimum, pop the minimum stack too. It
     
         push(value) {
           this.items.push(value);
-          const minimum = this.minimums[this.minimums.length - 1];
-    
-          if (this.minimums.length === 0 || value <= minimum) {
-            this.minimums.push(value);
-          }
+          const previous = this.minimums[this.minimums.length - 1];
+          this.minimums.push(previous === undefined ? value : Math.min(value, previous));
         }
     
         pop() {
-          const value = this.items.pop();
-          if (value === this.minimums[this.minimums.length - 1]) {
-            this.minimums.pop();
-          }
+          this.items.pop();
+          this.minimums.pop();
         }
     
         top() {
@@ -93,13 +88,12 @@ When popping a value equal to the current minimum, pop the minimum stack too. It
             def push(self, value):
                 self.items.append(value)
     
-                if not self.minimums or value <= self.minimums[-1]:
-                    self.minimums.append(value)
+                minimum = min(value, self.minimums[-1]) if self.minimums else value
+                self.minimums.append(minimum)
     
             def pop(self):
-                value = self.items.pop()
-                if value == self.minimums[-1]:
-                    self.minimums.pop()
+                self.items.pop()
+                self.minimums.pop()
     
             def top(self):
                 return self.items[-1]
@@ -134,5 +128,5 @@ When popping a value equal to the current minimum, pop the minimum stack too. It
 
 | Measure | Complexity | Explanation |
 |---|---:|---|
-| Time | `O(n)` | The wrapper processes n operations, and every stack operation is O(1). |
+| Time | `O(n)` | Across `n` operations, dynamic-array pushes and pops take amortized `O(1)` time each. `getMin` and `top` each read a single slot. |
 | Auxiliary space | `O(n)` | The value and minimum stacks can each hold up to n values. |

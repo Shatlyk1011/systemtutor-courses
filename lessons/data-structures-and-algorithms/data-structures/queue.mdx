@@ -69,6 +69,7 @@ The queue stores its items in an array or list and uses a `front` index to track
         }
 
         const item = this.items[this.front];
+        this.items[this.front] = undefined;
         this.front++;
 
         if (this.isEmpty()) {
@@ -107,6 +108,7 @@ The queue stores its items in an array or list and uses a `front` index to track
                 raise IndexError("Queue is empty")
 
             item = self.items[self.front]
+            self.items[self.front] = None
             self.front += 1
 
             if self.is_empty():
@@ -165,19 +167,16 @@ The implementation raises an error when `dequeue` or `peek` is called on an empt
 
 ## Performance and Big O
 
-**Big O notation** describes how an operation's running time changes as the input grows.
-
-- **Constant time — $O(1)$:** The work does not increase with the number of items.
-- **Linear time — $O(n)$:** The work grows with the number of items.
+Count the work done by the array-backed queue above. Let $m$ be the number of enqueues since it was last empty.
 
 | Operation | Time Complexity | Reason |
 |---|---|---|
-| Enqueue | $O(1)$ | Add at the rear. |
-| Dequeue | $O(1)$ | Read the front item and advance the front index. |
+| Enqueue | $O(1)$ amortized | Append one item. An occasional resize copies the backing array. |
+| Dequeue | $O(1)$ amortized | Read and clear one slot, then advance `front`. Emptying the queue releases the backing array. |
 | Peek | $O(1)$ | Read the item at the front index. |
 | Is empty | $O(1)$ | Compare the front index with the collection length. |
 
-The queue does not need to scan its existing items for any core operation.
+The queue can use $O(m)$ slots even when few items remain. Suppose you repeatedly enqueue one value and dequeue one while another value is waiting. The queue stays short, but `front` keeps moving and the array keeps growing. Clearing consumed slots releases references to the old values. A circular queue reuses the slots themselves.
 
 ---
 
@@ -211,5 +210,5 @@ Queues help manage work that must be handled fairly and in arrival order. This m
 - A queue follows First In, First Out order.
 - New items enter at the rear, and existing items leave from the front.
 - `enqueue` adds, `dequeue` removes, `peek` reads, and the empty check reports whether items remain.
-- A well-implemented queue performs its core operations in $O(1)$ time.
+- This array-backed queue provides amortized $O(1)$ enqueue and dequeue and $O(1)$ peek. Its backing array resets when the queue becomes empty.
 - Print spooling, background jobs, and task scheduling use queues to preserve arrival order.

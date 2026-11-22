@@ -7,8 +7,6 @@ A **singly linked list** is a sequence of nodes connected in one direction. Each
 
 The list keeps a `head` reference to its first node and a `tail` reference to its last node. The tail's `next` points to `null`, which marks the end of the list.
 
-![Following next pointers from head to tail visits nodes 10, 20, 30, and 40 in order.](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/c2d3d3d7-decc-4cc8-9405-d55b95d6181d/gallery/526414dd-716c-4335-913a-4466f0f6b743)
-
 Think of the structure like a **scavenger hunt**:
 
 - You only know where the first clue is.
@@ -16,7 +14,7 @@ Think of the structure like a **scavenger hunt**:
 - The final clue points to nothing (`null`), signaling that the hunt is over.
 
 <Callout title="Key Property: Unidirectional" type="info">
-In a singly linked list, connections only go forward: each node points to the next, never to the previous one. To find any element, you must start from the **head** and traverse forward one link at a time.
+From any node, you can follow `next` one step forward. To find a node by value, start at the head and follow links until you find a match or reach the end. The stored `tail` gives direct access to the last node.
 </Callout>
 
 ---
@@ -32,7 +30,7 @@ In a singly linked list, connections only go forward: each node points to the ne
 
 ### Visualizing a Node
 
-Each node is an independent object with two properties:
+In this chain, each node holds a fruit name in `val` and a reference in `next`. Following the first node's `next` takes you to the node holding `banana`.
 
 ![The head node containing apple points to banana, which points to cherry at the tail.](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/c2d3d3d7-decc-4cc8-9405-d55b95d6181d/gallery/2bc4b772-f084-4860-b8d3-e8129b1287ff)
 
@@ -87,6 +85,8 @@ Tracking `tail` and `length` gives us two immediate performance advantages:
 ---
 
 ## Core Operations
+
+Start with the four operations at the ends. For each one, predict what happens to `head`, `tail`, and `length` when the list contains just one node. Then use `get` to see how edits by index differ from edits at a known node. The complete class near the end is a reference you can run.
 
 ### 1. Adding to the End (`push`)
 
@@ -251,7 +251,7 @@ Even though we have a `tail` pointer, removing the tail requires pointing the **
 1. If the list is empty, return `null`.
 2. Start two pointers at `head`: `current` and `newTail`.
 3. Loop while `current.next` exists: advance `newTail` to `current`, and `current` to `current.next`.
-4. When the loop finishes, `current` is the tail, and `newTail` is the second-to-last node.
+4. When the loop finishes, `current` is the tail. In a list of two or more nodes, `newTail` is its predecessor. In a one-node list, the loop skips and both references still identify that node.
 5. Set `tail` to `newTail` and disconnect its `next` pointer (`tail.next = null`).
 6. Decrement `length` by 1.
 7. If `length` reaches 0, reset both `head` and `tail` to `null`.
@@ -398,10 +398,12 @@ The `insert` method inserts a new node at any valid index (`0` through `length`)
 
 ![Inserting 15 at index 1 links node 10 to 15 and node 15 to 20.](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/c2d3d3d7-decc-4cc8-9405-d55b95d6181d/gallery/c16c7148-f48f-4947-9611-0e95eb9b92d1)
 
+The straight link from 10 to 20 is the original pointer. The curved arrows show the proposed links through 15. After the update, 10 has exactly one `next` reference, pointing to 15.
+
 #### Step-by-Step Logic
 1. If `index < 0` or `index > this.length`, return `false`.
-2. If `index === 0`, call `unshift(val)` to insert at the beginning.
-3. If `index === this.length`, call `push(val)` to append at the end.
+2. If `index === 0`, let `unshift(val)` complete the insertion and return success.
+3. If `index === this.length`, let `push(val)` complete the insertion and return success.
 4. For middle positions:
    - Locate the node right before the target index using `get(index - 1)`.
    - Create the new node.
@@ -461,8 +463,8 @@ The `remove` method deletes the node at a given index and returns it.
 
 #### Step-by-Step Logic
 1. If `index < 0` or `index >= this.length`, return `null`.
-2. If `index === 0`, delegate to `shift()`.
-3. If `index === this.length - 1`, delegate to `pop()`.
+2. If `index === 0`, return the node removed by `shift()`.
+3. If `index === this.length - 1`, return the node removed by `pop()`.
 4. For middle positions:
    - Locate the previous node: `prev = this.get(index - 1)`.
    - Identify the node to remove: `removedNode = prev.next`.
@@ -524,7 +526,7 @@ To flip links without losing references to the rest of the list, we maintain thr
 3. `next`: Temporarily preserves the upcoming node (`current.next`).
 
 #### Step-by-Step Loop
-1. Swap `this.head` and `this.tail`.
+1. Save the original head in `current`, then swap the list's `head` and `tail` references.
 2. Loop while `current` is not `null`:
    - Store `next = current.next` (saves remaining chain).
    - Reverse pointer: `current.next = prev`.
@@ -615,7 +617,10 @@ A helper method to print the elements of the list sequentially for debugging and
 
 ## Complete Implementation
 
-Here is the complete, cohesive `SinglyLinkedList` implementation with all methods unified:
+The example builds the chain `5 → 10 → 15 → 20 → 30`. Predict which node will be the tail after `reverse()`, then check by running the class.
+
+<details>
+<summary>Show the complete class and example</summary>
 
 <Tabs items={["JavaScript", "Python"]}>
   <Tab value="JavaScript">
@@ -938,6 +943,8 @@ Here is the complete, cohesive `SinglyLinkedList` implementation with all method
   </Tab>
 </Tabs>
 
+</details>
+
 ---
 
 ## Performance Summary
@@ -962,13 +969,13 @@ Understanding the performance trade-offs between linked lists and arrays allows 
 | **Access (by index)** | **$O(n)$** | **$O(1)$** | Arrays calculate physical memory addresses via arithmetic offset; linked lists must traverse sequentially from `head`. |
 | **Search (by value)** | **$O(n)$** | **$O(n)$** | Both must inspect elements one by one in unsorted collections. |
 | **Insertion at Head (`unshift`)** | **$O(1)$** | **$O(n)$** | Linked list rewires a single pointer; arrays must shift every subsequent element one position to the right. |
-| **Insertion at Tail (`push`)** | **$O(1)$** | **$O(1)$** | Linked list updates `tail.next`; arrays append to pre-allocated capacity (occasional resize is $O(n)$). |
+| **Insertion at Tail (`push`)** | **$O(1)$** | **$O(1)$ amortized** | The list updates its tail directly. A dynamic array occasionally copies $O(n)$ items to grow. |
 | **Insertion in Middle** | **$O(n)$** | **$O(n)$** | Linked list spends $O(n)$ traversing to the position; array spends $O(n)$ shifting elements. |
 | **Deletion at Head (`shift`)** | **$O(1)$** | **$O(n)$** | Linked list advances `head`; array must shift every remaining item left. |
 | **Deletion at Tail (`pop`)** | **$O(n)$** | **$O(1)$** | Singly linked list must traverse from head to find the second-to-last node; array decrements its size counter. |
 | **Deletion in Middle** | **$O(n)$** | **$O(n)$** | Linked list requires $O(n)$ traversal; array requires $O(n)$ shifting. |
-| **Memory Allocation** | **Node by node** | **Contiguous block** | Linked-list nodes do not need to sit next to one another; array elements do. |
-| **Memory Overhead** | **Higher** | **Lower** | Each linked-list node stores a `next` reference in addition to its value. |
+| **Memory Allocation** | **Node by node** | **Contiguous slots in the array model** | Array slots sit side by side. A slot can hold a reference to an object stored elsewhere. |
+| **Memory Overhead** | **A link per node** | **Spare capacity** | Each node stores `next`. A dynamic array may reserve slots for future appends. |
 
 ---
 

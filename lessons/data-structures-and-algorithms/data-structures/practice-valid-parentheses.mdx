@@ -15,11 +15,11 @@ Submit your implementation when it passes the examples. Check incorrect nesting,
 
 ## Solution
 
-![Bracket matching stack](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/1e3e13b6-0db0-43d8-9eab-205bdcf6fa8f/gallery/2751b223-3e0e-4356-92cd-b21db19d78e8)
+![Three nested opening symbols are pushed in order and matched by popping them in reverse order.](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/1e3e13b6-0db0-43d8-9eab-205bdcf6fa8f/gallery/2751b223-3e0e-4356-92cd-b21db19d78e8)
 
 Push every opening symbol onto a stack. For a closing symbol, pop the most recent opener and verify that it is the required matching type.
 
-Return false immediately for a mismatch or an empty stack. At the end, the stack must also be empty.
+In `([)]`, the first closing `)` meets `[` at the top. Return false immediately even though the numbers of opening and closing symbols agree. A closer with an empty stack also fails. After the last symbol, the stack must be empty for the string to be valid.
 
 <Tabs items={["JavaScript", "Python"]}>
   <Tab value="JavaScript">

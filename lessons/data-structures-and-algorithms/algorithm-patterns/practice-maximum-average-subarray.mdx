@@ -15,7 +15,7 @@ Submit your implementation when it passes the examples. Initialize the maximum f
 
 ## Solution
 
-![Fixed window update](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/1e3e13b6-0db0-43d8-9eab-205bdcf6fa8f/gallery/0c059045-2c9f-4191-8081-705d0ec413c3)
+![A width-three window changes from 2, 5, 1 to 5, 1, 3. Subtracting 2 and adding 3 updates its sum from 8 to 9.](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/1e3e13b6-0db0-43d8-9eab-205bdcf6fa8f/gallery/0c059045-2c9f-4191-8081-705d0ec413c3)
 
 Sum the first k values to create the initial window. For every later position, add the value entering on the right and subtract the value leaving on the left.
 
@@ -45,7 +45,7 @@ Track the greatest window sum and divide it by k once at the end.
   <Tab value="Python">
     ```python
     def find_max_average(nums, k):
-        window_sum = sum(nums[:k])
+        window_sum = sum(nums[index] for index in range(k))
         maximum_sum = window_sum
     
         for right in range(k, len(nums)):
@@ -61,5 +61,5 @@ Track the greatest window sum and divide it by k once at the end.
 
 | Measure | Complexity | Explanation |
 |---|---:|---|
-| Time | `O(n)` | The first window is built once and every remaining value enters and leaves once. |
+| Time | `O(n)` | The first window is built once and each slide performs two arithmetic updates. |
 | Auxiliary space | `O(1)` | Only the running and maximum sums are stored. |

@@ -14,7 +14,7 @@ In JavaScript, use `Map` and `Set`. In Python, use a dictionary (`dict`) and a s
 
 ## How Hashing Works
 
-![Hash lookup and collision](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/63971361-6f04-4a9f-a7d2-538fc84c4adc/gallery/eea5908e-81c8-43c5-afb5-0384523ef147)
+![The sample keys tea and eat both reach bucket 2, which retains both distinct keys.](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/63971361-6f04-4a9f-a7d2-538fc84c4adc/gallery/eea5908e-81c8-43c5-afb5-0384523ef147)
 
 A hash table runs a key through a **hash function** to choose where to look for it. The same key produces a consistent hash, allowing the table to find it again. On a lookup, the table checks the selected location and compares keys to find the correct entry. The location can change if the table grows.
 
@@ -67,7 +67,7 @@ When you only need to know whether a key exists, check membership explicitly. A 
 
 ### Count Repeated Items
 
-![Frequency map](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/63971361-6f04-4a9f-a7d2-538fc84c4adc/gallery/8afae725-2990-4f1e-900b-88f050ecf318)
+![Reading tea, coffee, tea creates two entries and increments the tea count to two.](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/63971361-6f04-4a9f-a7d2-538fc84c4adc/gallery/8afae725-2990-4f1e-900b-88f050ecf318)
 
 A **frequency map** uses each item as a key and its number of appearances as the value. For `["tea", "coffee", "tea"]`, the counts are `tea → 2` and `coffee → 1`.
 

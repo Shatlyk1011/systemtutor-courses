@@ -254,7 +254,7 @@ Save the head, advance `head` to the next node, and clear the links that connect
 
 ### 5. Accessing and Updating by Index (`get` and `set`)
 
-An index in the first half is reached from the head. An index in the second half is reached from the tail. This does not change the $O(n)$ worst case, but it can reduce the number of nodes visited.
+To reach index `i`, count `i` links from the head or `length - 1 - i` links from the tail. Start from the closer end. For example, index 2 in a four-node list takes two forward steps from the head or one backward step from the tail. The worst case is still $O(n)$.
 
 <Tabs items={["JavaScript", "Python"]}>
   <Tab value="JavaScript">
@@ -263,7 +263,7 @@ An index in the first half is reached from the head. An index in the second half
       if (index < 0 || index >= this.length) return null;
       let current;
 
-      if (index <= this.length / 2) {
+      if (index <= this.length - 1 - index) {
         current = this.head;
         for (let i = 0; i < index; i++) current = current.next;
       } else {
@@ -288,7 +288,7 @@ An index in the first half is reached from the head. An index in the second half
         if index < 0 or index >= self.length:
             return None
 
-        if index <= self.length / 2:
+        if index <= self.length - 1 - index:
             current = self.head
             for _ in range(index):
                 current = current.next
@@ -313,7 +313,9 @@ An index in the first half is reached from the head. An index in the second half
 
 ### 6. Inserting at Any Position (`insert`)
 
-For a middle insertion, find the node currently at the index and connect the new node between it and its previous neighbor. All four affected links must remain consistent.
+Suppose `10` and `30` are neighbors and you insert `20` between them. First save references to both neighbors. Link `10.next` to `20` and `20.prev` to `10`. Then link `20.next` to `30` and `30.prev` to `20`. Check the result by walking from `10` to `30` and back again.
+
+![Inserting 20 between 10 and 30 creates a forward and a backward link between each pair of neighbors.](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/ba5422b9-c8ef-4672-b067-9c87b70f4f60/gallery/3769b0b8-f86e-4627-b1e8-9c6f8673d6cd)
 
 <Tabs items={["JavaScript", "Python"]}>
   <Tab value="JavaScript">

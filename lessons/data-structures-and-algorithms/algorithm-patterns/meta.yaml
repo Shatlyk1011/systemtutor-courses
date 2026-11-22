@@ -3,17 +3,17 @@ description: "Master essential algorithmic problem-solving patterns including ha
 pages:
   - introduction
   - hash-maps-and-frequency-counters
-  - quiz-frequency-counters-and-hash-map-lookup
   - practice-two-sum
   - practice-valid-anagram
   - practice-medium-group-anagrams
+  - quiz-frequency-counters-and-hash-map-lookup
   - two-pointers
-  - quiz-two-pointer-reasoning
   - practice-valid-palindrome
   - practice-medium-two-sum-ii
   - practice-medium-container-with-most-water
+  - quiz-two-pointer-reasoning
   - sliding-window
-  - quiz-sliding-window-reasoning
   - practice-maximum-average-subarray
   - practice-medium-longest-substring-without-repeating-characters
   - practice-medium-minimum-size-subarray-sum
+  - quiz-sliding-window-reasoning

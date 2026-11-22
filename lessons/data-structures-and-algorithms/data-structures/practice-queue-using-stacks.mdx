@@ -15,11 +15,11 @@ Submit your implementation when it passes the examples. Interleaved pushes, peek
 
 ## Solution
 
-![Queue behavior from two stacks](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/03ce588b-f581-46ee-b98b-277331400e55/gallery/f33ed34c-dc7a-4d5c-bfc1-cd49dddcaf34)
+![Transferring 3, 2, 1 from input places 1 at the top of output, ready to leave first.](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/03ce588b-f581-46ee-b98b-277331400e55/gallery/f33ed34c-dc7a-4d5c-bfc1-cd49dddcaf34)
 
 Push new values onto an input stack. When a front value is needed and the output stack is empty, move every input value to the output stack.
 
-That reversal places the oldest value on top. Reuse the output stack until it becomes empty instead of transferring values for every operation.
+For pushes `1, 2`, the first pop transfers both values, then returns `1`. Push `3` into the input stack. The output stack still has `2`, so the next peek must read `2`. Moving `3` now would put it ahead of an older item. Transfer again only when the output stack is empty.
 
 <Tabs items={["JavaScript", "Python"]}>
   <Tab value="JavaScript">
@@ -130,5 +130,5 @@ That reversal places the oldest value on top. Reuse the output stack until it be
 
 | Measure | Complexity | Explanation |
 |---|---:|---|
-| Time | `O(n)` | Across n operations, each value moves between stacks at most once and is popped once. |
+| Time | `O(n)` | Across `n` operations, each value transfers at most once. One pop or peek can take `O(n)`, but the amortized cost is `O(1)` per operation. |
 | Auxiliary space | `O(n)` | The two stacks together store all queued values. |

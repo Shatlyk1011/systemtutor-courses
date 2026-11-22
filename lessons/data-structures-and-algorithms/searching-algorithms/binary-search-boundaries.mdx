@@ -16,7 +16,7 @@ That is not enough when a sorted collection contains duplicates or when the targ
 
 The **lower bound** is the first index whose value is **greater than or equal to** the target.
 
-This definition handles both cases:
+If every value is smaller, the lower bound is the array length. For example, in `[1, 3, 3, 7]` the lower bound of `3` is index `1`, the lower bound of `4` is index `3`, and the lower bound of `8` is index `4`.
 
 - If the target exists, it identifies the first matching position among duplicates.
 - If the target does not exist, it identifies the insertion position.
@@ -31,8 +31,6 @@ Lower bound changes the question from “Where is an equal value?” to “Where
 </Callout>
 
 ## Half-open boundary search
-
-![Narrowing toward the first valid index](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/bf48d3e5-37f4-44d4-bbd6-8d8635d1163b/gallery/9353d393-e819-46e6-ac8a-576122f7e201)
 
 A lower-bound search finds the **first valid index** in a range. Represent the search range as the half-open interval `[left, right)`:
 
@@ -81,7 +79,9 @@ At each step, inspect a middle position and keep any qualifying position as a po
   </Tab>
 </Tabs>
 
-When the loop ends, `left == right`. That position is the first valid index for the searched range.
+The predicate must be false before the boundary and true from the boundary onward. At each step, indices before `left` are known to fail. The original `end` is a sentinel meaning “no match”. If `right` has moved below that sentinel, it is a known qualifying index. When the endpoints meet, return the first qualifying index or the sentinel.
+
+On `[2, 4, 4, 4, 9]`, find the first value at least `4`. Start with `[0, 5)`. The middle index `2` qualifies, so set `right = 2`. The middle of `[0, 2)` is `1`, which also qualifies. The remaining range `[0, 1)` tests index `0`. Its value is `2`, so advance `left` to `1`. Both endpoints now identify the first `4`.
 
 ### Preserve qualifying positions
 
@@ -97,7 +97,7 @@ For a sorted collection, the upper bound of a target is the first position whose
 
 ```text
 upper bound(target) = first position with value > target
-last occurrence     = upper bound(target) - 1
+last occurrence     = upper bound(target) - 1, if the target exists
 ```
 
 This works because all target values appear before the first value greater than the target.
@@ -126,36 +126,16 @@ Upper bounds and monotonic-condition searches use the same boundary pattern: cha
 
 ## Performance and edge cases
 
-A robust boundary search must meet both performance and correctness requirements.
+With constant-time indexing and comparisons, boundary search takes `O(log n)` time and `O(1)` auxiliary space. A more expensive predicate adds its own cost to each check.
 
-| Measure | Requirement |
-|---|---|
-| Time | `O(log n)` |
-| Auxiliary space | `O(1)` |
+| Input and target | Lower bound | Exact match? |
+|---|---:|---|
+| `[]`, target `3` | 0 | No. The insertion index equals the length. |
+| `[1, 3, 3, 7]`, target `3` | 1 | Yes. The value at index 1 is 3. |
+| `[1, 3, 3, 7]`, target `4` | 3 | No. The value at index 3 is 7. |
+| `[1, 3, 3, 7]`, target `8` | 4 | No. The insertion index equals the length. |
 
-`O(log n)` time means the amount of work grows slowly as the input size `n` increases. `O(1)` auxiliary space means the algorithm uses a constant amount of extra memory, regardless of input size.
-
-Check the behavior for:
-
-- An empty array
-- Each possible insertion position
-- A target that is present
-- A target that is absent
-
-The result must still identify the correct position when the target is not found. Do not assume that a completed search means the target exists; validate the final result against the target.
-
-<Callout title="Validation reminder" type="success">
-A correct result must distinguish between “the target was found” and “this is the position where it should be inserted.”
-</Callout>
-
-### Practical checklist
-
-1. Confirm the algorithm meets `O(log n)` time.
-2. Confirm it uses `O(1)` auxiliary space.
-3. Test an empty array.
-4. Test insertion at every boundary and between elements.
-5. Test both present and absent targets.
-6. Validate the final position before reporting that the target was found.
+To report an exact match, first check that the index is within the array and then compare the value with the target.
 
 ---
 
@@ -165,4 +145,4 @@ A correct result must distinguish between “the target was found” and “this
 - A half-open range, `[left, right)`, lets the array length remain a valid insertion position and ends when `left == right`.
 - When the middle position qualifies, keep it as a candidate by setting `right = middle`; otherwise, set `left = middle + 1`.
 - An upper bound is the first index whose value is greater than the target, so the preceding position is the last occurrence when the target exists.
-- The same boundary-search pattern finds the first true position in any monotonic condition in `O(log n)` time and `O(1)` auxiliary space.
+- The same boundary-search pattern finds the first true position with logarithmically many predicate calls and constant search state.

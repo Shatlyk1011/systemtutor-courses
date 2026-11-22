@@ -7,7 +7,7 @@ slug: "practice-hard-sliding-window-maximum"
 
 ## Try It Yourself
 
-Use the editor below to return the maximum for every window of size k. Store useful indices in decreasing value order so the front always identifies the maximum.
+Return the maximum for each window of `k` consecutive elements. As the window moves one step, one value enters and another expires. A **deque** (double-ended queue) lets you remove candidates from either end.
 
 Submit your implementation when it passes the examples. Remove indices that leave the window and values that can no longer become a maximum.
 
@@ -15,11 +15,11 @@ Submit your implementation when it passes the examples. Remove indices that leav
 
 ## Solution
 
-![Monotonic deque window maximum](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/03ce588b-f581-46ee-b98b-277331400e55/gallery/633afca0-9d57-4ea8-aa1d-292c7ca20cf4)
+![For windows containing 4, 2, 3 and then 2, 3, 1, the deque keeps the candidates 4, 3 and then 3, 1. Each first candidate is the window maximum.](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/ba5422b9-c8ef-4672-b067-9c87b70f4f60/gallery/b2f6f8fb-308a-4c55-957c-4fd6a8f89796)
 
-Before adding an index, remove smaller or equal values from the back because the new value will outlast them. Remove the front index when it falls outside the current window.
+Store indices in increasing order from front to back. Their **values** must strictly decrease in that direction. With current index `i`, first remove indices at the front that are at most `i - k`. Next remove indices at the back whose values are at most `nums[i]`. The newer value is at least as large and stays in the window longer. Append `i`. Once the window is full, read the value at the front index.
 
-Once a full window exists, the value at the front index is its maximum.
+For `[4, 2, 3, 1]` with `k = 3`, the arrival of `3` discards the older `2`. The candidates are now indices `[0, 2]` with values `[4, 3]`, so the first maximum is `4`. On the next step, index 0 expires. The candidates become `[2, 3]`, with values `[3, 1]`, so the second maximum is `3`.
 
 <Tabs items={["JavaScript", "Python"]}>
   <Tab value="JavaScript">
@@ -87,4 +87,4 @@ Once a full window exists, the value at the front index is its maximum.
 | Measure | Complexity | Explanation |
 |---|---:|---|
 | Time | `O(n)` | Each index enters and leaves the deque at most once. |
-| Auxiliary space | `O(k)` | The deque stores only useful indices from the current window. |
+| Auxiliary space | `O(k)` | At most `k` candidate indices are live. The returned array separately holds `n - k + 1` maxima. |

@@ -15,9 +15,9 @@ Submit your implementation when it passes the examples. Empty and single-node li
 
 ## Solution
 
-![Reversing links in place](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/03ce588b-f581-46ee-b98b-277331400e55/gallery/8407272a-b445-4cc8-9ba4-75ab4b7ccc06)
+![The current node 2 redirects its next link to 1 while a saved reference to 3 preserves the rest of the list.](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/03ce588b-f581-46ee-b98b-277331400e55/gallery/8407272a-b445-4cc8-9ba4-75ab4b7ccc06)
 
-Keep previous and current pointers. Save the current node's original next pointer, redirect current.next toward previous, then advance both pointers.
+`previous` heads the part already reversed. `current` heads the part still to visit. On `1 → 2 → 3`, save the link to 2 before pointing `1.next` to `null`. Now `previous` is 1 and `current` is 2, so both pieces remain reachable. Repeat the same four assignments for each remaining node.
 
 When current reaches null, previous points to the original tail, which is now the new head.
 

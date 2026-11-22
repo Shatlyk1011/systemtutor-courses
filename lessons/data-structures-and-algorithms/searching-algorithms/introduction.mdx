@@ -3,30 +3,26 @@ title: "Introduction to Searching Algorithms"
 description: "Learn common lookup tasks, then progress from linear search to binary search and its boundary-based variants."
 ---
 
+A search chooses which candidate to inspect next. On the array `[8, 3, 6, 3]`, “does 3 occur?”, “where is its first occurrence?”, and “how many times does it occur?” all examine the same data. Their answers are `true`, index `1`, and `2`.
+
 ## What is a searching algorithm?
+
+Start by specifying the result. A membership check can stop at the first match. A count has to account for every match. An insertion position is useful even when a match is missing.
 
 ![Searching in different contexts](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/3cf2b7c0-b4e3-4aa7-8dbf-f3dfb8f1f738/gallery/45b5935a-724d-40c3-b321-0e63bbccfc70)
 
-A searching algorithm is a reusable solution for finding or checking information. Searching can describe simple lookup tasks or more complex systems such as Google.
-
 ## Common searching tasks
 
-| Task | What is being searched or checked? |
+| Task | What to return |
 |---|---|
-| Find a substring | Whether one piece of text appears inside another |
-| Check a username | Whether a username is already taken |
-| Validate a state | Whether a state is valid |
-| Locate an array value | Where a value appears in an array |
+| Find a substring | The starting position of the first match, or a missing-value marker |
+| Check a username | Whether the name is already in the collection |
+| Find the first failing version | The earliest version that fails a check |
+| Count qualifying array values | The number of entries satisfying a condition |
 
-These tasks look different, but each requires a way to find information or determine whether a condition is true.
+## Choosing a search
 
-## A useful way to think about named algorithms
-
-Algorithm names describe reusable solutions to common problems. When a problem involves searching, the appropriate searching algorithm provides a structured way to solve it.
-
-<Callout title="Key idea" type="info">
-Searching is not limited to finding a value in an array. It also includes checking text, usernames, and valid states, as well as supporting complex systems such as Google.
-</Callout>
+Ask what a failed check tells you about the remaining candidates. In an unsorted array, seeing `8` tells you nothing about where `3` might be. In an ascending array, if the middle value exceeds `3`, everything to its right also exceeds `3`. That guarantee lets one comparison eliminate many candidates.
 
 ## Chapter flow
 

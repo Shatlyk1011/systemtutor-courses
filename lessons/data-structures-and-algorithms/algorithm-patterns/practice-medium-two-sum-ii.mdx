@@ -15,11 +15,11 @@ Submit your implementation when it passes the examples. Return one-based indices
 
 ## Solution
 
-![Sorted pair search](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/1e3e13b6-0db0-43d8-9eab-205bdcf6fa8f/gallery/844b79e4-d2d6-4e16-969c-f25d6d228cdc)
+![For target 13, 1 + 15 is too large, 1 + 11 is too small, and 2 + 11 matches.](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/1e3e13b6-0db0-43d8-9eab-205bdcf6fa8f/gallery/844b79e4-d2d6-4e16-969c-f25d6d228cdc)
 
 Place one pointer at each end of the sorted array. If their sum is too small, moving the left pointer right is the only way to increase it. If it is too large, move the right pointer left.
 
-When the sum equals the target, convert both zero-based positions to the required one-based indices.
+In the figure, the values `2` and `11` lie at zero-based indices `1` and `4`. Add one to each, so the returned answer is `[2, 5]`.
 
 <Tabs items={["JavaScript", "Python"]}>
   <Tab value="JavaScript">

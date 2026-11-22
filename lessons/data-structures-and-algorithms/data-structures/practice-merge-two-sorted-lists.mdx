@@ -14,11 +14,11 @@ Submit your implementation when it passes the examples. Either list may be empty
 
 ## Solution
 
-![Merging sorted linked lists](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/03ce588b-f581-46ee-b98b-277331400e55/gallery/7bf58be6-cae4-446f-8fbe-f5b3c7004be4)
+![Comparing heads 1 and 2 selects node 1 for the merged tail after the dummy.](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/03ce588b-f581-46ee-b98b-277331400e55/gallery/7bf58be6-cae4-446f-8fbe-f5b3c7004be4)
 
 A dummy node gives the merged list a stable starting point. Repeatedly connect the tail to the smaller current node and advance only that list.
 
-When one list ends, connect the remaining part of the other list because it is already sorted.
+When one list ends, attach the entire remaining chain with a single `tail.next` assignment. Return `dummy.next`. The dummy supplied a place for the first assignment and contributes no value to the result.
 
 <Tabs items={["JavaScript", "Python"]}>
   <Tab value="JavaScript">
@@ -79,5 +79,5 @@ When one list ends, connect the remaining part of the other list because it is a
 
 | Measure | Complexity | Explanation |
 |---|---:|---|
-| Time | `O(n + m)` | Every node from both lists is attached once. |
+| Time | `O(n + m)` | Lists of lengths `n` and `m` need at most `n + m - 1` comparisons when both are nonempty. The final link attaches the remaining chain. |
 | Auxiliary space | `O(1)` | Only a dummy node and a fixed number of references are added. |

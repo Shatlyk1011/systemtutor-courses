@@ -7,7 +7,7 @@ slug: "practice-medium-remove-nth-node-from-end"
 
 ## Try It Yourself
 
-Use the editor below to remove a node counted from the end without first measuring the list. Create a gap of n nodes between two pointers.
+Remove a node counted from the end without measuring the list first. `n = 1` means remove the tail. Return the head of the remaining list.
 
 Submit your implementation when it passes the examples. The removed node may be the head, the tail, or the only node.
 
@@ -15,25 +15,25 @@ Submit your implementation when it passes the examples. The removed node may be 
 
 ## Solution
 
-![Offset linked-list pointers](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/03ce588b-f581-46ee-b98b-277331400e55/gallery/3fd86748-4a2e-4511-a15b-5bd7da84bc8c)
+![With fast just past node 60 and slow at 40, slow.next is 50, the second node from the end.](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/03ce588b-f581-46ee-b98b-277331400e55/gallery/3fd86748-4a2e-4511-a15b-5bd7da84bc8c)
 
-A dummy node before the head makes removing the first real node identical to every other removal. Advance fast n steps, then move fast and slow together until fast reaches the tail.
+Start `slow` at a dummy node just before the head and `fast` at the head. Advance `fast` by `n` links, then move both pointers together until `fast` reaches `null`. Throughout the paired walk, `fast` is `n` links ahead of `slow.next`.
 
-At that moment, slow.next is the node to remove. Skip it by connecting slow.next to the following node.
+In the diagram, `n = 2`. From node 50 it takes two links to reach `null`, through 60. When `fast` reaches `null`, `slow` points to 40, so link 40 directly to 60. If `n` equals the entire list length, `slow` stays at the dummy and the same update removes the head.
 
 <Tabs items={["JavaScript", "Python"]}>
   <Tab value="JavaScript">
     ```js
     function removeNthFromEnd(head, n) {
       const dummy = { val: 0, next: head };
-      let fast = dummy;
+      let fast = head;
       let slow = dummy;
     
       for (let step = 0; step < n; step++) {
         fast = fast.next;
       }
     
-      while (fast.next !== null) {
+      while (fast !== null) {
         fast = fast.next;
         slow = slow.next;
       }
@@ -52,13 +52,13 @@ At that moment, slow.next is the node to remove. Skip it by connecting slow.next
                 self.next = next_node
     
         dummy = Dummy(head)
-        fast = dummy
+        fast = head
         slow = dummy
     
         for _ in range(n):
             fast = fast.next
     
-        while fast.next is not None:
+        while fast is not None:
             fast = fast.next
             slow = slow.next
     
@@ -72,5 +72,5 @@ At that moment, slow.next is the node to remove. Skip it by connecting slow.next
 
 | Measure | Complexity | Explanation |
 |---|---:|---|
-| Time | `O(n)` | The fast and slow pointers each move through the list at most once. |
+| Time | `O(L)` | For a list of length `L`, each pointer advances at most `L` times. The input `n` specifies the position counted from the end. |
 | Auxiliary space | `O(1)` | The algorithm uses one dummy node and two pointers. |

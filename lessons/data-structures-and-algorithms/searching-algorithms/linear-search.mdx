@@ -19,9 +19,11 @@ Many built-in JavaScript methods perform a linear search under the hood:
 
 ## Implementing linear search
 
+The arrows count comparisons. The fourth comparison finds `7` at zero-based index `3`.
+
 ![Sequential search trace](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/3cf2b7c0-b4e3-4aa7-8dbf-f3dfb8f1f738/gallery/5a80d35e-c6a7-43c2-9b85-bc3ead3c0181)
 
-The function below returns the index of the target. If the target is not found, it returns `-1`.
+The function below returns the first matching index, including index `0`, or `-1` after exhausting the array.
 
 <Tabs items={["JavaScript", "Python"]}>
   <Tab value="JavaScript">
@@ -93,11 +95,11 @@ For an unsorted array, the number of checks depends on where the target appears:
 | Case | Complexity | Meaning |
 |---|---:|---|
 | Best case | `O(1)` | The target is the first element. |
-| Average case | `O(n)` | The search checks a portion of the array. |
+| Average case | `O(n)` | With one target equally likely at each position, the mean is `(n + 1) / 2` checks. |
 | Worst case | `O(n)` | The target is last, or it is not present. |
 
 <Callout title="When to use Linear Search" type="info">
-Linear search is the best (and often only) general search approach when data is completely **unsorted**. However, when data is sorted, more efficient algorithms like **Binary Search** ($O(\log n)$) can be used.
+Scan an unsorted array for a one-off lookup. For many lookups against the same data, a set or map can justify its setup cost. For an already sorted array, binary search can skip large portions.
 </Callout>
 
 ---
@@ -106,6 +108,6 @@ Linear search is the best (and often only) general search approach when data is 
 
 - **Sequential Inspection:** Linear search inspects elements sequentially one by one from beginning to end until the target is found or the array ends.
 - **Works on Unsorted Data:** Unlike binary search, linear search does not require the input array to be sorted.
-- **Time Complexity:** Best case is $O(1)$ when the target is at index `0`. Average and worst cases are $O(n)$ when the target is near the end or absent.
+- **Time Complexity:** Best case is $O(1)$ when the target is at index `0`. A last-position or absent target takes `n` checks. A uniformly placed target also takes linear time on average.
 - **Space Complexity:** Operates in $O(1)$ constant auxiliary space because it only requires an index counter to traverse the array.
 - **Built-in Methods:** Common JavaScript methods like `indexOf`, `includes`, `find`, and `findIndex` perform a linear search under the hood.

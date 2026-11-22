@@ -15,9 +15,9 @@ Submit your implementation when it passes the examples. Handle one-element array
 
 ## Solution
 
-![Rotated binary-search decision](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/3cf2b7c0-b4e3-4aa7-8dbf-f3dfb8f1f738/gallery/bbc1eb6b-8dec-46f1-a58f-9008d2d6f895)
+The original array was strictly increasing, so it has distinct values and at most one drop after rotation. At least one half around the middle is sorted. On `[4, 5, 6, 7, 0, 1, 2]`, the middle is `7` and the left half runs from `4` through `7`. Target `0` falls outside those bounds, so the next range starts immediately after `7`.
 
-At least one half around the middle is sorted. Determine whether the target lies inside that sorted half; if it does, keep that half, and otherwise search the other side.
+![At middle value 7, the sorted left half spans values 4 to 7. Target 0 falls outside it, so keep indices 4 through 6.](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/ba5422b9-c8ef-4672-b067-9c87b70f4f60/gallery/e2fc28aa-11bf-4c65-a433-b53f57167c50)
 
 This decision preserves binary search's ability to discard half of the remaining array after every comparison.
 

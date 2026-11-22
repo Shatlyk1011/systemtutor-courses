@@ -9,7 +9,7 @@ slug: "practice-fibonacci-number"
 
 Use the editor below to compute the nth Fibonacci number recursively. Identify the two base cases and make every other call move toward them.
 
-Submit your implementation when it passes the examples. Use memoization so repeated recursive subproblems are calculated only once.
+Apply memoization by saving each completed non-base result under its input. Before expanding another call with that input, check whether you already know its answer.
 
 <PracticeExercise problemId="fibonacci-number" />
 
@@ -17,7 +17,9 @@ Submit your implementation when it passes the examples. Use memoization so repea
 
 The base cases return 0 and 1 immediately. Every larger Fibonacci number is the sum of the two smaller Fibonacci calls before it.
 
-A memo stores completed results. This keeps the recursive structure while preventing the same Fibonacci value from being expanded many times.
+Computing `F(4)` first takes the `F(3)` branch. That branch computes `F(2) = 1` and saves it. When `F(4)` next asks directly for `F(2)`, the lookup returns `1` immediately. The two branches now give `F(4) = 2 + 1 = 3`.
+
+![While computing F(4), the F(3) branch saves F(2). The later request for F(2) reuses that result.](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/ba5422b9-c8ef-4672-b067-9c87b70f4f60/gallery/f3301a09-a93c-40f3-818e-a746df48dae1)
 
 <Tabs items={["JavaScript", "Python"]}>
   <Tab value="JavaScript">
@@ -62,5 +64,5 @@ A memo stores completed results. This keeps the recursive structure while preven
 
 | Measure | Complexity | Explanation |
 |---|---:|---|
-| Time | `O(n)` | Memoization calculates each Fibonacci value from 0 through n once. |
+| Time | `O(n)` | Each non-base value is computed once. Subsequent calls for that value use a lookup. |
 | Auxiliary space | `O(n)` | The memo and recursive call stack can each grow with n. |

@@ -15,11 +15,11 @@ Submit your implementation when it passes the examples. Decide which pointer can
 
 ## Solution
 
-![Container pointer decisions](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/1e3e13b6-0db0-43d8-9eab-205bdcf6fa8f/gallery/fe467d05-a5b7-415d-b761-eda06b34bf96)
+![For heights 2, 5, 1, 4, the first pair holds 6 units. Replacing the shorter left wall raises the area to 8.](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/ba5422b9-c8ef-4672-b067-9c87b70f4f60/gallery/7c82b018-30bd-4256-9d75-d0875baade1c)
 
 Start with the widest possible container. Record its area, then move the pointer at the shorter line because keeping that shorter height cannot improve the area after the width shrinks.
 
-Repeat until the pointers meet, preserving the greatest area seen.
+For heights `[2, 5, 1, 4]`, the outside walls give `3 × 2 = 6`. Keeping the wall of height 2 would only narrow that container. Move left to height 5: the width is now 2 and the limiting height is 4, giving area 8. If the two endpoint heights tie, either one can be discarded after recording its area.
 
 <Tabs items={["JavaScript", "Python"]}>
   <Tab value="JavaScript">

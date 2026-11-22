@@ -103,14 +103,11 @@ The length check is an early exit: if the inputs contain different numbers of it
 
 To check whether one array contains the **squared values** of another:
 
-- Count the values in the first array.
-- Count the values in the second array.
-- For each value in the first profile, look for its square in the second profile.
-- Compare the frequencies.
+1. Check that the arrays have equal lengths.
+2. Square each number in the first array **before** updating its count.
+3. Count the original values in the second array, then compare the two profiles.
 
-For example, `[1, 2, 2, 3]` matches `[1, 4, 4, 9]`, because the profile for the first array maps `1 → 1`, `2 → 2`, and `3 → 1`, while the second maps `1 → 1`, `4 → 2`, and `9 → 1`.
-
-A matching square is not enough: the counts must also match. `[2, 2, 3]` does not match `[4, 9, 9]` because the frequency of `2` is two but the frequency of its square `4` is one.
+For example, `[-2, 2, 3]` produces the squared profile `4 → 2, 9 → 1`, which matches `[4, 4, 9]`. The values `-2` and `2` must contribute to the same key. Comparing their original counts separately would miss this.
 
 ### Anagrams
 
@@ -170,6 +167,10 @@ When a problem asks whether frequencies repeat or match, first build the value-f
 
 For example, `[a, a, b, b, c, c]` has frequencies `[2, 2, 2]`. It has one repeated frequency, `2`, appearing three times. A second map can count those frequencies if the problem asks whether two values occur equally often.
 
+## When the map should store an index
+
+A count answers “how many?” For Two Sum you need to return positions, so store an earlier **index** for each value. With `[3, 3]` and target `6`, the first `3` needs another `3`. Check the empty map, then save its index `0`. At index `1`, the lookup finds index `0`. Looking up the complement *before* storing the current index keeps the two positions distinct.
+
 ## Frequency counters vs. nested loops
 
 | Approach | Main method | Time pattern |
@@ -181,7 +182,7 @@ Frequency counters keep the work to passes over the input. Nested-loop solutions
 
 ## Complexity and trade-offs
 
-- **Time:** Building one or two profiles takes `O(n)` average time. Comparing the profiles takes `O(k)`, where `k` is the number of distinct values.
+- **Time:** Building the profiles takes `O(n)` average time for `n` total input items. Comparing the profiles takes `O(k)`, where `k` is the number of distinct values.
 - **Space:** A profile uses `O(k)` additional space. In the worst case, every input item is distinct, so `k = n`.
 - **Lookup assumption:** Hash-map operations are average `O(1)`. A language or runtime may have different worst-case guarantees, but the pattern is designed around constant-time average lookup.
 

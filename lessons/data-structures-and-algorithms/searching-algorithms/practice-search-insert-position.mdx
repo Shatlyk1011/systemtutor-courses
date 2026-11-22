@@ -7,18 +7,19 @@ slug: "practice-search-insert-position"
 
 ## Try It Yourself
 
-Use the editor below to find the first index whose value is greater than or equal to the target. That index is both the target position and the correct insertion position.
+Use the editor below to find the first index whose value is greater than or equal to the target. Return that position, or the array length if every value is smaller. When the target is absent, the result is where it belongs in ascending order.
 
 Submit your implementation when it passes the examples. Test targets before the first value, after the last value, and between two values.
 
 <PracticeExercise problemId="search-insert-position" />
 
 ## Solution
-![Lower-bound search range](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/3cf2b7c0-b4e3-4aa7-8dbf-f3dfb8f1f738/gallery/86e1ea08-6bbb-4f05-9f1a-c5aa44bddca3)
 
 Treat the right boundary as one position past the array. When the middle value is smaller than the target, discard it and everything to its left. Otherwise, keep the middle position as a possible answer and move the right boundary to it.
 
-When the boundaries meet, that position is the lower bound for the target.
+When the boundaries meet, that position is the lower bound for the target. In the diagram, index `1` holds the first `4`. To insert `5`, use index `4`, immediately before `9`. The same rule works whether the input contains duplicates or, as in this exercise, only distinct values.
+
+![In the sorted array 2, 4, 4, 4, 9, target 4 belongs at index 1 and target 5 belongs at index 4.](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/bf48d3e5-37f4-44d4-bbd6-8d8635d1163b/gallery/f8c8830b-a2cf-46c4-9615-a559b2298f73)
 
 <Tabs items={["JavaScript", "Python"]}>
   <Tab value="JavaScript">

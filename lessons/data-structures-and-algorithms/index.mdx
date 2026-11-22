@@ -1,18 +1,39 @@
 ---
 title: "Data Structures & Algorithms Course Overview"
-description: "Welcome to the Data Structures & Algorithms course."
+description: "Learn to choose a data structure or algorithm, trace its behavior on a small input, and explain its time and space costs."
 ---
 
-Data structures and algorithms help you organize data and solve problems efficiently. Start by comparing solutions, then build the structures and patterns you need to solve problems.
+A package scanner records the IDs `[42, 17, 42, 31]` in arrival order. Someone asks, “When did package 42 first appear?” A scan from the left answers the question at index `0`. If thousands of people will ask about the same log, it may be worth recording the first index of each ID ahead of time. The input stayed the same. The cost of answering the next question changed.
+
+![Package 42 appears at indices 0 and 2. Its first arrival is highlighted at index 0.](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/ba5422b9-c8ef-4672-b067-9c87b70f4f60/gallery/18513344-1ff6-4810-a0d3-e2976e9eb245)
+
+This course starts with decisions like that one. You’ll need to be comfortable reading variables, conditions, loops, and functions in JavaScript or Python. You can work through the course in either language.
 
 ## Course roadmap
 
-- [Big O notation](/courses/data-structures-and-algorithms/docs/big-o-notation/algorithm-performance): See why two correct solutions can use different amounts of time and memory.
-- [Built-in data structures](/courses/data-structures-and-algorithms/docs/arrays-strings-and-hash-maps/introduction): Learn how data structures organize data before working with arrays, strings, hash maps, and sets.
-- [Algorithm patterns](/courses/data-structures-and-algorithms/docs/algorithm-patterns/introduction): Recognize when frequency counters, two pointers, or sliding windows fit a problem.
-- [Linked lists, stacks, and queues](/courses/data-structures-and-algorithms/docs/data-structures/single-linked-list): Start with singly linked lists, then study stacks and queues.
-- [Recursion](/courses/data-structures-and-algorithms/docs/recursion/introduction): Break a problem into smaller calls that stop at a base case.
-- [Sorting](/courses/data-structures-and-algorithms/docs/sorting-algorithms/introduction): Learn how sorting orders data and how comparison rules control that order.
-- [Searching](/courses/data-structures-and-algorithms/docs/searching-algorithms/introduction): Start with common lookup tasks, then move into linear and binary search.
+| Chapter | Question you’ll learn to answer |
+| --- | --- |
+| [Big O notation](/courses/data-structures-and-algorithms/docs/big-o-notation/algorithm-performance) | If the input doubles, what happens to the work and the extra memory? |
+| [Built-in data structures](/courses/data-structures-and-algorithms/docs/arrays-strings-and-hash-maps/introduction) | Does this problem need a position, a count, or a membership test? |
+| [Algorithm patterns](/courses/data-structures-and-algorithms/docs/algorithm-patterns/introduction) | Which fact can you keep as you move through an array or string? |
+| [Linked lists, stacks, and queues](/courses/data-structures-and-algorithms/docs/data-structures/single-linked-list) | Which item must be reachable next, and which links or endpoints make that possible? |
+| [Recursion](/courses/data-structures-and-algorithms/docs/recursion/introduction) | What smaller input can solve part of the problem, and when can a call return immediately? |
+| [Sorting](/courses/data-structures-and-algorithms/docs/sorting-algorithms/introduction) | Which order do you need, and what does it cost to establish that order? |
+| [Searching](/courses/data-structures-and-algorithms/docs/searching-algorithms/introduction) | What property lets a search rule out a whole range of candidates? |
 
-Use the quizzes and practice problems available in each chapter to apply what you learn, such as [Two Sum](/courses/data-structures-and-algorithms/docs/algorithm-patterns/practice-two-sum).
+## Working through a lesson
+
+Trace one small input before running the code. At each step, write down only the state that the algorithm carries forward. In [Two Sum](/courses/data-structures-and-algorithms/docs/algorithm-patterns/practice-two-sum), for example, that means the current value and the earlier values you can look up. In a practice lesson, try the editor before reading the solution. Then test an input that would expose a mistake, such as a pair made from two equal values at different indices.
+
+## Check your reasoning
+
+Return to the scanner log after the searching chapter. The log is fixed, and you can spend extra memory if it helps. What would you do for **one** first-position query? What would you prepare for **many** queries? If someone handed you only a sorted copy of the IDs, could you still recover the first arrival position?
+
+<details>
+<summary>Compare your reasoning</summary>
+
+For one query, scan from the left and stop at the first match. This takes up to `O(n)` time and `O(1)` extra space. For many queries, scan once and store each ID’s index the first time you see it. The map for this log stores `42 → 0`, `17 → 1`, and `31 → 3`. Overwriting the entry for the second `42` would give you its last position.
+
+With ordinary hash-map assumptions, building the map takes `O(n)` expected time and answering a query takes `O(1)` expected time. Space grows with the number of distinct IDs. A sorted copy of the IDs alone loses the arrival positions. To use a sorted index for this question, you would also need to keep the original positions.
+
+</details>

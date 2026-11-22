@@ -15,11 +15,11 @@ Submit your implementation when it passes the examples. Return zero if no window
 
 ## Solution
 
-![Shortest valid sum window](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/1e3e13b6-0db0-43d8-9eab-205bdcf6fa8f/gallery/872a47db-0536-4c6e-b521-bca6e5b20f6a)
+![The right edge expands until the sum reaches the target. The left edge then moves inward to test shorter windows.](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/1e3e13b6-0db0-43d8-9eab-205bdcf6fa8f/gallery/872a47db-0536-4c6e-b521-bca6e5b20f6a)
 
 Expand the right edge and add each value to the running sum. Whenever the sum reaches the target, record the current length and repeatedly remove values from the left to search for a shorter valid window.
 
-If no valid length was recorded, return zero.
+For target `7`, suppose the current window is `[1, 2, 4, 3]` with sum `10`. Removing `1` leaves sum `9`. Removing `2` leaves `[4, 3]` with sum `7`. Record length two before removing `4` makes the sum too small. If no valid length was recorded during the scan, return zero.
 
 <Tabs items={["JavaScript", "Python"]}>
   <Tab value="JavaScript">

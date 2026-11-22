@@ -15,11 +15,19 @@ Submit your implementation when it passes the examples. Remember that repeated c
 
 ## Solution
 
-![Anagram grouping keys](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/1e3e13b6-0db0-43d8-9eab-205bdcf6fa8f/gallery/f2fda1d4-6f1a-4096-afae-0855b3ddeefd)
-
 Build a 26-position frequency signature for each word. Anagrams produce the same signature even when their characters appear in a different order.
 
-Use that signature as a map key. The first word creates a group, and later words with the same signature are appended to it.
+For the input `["eat", "bat", "tea"]`, compare four slots of the signature. Every unlisted slot is zero.
+
+| Word | a | b | e | t |
+| --- | ---: | ---: | ---: | ---: |
+| `eat` | 1 | 0 | 1 | 1 |
+| `bat` | 1 | 1 | 0 | 1 |
+| `tea` | 1 | 0 | 1 | 1 |
+
+Use the full signature as the map key. Create a group when a signature first appears. When the same signature returns, append the word to its existing group. This preserves both the group order and the order within each group.
+
+![Reading eat creates the first group. Bat starts a second group, then tea appends to eat in the first group. The result is eat and tea together, followed by bat alone.](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/ba5422b9-c8ef-4672-b067-9c87b70f4f60/gallery/6ae98233-5a18-4afc-bfab-99857548a535)
 
 <Tabs items={["JavaScript", "Python"]}>
   <Tab value="JavaScript">
@@ -72,7 +80,10 @@ Use that signature as a map key. The first word creates a group, and later words
 
 ### Big O notation
 
+Let `n` be the number of words, `L` their combined length and `g` the number of distinct groups. The alphabet has a fixed size of 26.
+
 | Measure | Complexity | Explanation |
 |---|---:|---|
-| Time | `O(n · k)` | Every character of every word is counted once, where k is the average word length. |
-| Auxiliary space | `O(n · k)` | The map and returned groups store the input words and their signatures. |
+| Time | `O(n + L)` average | Initialize the fixed-size counters for each word and visit every letter. Even an empty word needs a group lookup. |
+| Returned groups | `O(n + g)` references | Each word appears once, in one group. The strings themselves are reused. |
+| Auxiliary space | `O(g)` fixed-size count tuples in Python | JavaScript stores a serialized key per group. If measuring characters, count the combined length of those keys as well. |

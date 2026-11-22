@@ -7,7 +7,7 @@ slug: "practice-find-even-number-digits"
 
 ## Try It Yourself
 
-Use the editor below to inspect every number and count how many have an even number of decimal digits. The array is unsorted, so each value must be considered.
+Use the editor below to inspect every number and count how many have an even number of decimal digits. The input contains positive integers. Counting all qualifying entries requires a full scan, even if the numbers happen to be sorted.
 
 Submit your implementation when it passes the examples. Include one-digit, multi-digit, and six-digit values.
 
@@ -19,7 +19,7 @@ Submit your implementation when it passes the examples. Include one-digit, multi
 
 Scan the array once. For each value, repeatedly remove its final decimal digit and count how many steps are needed to reach zero.
 
-Increase the answer only when that digit count is even.
+The divisions in the diagram use the integer quotient. For `4820`, the fourth division reaches zero, so the digit count is four and the answer increases by one.
 
 <Tabs items={["JavaScript", "Python"]}>
   <Tab value="JavaScript">

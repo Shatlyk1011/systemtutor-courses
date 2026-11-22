@@ -4,74 +4,30 @@ description: "Learn how recursive calls, base cases, and progress solve smaller 
 slug: "introduction"
 ---
 
-**Recursion** is a problem-solving technique in programming where a function calls itself to solve smaller instances of the same problem.
-
-Instead of completing a repetitive task using a loop construct (`for` or `while`), a recursive function breaks the input down into a smaller piece, processes that piece, and invokes itself on what remains until it reaches a natural stopping condition.
+A **recursive function** solves a problem by calling itself on a smaller subproblem. In a countdown from three, the call for `3` prints its number and asks the call for `2` to handle everything that follows. The call for `0` can finish immediately.
 
 ![Countdown calls itself with 3, 2, and 1 before reaching the base case at 0.](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/f1b74d84-5ada-403c-b17f-1007370229f3/gallery/d67ad3b7-2529-4cb2-bd6e-e9d02b302ba8)
 
-The function's work includes another call to that same function. This self-calling behavior is the defining feature of recursion.
-
-<Callout title="Core idea" type="success">
-Recursion solves a big problem by solving a smaller instance of the exact same problem over and over again, until reaching a base case that can be answered immediately without further calls.
-</Callout>
-
----
-
 ## Where recursion is used
 
-Recursion isn't just theory—it powers tools you use every day. It is the go-to approach whenever data is **nested, branched, or structured like a tree**.
-
-Common real-world examples include:
-
-- **Nested JSON (`JSON.parse` / `JSON.stringify`):** Objects can contain arrays with more objects inside them. Recursion unwraps each layer, no matter how deep.
-- **HTML DOM Trees:** Web pages are trees of elements (`<div>` inside `<div>`). Finding, reading, or styling nested elements is naturally recursive.
-- **File Systems & Folders:** A folder can hold files and other folders, which have their own folders. Recursion searches through them without needing to know how deep they go.
-- **Deep Object Copying:** Cloning complex objects (`structuredClone`), flattening nested data, or reading configuration files.
-- **Trees & Graphs:** Searching binary trees, crawling links on the web, or finding connections in social networks and map routes.
-
-<Callout title="Why not just use a loop?" type="info">
-If you have a flat list, a regular `for` loop works great. But when data is nested inside data (like folders inside folders), you don't know how many loops you would need to write ahead of time. Recursion naturally handles any depth on its own.
-</Callout>
-
----
+A folder can contain files and other folders. To count its files, add the files directly inside it and ask the same counting function to handle each subfolder. The code follows the shape of the data even when the nesting depth is unknown. This example assumes a finite folder tree. When following links that can lead back to a previously visited node, track visited nodes to avoid circling forever.
 
 ## The Two Essential Ingredients
 
-Every valid recursive function requires two core parts to work correctly:
-
-1. **The Base Case:** The condition under which the function stops calling itself and returns a result directly. Without a base case, the function calls itself indefinitely until the system runs out of memory (a **stack overflow**).
-2. **Progress (Different Input):** Each recursive call must modify the input and send a smaller, simpler piece of data toward the base case.
+1. **Base case.** State which input you can answer directly.
+2. **Progress.** Identify what moves closer to the base case on every recursive path. A countdown reduces the number. Traversing a finite tree moves down to a child.
 
 ![A recursive function returns at the base case or calls itself again with a smaller input.](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/f1b74d84-5ada-403c-b17f-1007370229f3/gallery/f2b52631-afdb-4d81-8d9e-7853aa503949)
 
-If either ingredient is missing, the recursion fails:
-- Missing **Base Case** $\rightarrow$ Infinite loop leading to `RangeError: Maximum call stack size exceeded` / `RecursionError`.
-- Missing **Progress** $\rightarrow$ The function keeps passing the same input forever, never reaching the base case.
-
----
+For a countdown starting at `3`, subtracting one each time reaches zero. Subtracting two each time skips zero. If your stopping test is exactly `n == 0`, that small change breaks the function for odd inputs.
 
 ## The Call Stack
 
-The **call stack** tracks active JavaScript function calls. It shows which invoked function is currently running and which function should resume afterward.
-
-### Adding function calls
-
-When JavaScript invokes a function, it **pushes** that function onto the call stack. A pushed function becomes the current function being executed.
-
-If that function invokes another function, JavaScript pushes the newly invoked function on top of it. The most recently invoked function is therefore at the top of the stack.
+The **call stack** records unfinished calls. Each call has its own frame, with its parameters, local variables, and the point where execution will resume. At the deepest point of `countdown(3)`, the calls for 3, 2, and 1 wait while the call for 0 runs.
 
 ![Each nested call places another frame on top of the call stack while earlier calls wait below it.](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/f1b74d84-5ada-403c-b17f-1007370229f3/gallery/2b39b5d8-d0e7-4757-9720-24dcd51c1432)
 
-### Removing function calls
-
-When a function returns, JavaScript **removes** it from the call stack. Execution then resumes in the function that is now on top of the stack.
-
-This continues until each invoked function has returned and been removed.
-
-<Callout title="Remember" type="info">
-Functions are added when they are invoked and removed when they return. The function at the top of the call stack is the one currently executing.
-</Callout>
+When the call for 0 returns, the call for 1 resumes immediately after its recursive call. With no further work, it returns to 2, which returns to 3. Returning from a base case finishes **one** call. Its callers may still have work to do.
 
 ---
 
@@ -93,7 +49,7 @@ countdown(n):
   countdown(n - 1)
 ```
 
-The input becomes smaller on every call. When it reaches `0`, the base case triggers and halts execution.
+The input becomes smaller on every call. When it reaches `0`, that call finishes and control returns through the waiting calls.
 
 ### Implementation
 
@@ -151,7 +107,7 @@ The input becomes smaller on every call. When it reaches `0`, the base case trig
 
 ### 1. Sum of a Range (`sumRange`)
 
-Suppose we want to calculate the sum of all consecutive integers from $1$ up to $n$. For example:
+For a positive integer $n$, suppose we want to calculate the sum of all consecutive integers from $1$ up to $n$. For example:
 - `sumRange(3)` $\rightarrow 3 + 2 + 1 = 6$
 - `sumRange(4)` $\rightarrow 4 + 3 + 2 + 1 = 10$
 
@@ -186,6 +142,8 @@ Notice the recursive subproblem: $\text{sumRange}(n) = n + \text{sumRange}(n - 1
     ```
   </Tab>
 </Tabs>
+
+The additions happen on the way back. The call for `1` returns `1`. The waiting call for `2` returns `2 + 1 = 3`, and the call for `3` returns `3 + 3 = 6`.
 
 ### 2. Factorial (`factorial`)
 
@@ -298,22 +256,22 @@ An outer function defines the accumulator array, while an inner recursive helper
     function collectOddValues(arr) {
       const results = [];
 
-      function helper(helperInput) {
+      function helper(index) {
         // Base case: all elements processed
-        if (helperInput.length === 0) {
+        if (index === arr.length) {
           return;
         }
 
         // Work: collect odd number
-        if (helperInput[0] % 2 !== 0) {
-          results.push(helperInput[0]);
+        if (arr[index] % 2 !== 0) {
+          results.push(arr[index]);
         }
 
         // Progress: recurse with remaining elements
-        helper(helperInput.slice(1));
+        helper(index + 1);
       }
 
-      helper(arr);
+      helper(0);
       return results;
     }
 
@@ -325,19 +283,19 @@ An outer function defines the accumulator array, while an inner recursive helper
     def collect_odd_values(arr):
         results = []
 
-        def helper(helper_input):
+        def helper(index):
             # Base case: all elements processed
-            if len(helper_input) == 0:
+            if index == len(arr):
                 return
 
             # Work: collect odd number
-            if helper_input[0] % 2 != 0:
-                results.append(helper_input[0])
+            if arr[index] % 2 != 0:
+                results.append(arr[index])
 
             # Progress: recurse with remaining elements
-            helper(helper_input[1:])
+            helper(index + 1)
 
-        helper(arr)
+        helper(0)
         return results
 
 
@@ -404,56 +362,29 @@ Pure recursion is completely self-contained—each recursive call creates and re
 | Helper method recursion | An outer accumulator is modified by an inner recursive helper function. |
 | Pure recursion | Each call returns independent results that are concatenated as the stack unwinds. |
 
-Both approaches collect odd values recursively and do not mutate the original array.
+Both approaches preserve the input. The index-based helper visits each value once and takes linear time. In the second version, each slice copies a shorter suffix. The copied lengths add up to quadratic time, even before accounting for the result concatenations.
 
 ---
 
 ## Common Recursion Errors
 
-Recursive code can fail with a **maximum call stack error**. Three common causes are missing - base cases, incorrect recursive calls, and missing returns.
+Check **termination** and **return values** separately.
 
-### 1. Check the base case
-
-A base case determines when recursion stops. If it is missing, the recursive process can continue until a maximum call stack error occurs.
-
-When diagnosing the function, first confirm that a base case exists.
-
-### 2. Check the recursive call
-
-Inspect the recursive call carefully. An incorrect recursive call can prevent the function from reaching its stopping condition and lead to a maximum call stack error.
-
-Ask:
-
-- Is the recursive call the intended call?
-- Does the call match the function’s recursive logic?
-
-### 3. Check return statements
-
-A missing `return` is another common recursion error. If the recursive result must be passed back, verify that the function returns it.
-
-<Callout title="Practical focus" type="info">
-Start with the base case, then inspect the recursive call and return statements. These checks target the common recursion errors that can lead to a maximum call stack error.
-</Callout>
-
----
+| Symptom | What to inspect | Example |
+|---|---|---|
+| Calls keep accumulating | Check whether every path reaches a base case. | `sumRange(n)` calling `sumRange(n)` repeats the same work. |
+| The function finishes with a missing result | Check that callers return the result they computed. | Calling `factorial(n - 1)` without returning the product loses the answer. |
+| Correct calls exceed the stack limit | Count how many frames must be active at once. | Counting down from a very large integer can overflow even with a reachable base case. |
 
 ## Recursion vs. Iteration
 
-Every recursive problem can theoretically be solved iteratively using loops, and vice versa. Understanding their trade-offs helps you choose the right approach:
+A countdown needs only one counter in a loop. The recursive version keeps one frame per number until it reaches zero. In general, **maximum active depth** determines the stack cost when each frame uses constant space.
 
-| Dimension | Recursive Approach | Iterative Approach (Loops) |
-| :--- | :--- | :--- |
-| **Control Flow** | Repeated self-function calls | Repeated loop cycles (`for`, `while`) |
-| **Termination** | Reaches the base case | Loop condition evaluates to `false` or `break` |
-| **Call Stack Memory** | Adds a frame per call $\rightarrow O(n)$ stack space | Runs in a single frame $\rightarrow O(1)$ extra space |
-| **Best Suited For** | Branching, nested structures (trees, graphs, JSON) | Linear, flat collections (1D arrays, number ranges) |
-| **Code Readability** | Clean, declarative, and elegant for hierarchical data | Can require complex manual stacks for deeply nested data |
-
-<Callout title="When to choose recursion" type="info">
-Use **recursion** when dealing with hierarchical, branching structures (trees, graphs, nested objects).
-
-Use **iteration** for simple linear sequences and performance-critical tight loops where stack overhead must be avoided.
-</Callout>
+| Example | Maximum active depth | Space used for control |
+|---|---|---|
+| Countdown from `n` | About `n` calls | `O(n)` recursive frames, or `O(1)` for a loop with one counter |
+| Repeatedly halve a positive `n` | About `log₂ n` calls | `O(log n)` recursive frames |
+| Traverse a nested folder tree | About the tree height | Recursive frames or an explicit collection of pending folders |
 
 ---
 
@@ -461,8 +392,7 @@ Use **iteration** for simple linear sequences and performance-critical tight loo
 
 - **Self-Calling Function:** Recursion occurs when a function calls itself to solve smaller subproblems of the same type.
 - **The Two Non-Negotiables:** Every recursive function must have a **base case** to stop execution and a **progress step** that moves input closer to that base case.
-- **Real-World Ubiquity:** Recursion powers core software engineering tasks including JSON parsing, DOM traversal, file system navigation, and tree/graph processing.
-- **Call Stack Cost:** Unlike iterative loops, every recursive call consumes a frame on the call stack. Always ensure a reachable base case to prevent stack overflows.
+- **Call stack cost:** Count the calls active at the same time. A reachable base case ensures termination when the input keeps making progress, but a deep chain can still exceed the stack limit.
 
 ## Chapter flow
 

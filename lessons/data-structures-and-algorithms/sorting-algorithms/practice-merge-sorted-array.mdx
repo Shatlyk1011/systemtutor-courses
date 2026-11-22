@@ -15,9 +15,11 @@ Submit your implementation when it passes the examples. Either input range may b
 
 ## Solution
 
-![Backward in-place merge](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/03ce588b-f581-46ee-b98b-277331400e55/gallery/a8fadb0c-fa14-4aa4-aebc-ca79092f49ba)
+The first `m` positions of `nums1` contain data. The final `n` positions are reserved capacity. A zero inside the first `m` positions is a real value.
 
 Start three pointers at the last real value of nums1, the last value of nums2, and the last available position. Write the larger candidate into the open position and move its pointer backward.
+
+![Compare 3 at the end of the first input with 6 at the end of the second. Write 6 in the last reserved slot and move the write position left.](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/ba5422b9-c8ef-4672-b067-9c87b70f4f60/gallery/d26405af-6ca4-4e1d-97ee-abcf242f7d42)
 
 When nums2 is exhausted, every remaining nums1 value is already correctly placed.
 

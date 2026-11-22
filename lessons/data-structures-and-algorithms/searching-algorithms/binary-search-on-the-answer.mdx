@@ -8,84 +8,21 @@ Binary search is often associated with a sorted input. **Binary search on the an
 
 ## Search the answer space
 
-Instead of searching through the input itself, define an **answer space**: the range of candidate numeric answers that could solve the problem. The task becomes finding the appropriate candidate within that space.
+Suppose the piles contain `[3, 6, 7, 11]` bananas and you have eight hours. In one hour you can work on only one pile. What is the slowest whole-number eating speed that finishes them all?
 
-This reframing is useful when an optimization problem can be expressed as a search over candidate answers. The search is about the value being optimized, not necessarily about an element in the input.
-
-### Why the input need not be sorted
-
-The input does not need to be sorted because binary search is not performed on the input. It is performed on the ordered space of possible numeric answers.
-
-| Traditional binary search | Binary search on the answer |
-|---|---|
-| Searches the input | Searches candidate answers |
-| Relies on the input being sorted | Does not require the input itself to be sorted |
-| Looks for an input value | Finds an answer to an optimization problem |
-
-When facing an optimization problem, ask:
-
-> Can the problem be reframed as a search over candidate numeric answers?
-
-If so, the answer space—not the input—is the object being searched.
-
-<Callout title="Takeaway" type="success">
-Binary search on the answer applies binary search to possible numeric solutions. The input does not need to be sorted because the search happens over the candidate answer space.
-</Callout>
+The candidates are speeds `1…11`. They are already in numeric order, regardless of the order of the piles. Speed `11` finishes even the largest pile in one hour, so four piles finish within the limit. This gives us a known feasible upper bound.
 
 ## Build a monotonic check
 
-A **monotonic check** is a yes-or-no test applied to candidate values. For each candidate, the check returns one of two results:
+For a proposed speed, add up the hours required by each pile, rounding each division **up**. At speed `3`, the four piles take `1 + 2 + 3 + 4 = 10` hours. At speed `4`, they take `1 + 2 + 2 + 3 = 8`.
 
-- **Failing**: the candidate does not satisfy the requirement.
-- **Succeeding**: the candidate satisfies the requirement.
-
-In a monotonic pattern, candidates form two consecutive regions:
-
-```text
-failing  failing  failing  succeeding  succeeding  succeeding
-```
-
-All candidates in the first region fail the check. Starting at a boundary, every candidate in the second region succeeds. The results do not switch back and forth: there is one transition from the failing region to the succeeding region.
-
-<Callout title="Core idea" type="info">
-A monotonic check turns a yes-or-no feasibility question into an ordered pattern: a failing region followed by a succeeding region.
-</Callout>
-
-To build one, define a predicate that answers a single question for a candidate:
-
-> Does this candidate satisfy the requirement?
-
-Represent the answer consistently as either `fail` or `succeed`:
-
-<Tabs items={["JavaScript", "Python"]}>
-  <Tab value="JavaScript">
-    ```js
-    function check(candidate, satisfiesRequirement) {
-      return satisfiesRequirement(candidate) ? "succeed" : "fail";
-    }
-    ```
-  </Tab>
-  <Tab value="Python">
-    ```python
-    def check(candidate, satisfies_requirement):
-        return "succeed" if satisfies_requirement(candidate) else "fail"
-    ```
-  </Tab>
-</Tabs>
-
-Then examine the candidates in their ordered sequence and identify the transition between the two regions. For example, this result sequence is monotonic because it has one transition:
-
-```text
-fail  fail  succeed  succeed  succeed
-```
+A faster speed can only reduce or preserve the time for each pile. Once a speed works, all higher speeds work too. This one-way behavior is the **monotonic condition** that justifies binary search.
 
 ## Find the first feasible value
 
-![Preserving the first feasible candidate](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/de621dcc-8566-41ff-9cec-9dc15fd3ff39/gallery/b0fc4330-d299-48eb-acab-086004804a30)
-
 The **first-feasible value** pattern finds the smallest value that satisfies a validity condition. It has two parts:
 
-1. Choose valid lower and upper bounds for the search.
+1. Use integer bounds that enclose the answer and guarantee the upper bound is feasible.
 2. Use binary search while preserving a possible minimum whenever the middle candidate succeeds.
 
 For a candidate value `x`, ask whether it is **feasible**—whether it satisfies the required condition. The search finds the first value for which this condition succeeds.
@@ -126,46 +63,22 @@ For a candidate value `x`, ask whether it is **feasible**—whether it satisfies
 
 When `middle` is feasible, it may already be the minimum feasible value. Setting `upper = middle` keeps that possibility in the search range. When `middle` is not feasible, it cannot be the answer, so set `lower = middle + 1`.
 
-The initial bounds must define the complete range in which the first feasible value can be found. Each update then narrows that range without discarding a possible minimum.
+If no feasible value is guaranteed, test the upper bound and handle failure before running this version. Otherwise it would return the upper bound even when every candidate fails.
 
 ## Trace a speed search
 
 ![Testing candidate speeds](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/de621dcc-8566-41ff-9cec-9dc15fd3ff39/gallery/5716122f-302b-4cfb-b124-57d73d67d55f)
 
-To find the **minimum speed** that lets all piles finish within a time limit, calculate how long every pile takes at a candidate speed, add those times, and check whether the total fits the limit.
+Apply the loop to the same four piles with eight hours available.
 
-For each pile, use ceiling division:
+| Inclusive speed range | Middle speed | Hours by pile | Next range |
+|---|---:|---|---|
+| `1…11` | 6 | `1 + 1 + 2 + 2 = 6` | `1…6` |
+| `1…6` | 3 | `1 + 2 + 3 + 4 = 10` | `4…6` |
+| `4…6` | 5 | `1 + 2 + 2 + 3 = 8` | `4…5` |
+| `4…5` | 4 | `1 + 2 + 2 + 3 = 8` | `4…4` |
 
-```text
-pile time = ceil(pile size / speed)
-```
-
-Ceiling division rounds up because a partially completed time unit still counts as one full unit. For a candidate speed `s`, the total time is:
-
-```text
-total time = Σ ceil(pile size / s)
-```
-
-Compare the total with the allowed time:
-
-- If `total time <= time limit`, speed `s` is **feasible**.
-- If `total time > time limit`, speed `s` is **too slow**.
-
-The goal is not just to find a feasible speed. It is to find the smallest feasible speed.
-
-<Callout title="Trace one candidate" type="info">
-For every candidate speed, compute the ceiling-division time for each pile first. Then add those values before deciding whether the speed is feasible.
-</Callout>
-
-Keep a range of possible speeds. A feasible speed may be the answer, but smaller speeds must still be checked. An infeasible speed must be replaced by larger speeds. Continue until the range identifies the smallest speed that satisfies the time limit:
-
-```text
-candidate speed
-→ ceiling time for each pile
-→ feasibility total
-→ feasible or too slow
-→ next range
-```
+The endpoints meet at `4`. Speed `4` meets the deadline and speed `3` misses it. Monotonicity rules out every lower speed.
 
 ## Evaluate the technique
 
@@ -210,4 +123,4 @@ If the answer range can be narrowed through these feasibility checks, binary sea
 - A monotonic feasibility check divides candidates into a failing region and a succeeding region with one boundary.
 - Choose initial bounds that contain every possible answer, then use the check to discard the half that cannot contain the optimum.
 - To find the smallest feasible value, preserve a feasible middle candidate by moving the upper bound to it; move the lower bound past an infeasible candidate.
-- If one feasibility test takes `T` time across an answer range of size `R`, the total time is `O(T log R)`; account for any extra memory used by the test.
+- With `R` candidate values, binary search makes `O(log R)` checks. Multiply by the time for one check, then add any work needed to establish the initial range.

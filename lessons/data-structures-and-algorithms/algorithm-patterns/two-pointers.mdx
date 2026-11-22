@@ -24,11 +24,11 @@ Two pointers are especially useful when:
 - You are comparing values from opposite ends of a structure.
 - You need to read a sequence while keeping track of a second position.
 
-If the input is unsorted, moving a pointer may not tell you anything useful. In that case, a hash map, sorting step, or another pattern may be a better choice.
+For a target-sum pair, sorted values justify eliminating an endpoint. A palindrome uses a different property: its first and last characters must match, regardless of alphabetic order.
 
 ## Example: find a pair whose sum is zero
 
-Write a function called `sumZero` that accepts a sorted array of integers. Return the first pair whose sum is zero. If no pair exists, return `undefined`.
+Write a function called `sumZero` that accepts a sorted array of integers. Return two values from distinct positions whose sum is zero. If no pair exists, return `undefined` in JavaScript or `None` in Python.
 
 ```text
 sumZero([-4, -3, -2, -1, 0, 1, 2, 5]) → [-2, 2]
@@ -70,7 +70,7 @@ The direct solution checks every possible pair with nested loops:
   </Tab>
 </Tabs>
 
-For each value, the inner loop scans the remaining values. With `n` items, this can perform about `n × n` comparisons, giving `O(n²)` time.
+For each value, the inner loop scans the remaining values. With `n` items and no matching pair, it checks `n(n − 1)/2` pairs, giving `O(n²)` time.
 
 ### The two-pointer approach
 
@@ -89,7 +89,7 @@ Then compare the values at those positions:
 | Greater than `0` | The sum is too large | Move `right` left to a smaller value |
 | Less than `0` | The sum is too small | Move `left` right to a larger value |
 
-Because the array is sorted, these moves never skip a possible answer. If the sum is too large, keeping the current right value cannot help: every value to its right is even larger. The same reasoning applies when the sum is too small.
+If the sum is too large, even the **smallest remaining left value** makes the right value too large. Every other remaining partner is at least as large, so discard that right endpoint. If the sum is too small, even the **largest remaining right value** falls short with the left value, so discard that left endpoint.
 
 <Tabs items={["JavaScript", "Python"]}>
   <Tab value="JavaScript">
@@ -149,7 +149,7 @@ For `[-4, -3, -2, -1, 0, 1, 2, 5]`:
 | `-3` | `2` | `-1` | Too small, move `left` right |
 | `-2` | `2` | `0` | Return `[-2, 2]` |
 
-The optimized solution checks each position at most once from each direction. Its time complexity is `O(n)` and its extra space complexity is `O(1)`.
+One endpoint moves on every unsuccessful comparison, reducing the distance between the pointers by one. A position can be compared several times while the opposite pointer moves, but there are at most `n − 1` comparisons for a nonempty array. Its time complexity is `O(n)` and its extra space complexity is `O(1)`.
 
 ## Variations of two pointers
 
@@ -214,7 +214,7 @@ Before using two pointers, ask: What does the order of the input tell me? Which 
 
 - **Linear Scan:** Uses two index positions to scan data from opposite ends or at different speeds, replacing slow `O(n²)` nested loops with fast `O(n)` single passes.
 - **Opposite Ends:** Move pointers toward each other to find pairs (like two numbers that add up to zero) or check for palindromes.
-- **Requires Order:** Works best on sorted data because the order tells you which pointer to move without missing any answers.
+- **Justify each move:** A pair-sum search relies on sorted values. A palindrome check relies on matching mirrored positions.
 - **Constant Space:** Uses `O(1)` extra memory because it only tracks two index numbers without creating new arrays or maps.
 - **When to Choose:** Use Two Pointers when working with sorted arrays or strings. If the data is unsorted and you need to count items, use a **Frequency Counter** instead.
 

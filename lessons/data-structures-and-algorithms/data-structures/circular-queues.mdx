@@ -4,30 +4,15 @@ description: "Learn how a circular queue uses a fixed-size array with wrapped in
 slug: "circular-queues"
 ---
 
-A **circular queue** uses a **fixed-size array**. When an index reaches the array’s end, its calculation wraps around to the beginning.
+Suppose you fill a three-slot queue, then remove its first item. There is space for one more item at index 0. A **circular queue** can reuse that slot while the two older items stay in place.
 
 ## What “circular” means
 
-The array itself does not physically bend or connect its ends. Only the **index calculations** wrap around:
-
-```text
-... → last index → first index → next index ...
-```
-
-This lets index-based operations continue from the beginning after reaching the end of the fixed-size array.
-
-<Callout title="Important distinction" type="info">
-A circular queue is circular in how its indexes are calculated—not in the physical shape of its array.
-</Callout>
+Number the slots `0, 1, 2`. From slot 2, advancing one step takes you back to slot 0. The array stays in place. Only the index wraps.
 
 ### Fixed-size and growing-array queues
 
-| Queue type | Array behavior |
-|---|---|
-| Circular queue | Uses a fixed-size array; index calculations wrap around. |
-| Growing-array queue | Uses an array that grows instead of relying on circular index calculations. |
-
-A circular queue keeps the array’s size fixed and reuses positions through wrapped index calculations. A growing-array queue increases the array’s size instead.
+In the previous queue, enqueue always appended to the underlying array. In this lesson, the queue has a fixed positive capacity `k` and rejects an enqueue when all `k` slots are occupied. Other implementations can grow a circular buffer by allocating a larger array and copying the items in queue order.
 
 ## State and queue order
 
@@ -39,114 +24,49 @@ A queue’s state can be described with three values:
 | `front` | The physical position of the queue’s first logical item. |
 | `size` | The number of items currently in the queue. |
 
-![Physical slots and logical queue order](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/03ce588b-f581-46ee-b98b-277331400e55/gallery/02d83769-dba7-4b4c-815a-4a1fc99b7e5e)
+![In four slots, inserting E at slot 0 changes the logical order from B, C, D to B, C, D, E.](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/03ce588b-f581-46ee-b98b-277331400e55/gallery/02d83769-dba7-4b4c-815a-4a1fc99b7e5e)
 
-The queue’s logical order is not defined only by the visual order of the array. Start at the position identified by `front` and interpret the occupied positions from there as the queue’s order.
-
-An item is logically first when `front` identifies its position, even if that position is not at the beginning of `slots`. The remaining items follow it in queue order according to their physical positions. `size` tells you how many positions belong to the current queue contents; the rest of the physical array does not represent additional logical queue items.
-
-<Callout title="Essential distinction" type="info">
-`slots` describes physical storage. `front` and `size` describe how that storage maps to the queue’s logical contents.
-</Callout>
+To read the four-slot queue in the diagram, begin at `front = 1` and follow the three stored items, B, C, D. Enqueuing E fills slot 0. Read from the same front for four steps and the order becomes B, C, D, E.
 
 ## Circular indexing
 
-![Wrapped insertion index](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/bf48d3e5-37f4-44d4-bbd6-8d8635d1163b/gallery/0a926b19-4893-400d-8a2a-807c49c16b99)
+![Slots 4 and 0 contain A and B. Adding the size 2 to front 4 wraps the next insertion to slot 1.](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/bf48d3e5-37f4-44d4-bbd6-8d8635d1163b/gallery/0a926b19-4893-400d-8a2a-807c49c16b99)
 
-Circular indexing lets a queue reuse positions by wrapping the next insertion position back to the beginning:
-
-```text
-(front + size) % k
-```
-
-- `front` is the current front position.
-- `size` is the number of stored items.
-- `k` is the total number of available positions.
-
-Add `size` to `front`, then apply `% k`. The result is always an index within the circular range. For example, with `front = 4`, `size = 2`, and `k = 5`:
-
-```text
-(front + size) % k
-= (4 + 2) % 5
-= 1
-```
-
-The next insertion position is `1`. The calculation wraps around after the final position instead of continuing past the available range.
+The item at logical offset `j` occupies slot `(front + j) % k`. Substitute `j = 0` for the front item. For a nonempty queue, substitute `j = size - 1` for the **rear**, the most recently enqueued item still present. If the queue has room, `j = size` gives the slot for the **next insertion**.
 
 ### Enqueue and dequeue wraparound
 
-Enqueue and dequeue operations change the queue’s positions and size:
+Take a capacity-five queue whose first item, `A`, occupies slot 4. Follow one enqueue and one dequeue.
 
-1. A dequeue moves the front forward and reduces the number of stored items.
-2. An enqueue uses `(front + size) % k` to find where the new item belongs.
-3. When the calculated position passes the final index, `% k` wraps it to the beginning.
+| State | Slots 0 through 4 | `front` | `size` | FIFO order |
+|---|---|---:|---:|---|
+| Start | `[B, ·, ·, ·, A]` | 4 | 2 | A, B |
+| Enqueue C at `(4 + 2) % 5 = 1` | `[B, C, ·, ·, A]` | 4 | 3 | A, B, C |
+| Dequeue A and advance to `(4 + 1) % 5 = 0` | `[B, C, ·, ·, ·]` | 0 | 2 | B, C |
 
-| Value | Result |
-|---|---:|
-| `front` | `4` |
-| `size` | `2` |
-| `k` | `5` |
-| Next insertion position | `(4 + 2) % 5 = 1` |
-
-The next insertion position depends on both the front position and the current size. This lets enqueue operations continue at the beginning after reaching the end.
+The dots denote unused slots. Check the last row by starting at index 0 and reading two values.
 
 ## Empty, full, front, and rear
 
-A bounded structure that stores items needs to distinguish four ideas:
-
-- **Empty:** no items are stored.
-- **Full:** the structure has reached its capacity.
-- **Front:** the position associated with the next item at the front of the structure.
-- **Rear:** the position associated with the back of the structure.
-
-As items are added or removed, the front and rear positions change. When a position reaches the end of the underlying storage, it can wrap around to the beginning. For a structure with capacity `N`:
-
-```text
-wrapped position = position modulo N
-```
-
-This keeps positions within the valid range from `0` through `N - 1`.
+On an empty queue there is no front or rear **item** to read. On a nonempty queue, `front` identifies the oldest item and `(front + size - 1) % k` identifies the newest. The next insertion index is one step beyond that newest item.
 
 ### Why size is necessary
 
-![Empty versus full ambiguity](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/bf48d3e5-37f4-44d4-bbd6-8d8635d1163b/gallery/d0fe1729-1332-45b1-a774-b594264a41c7)
+![The front and next insertion arrows coincide at slot 0 when none or all of the four slots are occupied.](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/bf48d3e5-37f4-44d4-bbd6-8d8635d1163b/gallery/d0fe1729-1332-45b1-a774-b594264a41c7)
 
-After wraparound, the front and rear positions can be equal in two different situations:
+In this diagram, the arrow labeled `rear` marks the **next insertion position**. Some implementations use that name for the write index. The `peekRear` method below returns the **last stored item**, one slot before that write index.
 
-1. The structure is **empty**: no items remain.
-2. The structure is **full**: the stored items have filled the entire capacity.
+Compare `front` with the **next insertion index**. If `size = 0`, then `(front + 0) % k` equals `front`. If `size = k`, then `(front + k) % k` also equals `front`. Attempting a write in the second state would overwrite the oldest item.
 
-Comparing only the front and rear positions cannot reliably distinguish these states. Tracking the current **size** resolves the ambiguity:
-
-| Condition | Size | Meaning |
-|---|---:|---|
-| Empty | `0` | No items are stored |
-| Full | Capacity | The structure is completely occupied |
-| Otherwise | Between `0` and capacity | The structure contains some items |
-
-The positions describe where the stored range lies, while `size` identifies how much of that range is occupied. Together, they distinguish empty, full, and partially filled states—even after the positions wrap around.
+Our implementation uses `size` to distinguish the two states while making all `k` slots available. Allow a dequeue when `size > 0` and an enqueue when `size < k`. A different design could instead keep a separate full flag or reserve one unused slot.
 
 ## Implementing a circular queue
 
-A circular queue treats its storage as wrapping from the end back to the beginning. Its implementation must support four operations in constant time:
-
-- **Enqueue:** add an item at the rear.
-- **Dequeue:** remove an item from the front.
-- **Front lookup:** inspect the front item without removing it.
-- **Rear lookup:** inspect the rear item without removing it.
-
-Constant time means each operation takes the same amount of work regardless of how many items are currently stored.
+The class below stores the slots, the capacity, the front index, and the size. It calculates both the next write position and the rear item’s position when needed.
 
 ### Required queue states
 
-| State | Required behavior |
-|---|---|
-| Empty queue | Dequeue, front lookup, and rear lookup handle the absence of an item. |
-| Full queue | Enqueue handles the absence of available capacity. |
-| Capacity-one queue | Enqueue, dequeue, front lookup, and rear lookup work when only one item can be stored. |
-| Wrapped queue | Operations continue to work after the rear or front passes the end of storage and returns to the beginning. |
-
-Maintain positions for the **front** and **rear**, along with enough state to determine whether the queue is empty or full. Each operation updates or reads these positions directly rather than scanning the queue.
+Enqueue and dequeue return a boolean to indicate whether they succeeded. Reading an empty queue returns `undefined` in JavaScript or `None` in Python. Assume the capacity is a positive integer.
 
 <Tabs items={["JavaScript", "Python"]}>
   <Tab value="JavaScript">
@@ -156,15 +76,14 @@ Maintain positions for the **front** and **rear**, along with enough state to de
         this.slots = Array(capacity);
         this.capacity = capacity;
         this.front = 0;
-        this.rear = 0;
         this.size = 0;
       }
 
       enqueue(value) {
         if (this.size === this.capacity) return false;
 
-        this.rear = (this.front + this.size) % this.capacity;
-        this.slots[this.rear] = value;
+        const writeIndex = (this.front + this.size) % this.capacity;
+        this.slots[writeIndex] = value;
         this.size++;
         return true;
       }
@@ -183,7 +102,9 @@ Maintain positions for the **front** and **rear**, along with enough state to de
       }
 
       peekRear() {
-        return this.size === 0 ? undefined : this.slots[this.rear];
+        if (this.size === 0) return undefined;
+        const rearIndex = (this.front + this.size - 1) % this.capacity;
+        return this.slots[rearIndex];
       }
     }
     ```
@@ -195,15 +116,14 @@ Maintain positions for the **front** and **rear**, along with enough state to de
             self.slots = [None] * capacity
             self.capacity = capacity
             self.front = 0
-            self.rear = 0
             self.size = 0
 
         def enqueue(self, value):
             if self.size == self.capacity:
                 return False
 
-            self.rear = (self.front + self.size) % self.capacity
-            self.slots[self.rear] = value
+            write_index = (self.front + self.size) % self.capacity
+            self.slots[write_index] = value
             self.size += 1
             return True
 
@@ -220,33 +140,23 @@ Maintain positions for the **front** and **rear**, along with enough state to de
             return None if self.size == 0 else self.slots[self.front]
 
         def peek_rear(self):
-            return None if self.size == 0 else self.slots[self.rear]
+            if self.size == 0:
+                return None
+            rear_index = (self.front + self.size - 1) % self.capacity
+            return self.slots[rear_index]
     ```
   </Tab>
 </Tabs>
 
 ### Operation design
 
-**Enqueue**
+| Operation | Before the update | After the update |
+|---|---|---|
+| Enqueue | Check for space. Compute `(front + size) % k`. | Write the value at that slot and increase `size` by one. |
+| Dequeue | Check for an item. Clear the slot at `front`. | Set `front = (front + 1) % k` and decrease `size` by one. |
+| Read front or rear | Check for an item. Compute its index. | Read the slot. Both `front` and `size` keep their values. |
 
-1. Check whether the queue is full.
-2. If it is not full, place the new item at the rear position.
-3. Advance the rear position, wrapping when it reaches the end of storage.
-4. Update the queue’s state.
-
-**Dequeue**
-
-1. Check whether the queue is empty.
-2. If it is not empty, remove the item at the front position.
-3. Advance the front position, wrapping when necessary.
-4. Update the queue’s state.
-
-**Lookups**
-
-- **Front lookup** reads the item at the front position without changing the queue.
-- **Rear lookup** reads the item most recently added without changing the queue.
-
-Both lookups must handle the empty-queue case and remain correct after wrapping.
+Each operation uses $O(1)$ time. Reserving the buffer uses $O(k)$ space.
 
 ### Verification checklist
 
@@ -261,8 +171,8 @@ A correct circular queue keeps all four operations constant-time while handling 
 
 ## Key Takeaways
 
-- A circular queue uses a fixed-size array, with index calculations—not the array itself—wrapping from the last slot back to the first.
+- This bounded queue reuses a fixed array by wrapping its indices from the last slot to the first.
 - `front` identifies the first logical item, while `size` identifies how many physical slots belong to the queue.
 - Use `(front + size) % k` to find the next insertion position within a capacity of `k` slots.
-- Track `size` so equal front and rear positions can be distinguished as either an empty queue or a full queue.
+- The next insertion index equals `front` in both the empty and full states. Use `size` to distinguish them.
 - Enqueue, dequeue, and front and rear lookups can all run in `O(1)` time when their indexes and queue state are updated directly.

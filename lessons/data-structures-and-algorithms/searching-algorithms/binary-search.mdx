@@ -13,15 +13,21 @@ Binary search is a method for finding a **target** in a **sorted array**. Instea
 3. Use the comparison to eliminate half of the array.
 4. Repeat the process on the remaining half.
 
-![A binary search compares target 13 with midpoint 9, discards the left half, and finds 13 in the remaining values.](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/bc404436-98cf-41f5-9ec8-6d3ceaf1686d/gallery/a6788490-d4f1-4012-9a2f-c210672052a5)
-
 Each comparison makes the search area smaller. The essential relationship is:
 
 > **Sorted array + middle-element comparison → half of the search area eliminated**
 
 ## Example of the process
 
-Suppose the target is somewhere in a sorted array. Binary search first compares the target with the array’s middle element. After that comparison, one half is eliminated. The same process then continues with the remaining half: compare with its middle element, eliminate half again, and repeat.
+Search for `23` in `[2, 5, 8, 12, 16, 23, 38, 56, 72, 91]`. Both endpoints are included.
+
+![On the search for 23 the middle values are 16, 56 and 23. The remaining inclusive index range shrinks from 0–9 to 5–9 to 5–6.](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/ba5422b9-c8ef-4672-b067-9c87b70f4f60/gallery/5f609515-4dbe-4694-8ab0-fd2e08c468a0)
+
+| Indices still possible | Middle index and value | Decision |
+|---|---|---|
+| `0…9` | `4 → 16` | Every value through index 4 is too small. Keep `5…9`. |
+| `5…9` | `7 → 56` | Every value from index 7 onward is too large. Keep `5…6`. |
+| `5…6` | `5 → 23` | Return index `5`. |
 
 ## Binary Search Implementation
 
@@ -33,7 +39,7 @@ Binary search uses three pointers to narrow the part of a sorted list that may c
 
 At each step, compare the value at `middle` with the target. If the target is larger, move `left` past `middle`. If the target is smaller, move `right` before `middle`. If they are equal, return the result.
 
-The function returns the index of the target if found. If the target is not present, it returns `-1`.
+The function returns a matching index. With duplicates, this may be any one of the matching positions. If the target is not present, it returns `-1`.
 
 <Tabs items={["JavaScript", "Python"]}>
   <Tab value="JavaScript">
@@ -149,7 +155,7 @@ The extra step is enough because repeatedly halving `2n` reaches the size of `n`
 
 ## Key Takeaways
 
-- **Requires Sorted Data:** Binary search only works on arrays that are already sorted.
+- **Requires Sorted Data:** This exact-match implementation assumes ascending order and constant-time indexing.
 - **Divide and Conquer:** Each comparison with the middle element halves the remaining search area.
 - **Three Pointers:** Employs `left`, `right`, and `middle` pointers to iteratively shrink the search window until `left > right`.
 - **Time Complexity:** Best case is $O(1)$ if the target is in the exact middle. Average and worst-case complexities are $O(\log n)$.

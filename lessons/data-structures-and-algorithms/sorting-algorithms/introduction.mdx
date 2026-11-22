@@ -11,28 +11,13 @@ For example, sorting `[5, 2, 8]` from smallest to largest gives `[2, 5, 8]`. Rev
 
 ## Why Sorting Matters
 
-Sorting is the process of arranging data into an order. It appears frequently in programming because ordered data is easier to reason about and work with.
+Ordering a class roster by surname makes it easier to look up students. Ordering the same roster by exam score answers a different question. The sorting **key** is the part of each record used for comparison.
 
-### Why programmers sort data
+What happens when keys are equal? Suppose the original roster lists A (score 2), B (score 1), C (score 2). A **stable sort** by ascending score gives B, A, C. A and C keep their original order within the tie. This matters when an earlier ordering, such as registration time, carries information.
 
-Sorting gives a program a consistent structure for its data. Once data is ordered, a program can work with it according to that order instead of handling an arbitrary arrangement.
+![Sorting A, B, C by scores 2, 1, 2 gives B, A, C. A stays before C because their scores tie.](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/ba5422b9-c8ef-4672-b067-9c87b70f4f60/gallery/ae4ecb34-4142-4b98-ac9e-9cebbb0ba91c)
 
-The important point is that sorting is not one single technique. Different sorting algorithms solve the same general problem, but each has different strengths and weaknesses. Choosing an algorithm therefore requires more than knowing that it works: you must also consider which trade-offs matter for the situation.
-
-### Comparing sorting algorithms
-
-When comparing algorithms, ask:
-
-- What is this algorithm good at?
-- What limitations does it have?
-- Which strengths matter for the current problem?
-- Which weaknesses are acceptable?
-
-This comparison is the central reason sorting is valuable to study. It shows that multiple solutions can be correct while still differing in usefulness.
-
-<Callout title="The main takeaway" type="info">
-Sorting matters not only because programs often need ordered data, but because it demonstrates how algorithms can have different strengths and weaknesses while solving the same problem.
-</Callout>
+When comparing algorithms, track how many comparisons and moves they make, how much additional memory they need, and whether ties preserve their input order.
 
 ---
 
@@ -42,7 +27,7 @@ JavaScript provides a built-in array `sort` method for ordering array elements.
 
 ### Default behavior
 
-The default sort behavior is **Unicode-based**. JavaScript converts array items to strings and compares their UTF-16 code units. This leads to unexpected results for numbers:
+The method rearranges the original array in place. Its default order is **string order**. JavaScript converts array items to strings and compares their UTF-16 code units. This leads to unexpected results for numbers:
 
 ```js
 const numbers = [6, 4, 15, 10];
@@ -59,34 +44,49 @@ A comparator function `(a, b)` tells JavaScript how to order elements:
 - Return `> 0`: `b` comes before `a`
 - Return `0`: `a` and `b` stay in their current relative order
 
-Common comparator-based sorts include:
+Use the same input in both languages. For `[6, 4, 15, 10]`, which value should come first in numeric order? Which value comes first when the string representations are compared from left to right?
 
-| Sort goal | Comparator logic | Example output |
+| Sort goal | JavaScript comparison | Python ordering |
 |---|---|---|
-| Numeric ascending | `(a, b) => a - b` | `[4, 6, 10, 15]` |
-| Numeric descending | `(a, b) => b - a` | `[15, 10, 6, 4]` |
-| String-length sort | `(a, b) => a.length - b.length` | `["cat", "dog", "elephant"]` |
+| Numbers, ascending | `(a, b) => a - b` | Numeric values already compare in numeric order. |
+| Numbers, descending | `(a, b) => b - a` | `reverse=True` reverses that order. |
+| Words, shortest first | `(a, b) => a.length - b.length` | `key=len` uses the length of each word. |
 
 ### Code examples
 
-```js
-const numbers = [6, 4, 15, 10];
+Both examples sort the same numbers and words. In the length sort, `"cat"` and `"dog"` tie. Predict their relative order from the input.
 
-// 1. Ascending numeric sort
-numbers.sort((a, b) => a - b);
-console.log(numbers); // [4, 6, 10, 15]
+<Tabs items={["JavaScript", "Python"]}>
+  <Tab value="JavaScript">
+    ```js
+    const numbers = [6, 4, 15, 10];
+    numbers.sort((a, b) => a - b);
+    console.log(numbers); // [4, 6, 10, 15]
 
-// 2. Descending numeric sort
-numbers.sort((a, b) => b - a);
-console.log(numbers); // [15, 10, 6, 4]
+    numbers.sort((a, b) => b - a);
+    console.log(numbers); // [15, 10, 6, 4]
 
-// 3. String length sort
-const words = ["elephant", "cat", "dog", "giraffe"];
-words.sort((a, b) => a.length - b.length);
-console.log(words); // ["cat", "dog", "giraffe", "elephant"]
-```
+    const words = ["elephant", "cat", "dog", "giraffe"];
+    words.sort((a, b) => a.length - b.length);
+    console.log(words); // ["cat", "dog", "giraffe", "elephant"]
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    numbers = [6, 4, 15, 10]
+    numbers.sort()
+    print(numbers)  # [4, 6, 10, 15]
 
-The comparator is the part that changes the sorting rule. Choose the comparator according to the data and the desired order.
+    numbers.sort(reverse=True)
+    print(numbers)  # [15, 10, 6, 4]
+
+    words = ["elephant", "cat", "dog", "giraffe"]
+    print(sorted(words, key=len))  # ['cat', 'dog', 'giraffe', 'elephant']
+    ```
+  </Tab>
+</Tabs>
+
+Python’s `list.sort()` updates the original list. Its `sorted()` function returns a new list, so `words` still has its original order in the Python example. Both languages use a stable built-in sort and preserve the order of the tied words.
 
 ---
 
@@ -94,9 +94,9 @@ The comparator is the part that changes the sorting rule. Choose the comparator 
 
 - **Rearranging Collections:** Sorting rearranges items in a collection according to a comparison rule.
 - **Numeric Order:** Arrays are commonly sorted in ascending or descending order without altering their elements.
-- **Structural Advantage:** Programs benefit from sorted data because ordered structures are predictable, faster to search, and easier to process.
+- **Stability:** Equal-key records retain their original relative order in a stable sort.
 - **Algorithm Trade-offs:** Different sorting algorithms come with distinct strengths, limitations, time complexities, and memory usage.
-- **JavaScript Array Sort:** The built-in `.sort()` method defaults to Unicode string order; custom comparator functions are required for accurate numeric, string-length, ascending, or descending ordering.
+- **Built-in sorting:** JavaScript needs a numeric comparator for numbers because its default compares string representations. Python sorts numbers numerically by default and accepts a `key` function for other orderings.
 
 ## Chapter flow
 

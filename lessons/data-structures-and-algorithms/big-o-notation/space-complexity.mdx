@@ -5,31 +5,18 @@ description: "Learn how algorithms use memory, see the difference between extra 
 
 ## Analyzing Space Complexity
 
-![Auxiliary Space Growth Classes](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/18ada0b2-6e63-4158-a51d-f5d75673751a/gallery/6479071b-f6f3-4b34-842f-509b30bfdb81)
+A scan can read a million numbers while keeping only a running total. A second algorithm could read the same numbers and also keep a set of all the distinct values it encounters. The number of reads is similar, but their storage needs grow differently.
 
-When we look at how well an algorithm works, speed is only half the story. Algorithms take time to run, but they also need computer memory (RAM) to store variables, lists, and function calls.
+**Space complexity** measures peak memory use as input size grows. To explain a bound, say which memory you count: storage for the input, working storage such as temporary collections and unfinished calls, and storage for the output. We count a number, index, or reference as one fixed-size slot in the examples below.
 
-**Space complexity** measures how much memory an algorithm needs as the input size ($n$) grows.
-
-In software engineering and coding interviews, we usually look at two different things:
-
-- **Time Complexity:** How much longer an algorithm takes to run as the input size increases.
-- **Auxiliary Space Complexity:** How much *extra* or *temporary* memory an algorithm uses while running, not counting the memory taken by the original input.
-
-These two are completely separate: an algorithm can take a very long time while using almost no extra memory, or it can run very fast by using a lot of temporary memory.
-
-<Callout title="Focus on Extra Memory" type="info">
-When we talk about space complexity in practice, we usually focus on the **extra memory** created by the algorithm as the input grows, rather than the memory already used to store the input.
-</Callout>
-
-The table below summarizes the most common auxiliary space complexity classes:
+These examples count occupied memory slots. A slot used for a returned result belongs to the output.
 
 | Space Growth | Meaning | Common Example |
 | --- | --- | --- |
 | Constant `O(1)` | Uses the same amount of extra memory, no matter the input size. | Fixed variables, pointers that move inside the original array |
 | Logarithmic `O(log n)` | Extra memory grows by just one step each time the input size doubles. | Balanced recursive calls (like recursive Binary Search) |
-| Linear `O(n)` | Extra memory grows at the same rate as the input size. | Creating a new array, `Set`, `Map`, or simple recursion |
-| Quadratic `O(n²)` | Extra memory grows with the square of the input size ($n \times n$). | Creating 2D grids, tables, or matrices |
+| Linear `O(n)` | Extra memory grows at the same rate as the input size. | A set holding up to n distinct keys |
+| Quadratic `O(n²)` | Extra memory grows with the square of the input size ($n \times n$). | A grid with n rows and n columns |
 
 ---
 
@@ -37,7 +24,7 @@ The table below summarizes the most common auxiliary space complexity classes:
 
 An algorithm uses **constant space**, `O(1)`, when it only creates a fixed number of variables, no matter how large the input gets. 
 
-For example, a function that adds up numbers in a list or modifies an array directly uses constant extra memory. Even though the numbers inside the variables change as the loop runs, the number of variables we create stays the same.
+The following sum keeps a running total as it visits each item. Even though the numbers inside the variables change as the loop runs, the number of variables we create stays the same.
 
 <Tabs items={["JavaScript", "Python"]}>
   <Tab value="JavaScript">
@@ -106,7 +93,7 @@ Another common `O(1)` pattern is modifying an array directly in place using two 
   </Tab>
 </Tabs>
 
-Whether the array has 10 items or 10,000,000 items, we only ever use three variables: `left`, `right`, and `temp`. The extra memory used never changes.
+The swap uses two moving indexes and a fixed amount of temporary storage. Neither implementation copies the array.
 
 ---
 
@@ -114,7 +101,11 @@ Whether the array has 10 items or 10,000,000 items, we only ever use three varia
 
 An algorithm uses **logarithmic space**, `O(log n)`, when its extra memory grows by just one small step every time the input size doubles.
 
-We rarely get $O(\log n)$ space from creating arrays or lists. Instead, it almost always comes from the **call stack in recursive functions** that cut the problem in half at each step, such as recursive Binary Search.
+One source of logarithmic working storage is the call stack. Imagine searching for `7` in the sorted array `[1, 2, 3, 4, 5, 6, 7]`. The midpoint values visited are `4 → 6 → 7`. When the last call finds `7`, it is active alongside the two earlier calls waiting for its return.
+
+![The search visits midpoint values 4, 6, and 7. Only three frames are live, for candidate values 1–7, 5–7, and 7–7.](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/ba5422b9-c8ef-4672-b067-9c87b70f4f60/gallery/a3ea1d1b-a2a6-4bb3-8a87-4344572b2dac)
+
+The gray branches show other possible search paths. This search only creates frames for the blue path. In the code below each frame stores a few indexes and passes along the same sorted array.
 
 <Tabs items={["JavaScript", "Python"]}>
   <Tab value="JavaScript">
@@ -156,7 +147,7 @@ We rarely get $O(\log n)$ space from creating arrays or lists. Instead, it almos
   </Tab>
 </Tabs>
 
-Because we cut the remaining items in half on each step, the call stack never grows deeper than $\log_2(n)$ function calls.
+Each call halves the number of remaining candidates. The number of simultaneously active calls is therefore `O(log n)` for large inputs, including the final call that finds the target or the empty interval.
 
 <Callout title="Loops vs. Recursion Memory" type="info">
 Binary search written with a normal loop (iterative) uses `O(1)` extra space because it stays inside one function. The recursive version uses `O(log n)` extra space because the computer must keep each unfinished function call on the call stack.
@@ -166,12 +157,12 @@ Binary search written with a normal loop (iterative) uses `O(1)` extra space bec
 
 ### Linear Auxiliary Space: `O(n)`
 
-An algorithm uses **linear space**, `O(n)`, when the extra memory it needs grows directly alongside the input size. If the input size doubles, the extra memory doubles too.
+A **linear** storage requirement grows in proportion to input size. A set can hold up to one entry per input item.
 
 You usually get linear space when you:
 1. Make a new array, list, or string that stores $n$ items.
 2. Put $n$ items into a Set or Map / dictionary.
-3. Call a recursive function $n$ times in a row.
+3. Keep $n$ unfinished recursive calls active at the same time.
 
 <Tabs items={["JavaScript", "Python"]}>
   <Tab value="JavaScript">
@@ -200,15 +191,15 @@ You usually get linear space when you:
   </Tab>
 </Tabs>
 
-If `numbers` has $1,000$ items, `seen` may need to store up to $1,000$ items. If the input grows to $1,000,000$ items, the extra memory grows by the same amount.
+If `numbers` has $1,000$ items, `seen` may need to store up to $1,000$ items. If all values are identical, the set holds just one number. With `k` distinct values, the set uses `O(k)` working space and the returned list also has `k` positions.
 
 ---
 
-### Quadratic Auxiliary Space: `O(n²)`
+### Quadratic storage: `O(n²)`
 
 An algorithm uses **quadratic space**, `O(n²)`, when the memory it needs grows with the square of the input size ($n \times n$).
 
-We usually see quadratic space when code builds 2D grids, tables, or matrices.
+A grid with `r` rows and `c` columns has `r × c` cells. This multiplication table has `n` rows and `n` columns. The function returns the table, so those cells belong to the output.
 
 <Tabs items={["JavaScript", "Python"]}>
   <Tab value="JavaScript">
@@ -250,39 +241,25 @@ If $n = 10$, the table stores $100$ numbers ($10 \times 10$). If $n = 1,000$, th
 
 ## Extra Space vs. Total Space
 
-![Auxiliary Space vs. Total Space Comparison](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/18ada0b2-6e63-4158-a51d-f5d75673751a/gallery/a7e1ec0c-5416-46b7-8dc9-14c55d2c6b5a)
+![Reversing into another array allocates n output slots, while swapping in place reuses the input.](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/18ada0b2-6e63-4158-a51d-f5d75673751a/gallery/a7e1ec0c-5416-46b7-8dc9-14c55d2c6b5a)
 
-Understanding the difference between **Input Space**, **Auxiliary (Extra) Space**, and **Total Space** helps you explain your code clearly:
+Suppose two functions reverse a list of `n` items. One swaps items inside the input. The other walks from the end and appends each item to a fresh output list.
 
-| Term | Simple Meaning | Do We Count It? |
+| What is counted? | Reverse in place | Build a reversed copy |
 | --- | --- | --- |
-| **Input Space** | The memory already used to store the input given to the function. | Excluded when analyzing extra space |
-| **Auxiliary Space** | Extra or temporary memory the function creates while doing its work. | **Main focus in interviews and analysis** |
-| **Total Space Complexity** | Input Space + Auxiliary Space added together. | Used when looking at the entire memory footprint |
+| Original input | `O(n)` | `O(n)` |
+| Working storage (auxiliary, excluding output) | `O(1)` for the swap | `O(1)` for the traversal |
+| New output storage | None, return the input | `O(n)` for the copy |
+| Extra storage including the output | `O(1)` | `O(n)` |
+| Total storage including the input | `O(n)` | `O(n)` |
 
-Imagine a function that takes an array of $n$ numbers and makes a brand-new reversed copy:
-
-```text
-Input Space:     O(n)  — memory used by the original array
-Auxiliary Space: O(n)  — memory used by the new reversed array
-Total Space:     O(n) + O(n) = O(n)
-```
-
-Now compare that to a function that reverses the array directly in place (swapping items inside the same array):
-
-```text
-Input Space:     O(n)  — memory used by the original array
-Auxiliary Space: O(1)  — uses only two pointer variables
-Total Space:     O(n) + O(1) = O(n)
-```
-
-Both functions take `O(n)` **Total Space** because the original input array already has $n$ items. But the in-place version uses only `O(1)` **Auxiliary Space** because it doesn't create a new array. That's why the in-place version is much more memory-friendly.
+A problem may count the returned collection as extra memory or explicitly exclude required output. State the convention, especially when an algorithm returns a new collection.
 
 ---
 
 ## Memory in the Recursive Call Stack
 
-![Recursive Call Stack Memory](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/18ada0b2-6e63-4158-a51d-f5d75673751a/gallery/509c1bf5-3dc7-4ca6-b0f3-94daceeff0a5)
+![Four calls from factorial(4) down to factorial(1) are active together before the base case returns.](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/18ada0b2-6e63-4158-a51d-f5d75673751a/gallery/509c1bf5-3dc7-4ca6-b0f3-94daceeff0a5)
 
 Whenever your code calls a function, the computer puts a small block of memory called a **stack frame** onto the call stack. This stack frame holds:
 - The function's inputs (arguments) and local variables.
@@ -328,7 +305,7 @@ Each stack frame stays in memory until that function call finishes and returns. 
   </Tab>
 </Tabs>
 
-Even though `factorialRecursive` never creates an array or list, the call stack itself takes up `O(n)` memory.
+The recursive version holds one frame for each unfinished multiplication. The iterative version reuses one frame. These bounds count frames and numeric slots. If you count bytes for exact, arbitrarily large factorial values, the result itself also grows.
 
 <Callout title="Stack Overflow Risk" type="warning">
 If a recursive function calls itself too many times, the call stack runs out of memory. When that happens, your program crashes with a **Stack Overflow** error.
@@ -349,16 +326,16 @@ O(2n² + 4n + 16) → O(n²)
 ```
 
 <Callout title="Comparing Space Growth from Best to Worst" type="info">
-From least memory used to most memory used:
+These example storage sizes grow increasingly quickly for large inputs:
 
-`O(1)` < `O(log n)` < `O(n)` < `O(n²)`
+`1 → log n → n → n²`
 </Callout>
 
 ---
 
 ## Key Takeaways
 
-- **Auxiliary Space:** The extra or temporary memory your code creates while running, not counting the original input data.
+- **Auxiliary space** counts temporary working storage. Report required output storage separately, then say whether your extra-space bound includes it.
 - **In-Place Algorithms:** Code that achieves `O(1)` extra space by changing data directly inside the existing array or list instead of creating a new one.
 - **Call Stack Memory:** Every recursive function call takes up memory on the call stack. A recursive function uses space equal to how deep the calls go.
 - **Peak Memory:** Space complexity measures the maximum amount of memory used at any single moment, not the total sum of memory used over time.

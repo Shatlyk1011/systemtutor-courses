@@ -20,15 +20,15 @@ When a window moves by one position, do not calculate the whole window again. Re
 Look for a sliding window when:
 
 - The problem asks about a subarray, substring, or other contiguous range.
-- The window has a fixed size, such as “the largest sum of `n` consecutive values.”
+- The window has a fixed size, such as “the largest sum of `k` consecutive values.”
 - The window has a changing size controlled by a condition, such as “the longest substring without duplicates.”
 - The next window overlaps most of the current window.
 
-The values do not need to be sorted. Unlike two pointers, this pattern is about maintaining a moving range and reusing work from the previous range.
+The two indexes are pointers to the edges of a **contiguous interval**. The values can be unsorted. For a variable-size window you also need a condition that tells you which edge can move safely.
 
 ## Example: maximum sum of consecutive values
 
-Write a function called `maxSubarraySum` that accepts an array of integers and a number `n`. Return the largest sum of `n` consecutive values. If the input is empty or `n` is larger than the array, return `null`.
+Write a function called `maxSubarraySum` that accepts an array of integers and an integer window size `k`. Return the largest sum of exactly `k` consecutive values. If `k` is less than one or exceeds the array length, return `null` in JavaScript or `None` in Python.
 
 ```text
 maxSubarraySum([2, 6, 9, 2, 1, 8, 5, 6, 3], 3)  → 19 ([8,5,6])
@@ -44,7 +44,7 @@ The direct solution starts a new inner loop for every possible window:
   <Tab value="JavaScript">
     ```js
     function maxSubarraySumNaive(numbers, size) {
-      if (numbers.length === 0 || size > numbers.length) return null;
+      if (size < 1 || size > numbers.length) return null;
 
       let maximum = -Infinity;
 
@@ -65,7 +65,7 @@ The direct solution starts a new inner loop for every possible window:
   <Tab value="Python">
     ```python
     def max_subarray_sum_naive(numbers, size):
-        if len(numbers) == 0 or size > len(numbers):
+        if size < 1 or size > len(numbers):
             return None
 
         maximum = float("-inf")
@@ -83,7 +83,7 @@ The direct solution starts a new inner loop for every possible window:
   </Tab>
 </Tabs>
 
-If the array has length `n` and the requested window has size `k`, this repeats up to `k` additions for each starting position. Its time complexity is `O(n × k)`, commonly described as quadratic `O(n²)` when both values grow with the input.
+If the array has length `n` and the requested window has size `k`, this repeats up to `k` additions for each starting position. There are exactly `n − k + 1` windows, each summed with `k` additions. A fixed `k` gives linear time. The total can grow quadratically when `k` is around half of `n`.
 
 ### Build the first window
 
@@ -111,7 +111,7 @@ The old values are not added again. Each slide performs only one subtraction and
   <Tab value="JavaScript">
     ```js
     function maxSubarraySum(numbers, size) {
-      if (numbers.length === 0 || size > numbers.length) return null;
+      if (size < 1 || size > numbers.length) return null;
 
       let windowSum = 0;
 
@@ -134,10 +134,10 @@ The old values are not added again. Each slide performs only one subtraction and
   <Tab value="Python">
     ```python
     def max_subarray_sum(numbers, size):
-        if len(numbers) == 0 or size > len(numbers):
+        if size < 1 or size > len(numbers):
             return None
 
-        window_sum = sum(numbers[:size])
+        window_sum = sum(numbers[index] for index in range(size))
         maximum = window_sum
 
         for end in range(size, len(numbers)):
@@ -150,7 +150,7 @@ The old values are not added again. Each slide performs only one subtraction and
   </Tab>
 </Tabs>
 
-The first loop creates the initial window. The second loop slides it across the remaining values. Every array item is added once and removed once, so the total time is `O(n)` and the extra space is `O(1)`.
+The first loop creates the initial window. The second loop slides it across the remaining values. Every array item is added once and removed at most once, so the total time is `O(n)` and the extra space is `O(1)`.
 
 `maximum` starts at the first real window sum instead of `0`. This matters when all values are negative: the answer should remain negative rather than incorrectly becoming zero.
 
@@ -160,7 +160,7 @@ Not every window has a fixed size. Sometimes the window grows until it violates 
 
 ### Longest substring without repeated characters
 
-For the string `"hellothere"`, the goal is to find the longest contiguous substring with no repeated character. A set stores the characters currently inside the window:
+For the ASCII string `"hellothere"`, the goal is to find the longest contiguous substring with no repeated character. A set stores the characters currently inside the window:
 
 <Tabs items={["JavaScript", "Python"]}>
   <Tab value="JavaScript">
@@ -204,7 +204,9 @@ For the string `"hellothere"`, the goal is to find the longest contiguous substr
   </Tab>
 </Tabs>
 
-The `right` pointer expands the window. When it would add a duplicate, the `left` pointer removes characters until the window is valid again. Although the code contains a `for` loop and a `while` loop, each character enters and leaves the window at most once, so the total time is still `O(n)`.
+In this example the JavaScript indexes refer to ASCII characters. The [longest-substring practice](/courses/data-structures-and-algorithms/docs/algorithm-patterns/practice-medium-longest-substring-without-repeating-characters) shows how to iterate whole Unicode code points as well.
+
+The `right` pointer expands the window. When it would add a duplicate, the `left` pointer removes characters until the window is valid again. Although the code contains a `for` loop and a `while` loop, each character enters and leaves the window at most once, so the total time is `O(n)` with average constant-time set operations.
 
 ## Fixed and variable windows
 
@@ -212,7 +214,9 @@ The `right` pointer expands the window. When it would add a duplicate, the `left
 | --- | --- | --- |
 | Fixed size | Add one value and remove one value on every slide | Maximum sum of `k` consecutive values |
 | Variable size | Expand and shrink until a condition is satisfied | Longest substring without repeated characters |
-| Condition-based | Grow, shrink, or reset based on a running total or count | Smallest range with a required sum |
+| Variable size with a sum threshold | Record a qualifying length, then shrink while the sum still qualifies | Shortest range reaching a target in a positive-valued array |
+
+For shortest-sum windows, positivity makes shrinking predictable: removing the first number always lowers the sum. With negative values, `[1, -1, 5]` at target `5` shows the problem. A window might record length three, drop the first `1`, and stop shrinking at sum four, missing the final `[5]`.
 
 The window should represent exactly the part of the input that is currently being evaluated. Keeping that invariant clear makes it easier to decide what to add, what to remove, and when to update the answer.
 
@@ -220,7 +224,7 @@ The window should represent exactly the part of the input that is currently bein
 
 | Approach | Main method | Typical time | Extra space |
 | --- | --- | ---: | ---: |
-| Recalculate each range | Sum or inspect every item for every new window | `O(n²)` | `O(1)` |
+| Recalculate each range | Sum or inspect every item for every new window | `O(k × (n − k + 1))` for fixed-width sums | `O(1)` |
 | Sliding window | Reuse the previous range and update its edges | `O(n)` | `O(1)` or `O(k)` |
 
 For a variable-size window, a set or map may be needed to track the current contents, so space can grow with the window size.

@@ -15,32 +15,38 @@ Submit your implementation when it passes the examples. Handle negative exponent
 
 ## Solution
 
-![Exponentiation by halving](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/03ce588b-f581-46ee-b98b-277331400e55/gallery/fb200407-c90a-4748-8a6e-edb827643c4a)
-
 A zero exponent is the base case and returns 1. For larger exponents, recursively calculate the result for half the exponent and square that result.
 
-An odd exponent needs one additional multiplication by the base. A negative exponent is handled by calculating the positive power and taking its reciprocal.
+Compute the half power once and reuse it in the square. For `2⁵`, the recursive call for exponent `2` returns `4`. Squaring gives `16`, then the odd exponent contributes one extra factor of `2`, giving `32`.
+
+![Exponent 5 halves to 2, 1 and 0. On return the computed powers of 2 are 1, 2, 4 and 32.](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/ba5422b9-c8ef-4672-b067-9c87b70f4f60/gallery/436eb77a-3603-481e-a257-949e3b197a29)
+
+For a negative exponent, first use the reciprocal base and then work with the positive magnitude. This requires a nonzero base. For example, `2⁻³` becomes `(1/2)³`.
 
 <Tabs items={["JavaScript", "Python"]}>
   <Tab value="JavaScript">
     ```js
     function myPow(x, n) {
+      const base = n < 0 ? 1 / x : x;
+
       function power(exponent) {
         if (exponent === 0) return 1;
     
         const half = power(Math.floor(exponent / 2));
         const squared = half * half;
     
-        return exponent % 2 === 0 ? squared : squared * x;
+        return exponent % 2 === 0 ? squared : squared * base;
       }
     
-      return n < 0 ? 1 / power(-n) : power(n);
+      return power(Math.abs(n));
     }
     ```
   </Tab>
   <Tab value="Python">
     ```python
     def my_pow(x, n):
+        base = 1 / x if n < 0 else x
+
         def power(exponent):
             if exponent == 0:
                 return 1
@@ -48,9 +54,9 @@ An odd exponent needs one additional multiplication by the base. A negative expo
             half = power(exponent // 2)
             squared = half * half
     
-            return squared if exponent % 2 == 0 else squared * x
+            return squared if exponent % 2 == 0 else squared * base
     
-        return 1 / power(-n) if n < 0 else power(n)
+        return power(abs(n))
     ```
   </Tab>
 </Tabs>
@@ -59,5 +65,5 @@ An odd exponent needs one additional multiplication by the base. A negative expo
 
 | Measure | Complexity | Explanation |
 |---|---:|---|
-| Time | `O(log n)` | Each recursive call halves the absolute exponent. |
-| Auxiliary space | `O(log n)` | The recursive call stack has one frame per halving step. |
+| Time | `O(log(1 + abs(n)))` | For a nonzero exponent, each call halves its magnitude. The zero case returns immediately. |
+| Auxiliary space | `O(log(1 + abs(n)))` | For a nonzero exponent, the stack grows by one frame per halving step. The zero case takes constant space. |

@@ -15,11 +15,11 @@ Submit your implementation when it passes the examples. Handle empty, full, capa
 
 ## Solution
 
-![Circular queue wraparound](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/03ce588b-f581-46ee-b98b-277331400e55/gallery/8ef41c1f-fd34-44e4-a6b4-44873f21749d)
+![In an eight-slot circular queue with front at 3 and rear at 7, the next insertion wraps to slot 0.](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/03ce588b-f581-46ee-b98b-277331400e55/gallery/8ef41c1f-fd34-44e4-a6b4-44873f21749d)
 
-The front index identifies the next value to remove. The insertion index is calculated from front plus size, wrapped by the capacity.
+The front index identifies the next item to remove. With capacity `k` and room available, insert at `(front + size) % k`. When at least one item is present, read the rear at `(front + size - 1) % k`. A dequeue advances `front` by one modulo `k` and reduces `size`.
 
-Dequeue advances front with the same wraparound calculation. Size distinguishes empty from full even when the indices occupy the same position.
+With capacity 3, enqueue `1, 2, 3`, dequeue `1`, then enqueue `4`. The physical slots read `[4, 2, 3]`, but `front` is 1, so the queue reads `2, 3, 4`. Its front is `2` and its rear is `4`.
 
 <Tabs items={["JavaScript", "Python"]}>
   <Tab value="JavaScript">
@@ -154,5 +154,5 @@ Dequeue advances front with the same wraparound calculation. Size distinguishes 
 
 | Measure | Complexity | Explanation |
 |---|---:|---|
-| Time | `O(n)` | The wrapper performs n constant-time circular-queue operations. |
+| Time | `O(k + n)` | Initialize `k` slots, then perform `n` constant-time queue operations. |
 | Auxiliary space | `O(k)` | The fixed array stores exactly the queue capacity k. |

@@ -11,6 +11,8 @@ Insertion sort maintains a sorted portion at the beginning of the array. For eac
 
 ## How Insertion Sort Works
 
+![Insertion sort takes successive items from the unsorted suffix and inserts each into the sorted prefix.](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/abb5e894-7667-40d3-81f4-0589ad19f769/gallery/9359a6d4-f49f-4ef2-ad64-ab9cb8a9ee22)
+
 ### Shifting vs. Swapping
 
 Many elementary sorts use full pairwise swaps to move elements. Insertion sort optimizes this by **shifting** elements instead:
@@ -110,7 +112,6 @@ By saving `currentValue` in a single temporary variable, insertion sort only nee
   </Tab>
 </Tabs>
 
-![Insertion sort takes successive items from the unsorted suffix and inserts each into the sorted prefix.](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/abb5e894-7667-40d3-81f4-0589ad19f769/gallery/9359a6d4-f49f-4ef2-ad64-ab9cb8a9ee22)
 
 
 ## Evaluating Insertion Sort
@@ -119,7 +120,7 @@ By saving `currentValue` in a single temporary variable, insertion sort only nee
 
 | Case | Time Complexity | Why |
 |---|---|---|
-| **Best Case** | **O(n)** | When data is already or nearly sorted, the inner loop terminates after one comparison (`array[j] <= currentValue`), making each pass $O(1)$. |
+| **Best Case** | **O(n)** | In sorted input, each new value is already in place. The inner comparison fails immediately. |
 | **Average Case** | **O(n²)** | For random data, each element must be compared against roughly half of the sorted region. |
 | **Worst Case** | **O(n²)** | When data is in reverse order (e.g., `[4, 3, 2, 1]`), every element must be compared and shifted across the entire sorted region. |
 | **Space Complexity** | **O(1)** | Sorts in-place with constant extra memory. |
@@ -127,7 +128,7 @@ By saving `currentValue` in a single temporary variable, insertion sort only nee
 ### When Insertion Sort Excels
 
 #### 1. Nearly sorted data
-When data is already mostly sorted (e.g., `[1, 2, 3, 4, -1]`), insertion sort only performs work for the few elements out of place. Most elements trigger an immediate break in the inner loop, achieving near-linear $O(n)$ performance.
+An **inversion** is a pair of values in the wrong relative order. In `[1, 2, 3, 4, -1]`, the first four values need no shifts. Inserting `-1` then shifts four values and removes four inversions. Each shift removes exactly one inversion, so the running time is proportional to `n + the number of inversions`. The strict `>` comparison leaves earlier equal values in place, which makes this version stable.
 
 #### 2. Online algorithms and live data streams
 An **online algorithm** is one that can process input piece by piece as it arrives, without requiring the entire dataset upfront.
@@ -144,6 +145,6 @@ Insert into sorted position: [10, 20, 25, 30, 40]
 
 - **Expanding Sorted Portion:** Insertion sort builds the sorted array incrementally from left to right, maintaining an always-sorted region at the front.
 - **Shifting Over Swapping:** Rather than performing costly multiple swaps, it copies larger elements one slot to the right and inserts the target value directly into the resulting opening.
-- **Adaptive Linear Best Case:** On already sorted or nearly sorted arrays, insertion sort runs in $O(n)$ time because the inner loop stops after a single comparison.
+- **Adaptive Linear Best Case:** Sorted arrays take $O(n)$ time. Each inversion adds one shift.
 - **Online Processing:** Its ability to place new items into an existing sorted section makes it well suited for continuous, streaming, or real-time data inputs.
 - **In-Place and Lightweight:** Requires only $O(1)$ auxiliary space, modifying the array directly.

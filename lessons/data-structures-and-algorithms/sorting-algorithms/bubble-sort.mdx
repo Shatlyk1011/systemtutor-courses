@@ -148,11 +148,13 @@ A pass with no swaps means the optimization has found that no changes were neede
 | Input condition | Performance |
 |---|---:|
 | General case | Quadratic, **O(n²)** |
-| Already or nearly sorted data | Linear best case, **O(n)** |
+| Already sorted data, with early stop | One pass, **O(n)** |
 
 Without the early-stop check, bubble sort continues through its passes even when the data is already ordered. With the check, already sorted data can finish after a single pass, making the work linear in the amount of data.
 
-The same optimization is useful when data is nearly sorted, because bubble sort can stop as soon as a complete pass makes no swaps.
+A small value can move left only one position per pass. In `[2, 3, 4, 5, 1]`, the final `1` needs four passes to reach the front. Even an array whose first four values are in order can need quadratic work as this pattern grows.
+
+Equal values never swap because the comparison is strictly `>`. This preserves their original order, so this bubble sort is stable.
 
 
 ## Key Takeaways

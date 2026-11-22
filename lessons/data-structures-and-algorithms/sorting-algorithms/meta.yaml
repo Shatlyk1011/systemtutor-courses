@@ -8,7 +8,7 @@ pages:
   - quiz-elementary-sorting-decisions
   - merge-sort
   - practice-merge-sorted-array
-  - practice-medium-sort-colors
   - practice-medium-sort-an-array
+  - practice-medium-sort-colors
   - practice-medium-largest-number
   - quiz-merge-sort-and-specialized-sorting

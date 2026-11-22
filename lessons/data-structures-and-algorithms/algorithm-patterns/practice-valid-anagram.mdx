@@ -15,11 +15,11 @@ Submit your implementation when it passes the examples. Check different lengths 
 
 ## Solution
 
-![Character count cancellation](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/1e3e13b6-0db0-43d8-9eab-205bdcf6fa8f/gallery/a72b9b62-e522-4470-87df-f3215ed1ef54)
+![The counts for C, A and T are each one. Reading A, C, T uses all three counts.](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/1e3e13b6-0db0-43d8-9eab-205bdcf6fa8f/gallery/a72b9b62-e522-4470-87df-f3215ed1ef54)
 
 First reject strings with different lengths. Count every character in the first string, then scan the second string and consume one saved occurrence at a time.
 
-If a required character has no remaining count, the strings cannot be anagrams. Matching lengths and a successful second pass mean every character was paired.
+If a required character has no remaining count, the strings cannot be anagrams. Matching lengths and a successful second pass mean every character was paired. “Empty” in the figure means no occurrences remain; the code can leave zero-valued entries in the map.
 
 <Tabs items={["JavaScript", "Python"]}>
   <Tab value="JavaScript">
@@ -69,5 +69,5 @@ If a required character has no remaining count, the strings cannot be anagrams. 
 
 | Measure | Complexity | Explanation |
 |---|---:|---|
-| Time | `O(n)` | Each character in both equal-length strings is processed once. |
-| Auxiliary space | `O(k)` | The frequency map stores up to k distinct characters. |
+| Time | Average `O(n)` | Each character in both equal-length strings is processed once. |
+| Auxiliary space | `O(k)` | The map stores k distinct letters. With this exercise’s 26 lowercase English letters, that is bounded by a constant. |

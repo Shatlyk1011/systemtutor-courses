@@ -19,7 +19,7 @@ Submit your implementation when it passes the examples. Duplicate, negative, and
 
 Recursively split the array until every piece contains at most one value. Those small pieces are already sorted.
 
-Merge two sorted pieces by repeatedly taking their smaller front value, then append the remainder of the unfinished piece.
+Merge two sorted pieces by repeatedly taking their smaller front value. On equal values, take the left one first to preserve their original relative order. When a piece runs out, append what remains of the other one.
 
 <Tabs items={["JavaScript", "Python"]}>
   <Tab value="JavaScript">

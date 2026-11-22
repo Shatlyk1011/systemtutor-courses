@@ -6,8 +6,9 @@ description: "Learn to compare and traverse strings, transform characters, and r
 A **string** is an ordered sequence of text. Like an array, it has zero-based indexes, so you can read a value at a known position or visit the whole sequence one position at a time.
 
 ```text
-Text:     "c a t"
-Index:     0 1 2
+String:    "cat"
+Character:  c  a  t
+Index:      0  1  2
 ```
 
 Strings are useful for names, messages, and any problem where the order of text matters. In the examples below, `n` means the length of the string.
@@ -159,7 +160,7 @@ A **substring** contains consecutive positions. The start index is included and 
   </Tab>
 </Tabs>
 
-Copying a part of length `k` takes `O(k)` time and creates a new string.
+In the copying model used for the complexity table, extracting `k` positions takes `O(k)` time. A runtime may share storage for particular slices.
 
 ### Change Part of the Text
 
@@ -192,7 +193,7 @@ The examples assume a nonempty string. Copying the remainder makes this transfor
 
 ## Substrings and Subsequences
 
-![Substring versus subsequence](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/63971361-6f04-4a9f-a7d2-538fc84c4adc/gallery/a4e9866f-f5a8-4dbc-8686-9fd5a9ac6241)
+![In abcde, bcd occupies adjacent positions, while ace skips positions and preserves order.](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/63971361-6f04-4a9f-a7d2-538fc84c4adc/gallery/a4e9866f-f5a8-4dbc-8686-9fd5a9ac6241)
 
 A **substring** keeps characters together. A **subsequence** keeps their order but may skip characters.
 

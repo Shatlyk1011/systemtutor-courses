@@ -3,19 +3,17 @@ title: "Big O & Time Complexity"
 description: "Understand how Big O notation describes algorithmic growth rates, compare constant, logarithmic, linear, linearithmic, quadratic, exponential, and factorial complexities, and learn how to simplify Big O expressions."
 ---
 
-## Big(O)
+## Counting work as input grows
 
-**Big O notation is a mathematical way to describe how the running time or memory usage of an algorithm grows as the size of its input increases.**
+Let `n` be the number of items in a list. Reading its first item takes one indexed read. Finding its minimum by scanning a nonempty list takes `n − 1` comparisons. If the list doubles in size, the first operation still takes one read and the scan needs about twice as many comparisons.
 
-Instead of measuring execution time in seconds—which changes depending on hardware, processor speed, or programming language—we analyze **time complexity**: the number of basic operations or computational steps an algorithm performs as the input size (`n`) scales up.
+**Big O** gives an upper bound on how fast a cost grows for large inputs. A linear scan also fits a looser quadratic upper bound, but the most informative bound here is `O(n)`. In this course we give a tight growth rate when we know it and name the case being analyzed. A search may finish on its first comparison in the best case and inspect every item in the worst case.
 
-<Callout title="What is Time Complexity?" type="info">
-**Time complexity** quantifies the amount of operational time an algorithm takes to run as a function of the input length $n$. Big O notation is the standard tool used to categorize and compare this time complexity.
-</Callout>
+Compare the values of seven **representative functions** at input sizes 2, 4, and 8. For eight items, `n² = 64`, while `2ⁿ = 256`. Equal distances on the plot multiply the value by the same factor. Actual operation counts depend on the algorithm and can include constant factors.
 
-![Growth-rate curves range from constant and logarithmic to quadratic, exponential, and factorial as input size increases.](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/18ada0b2-6e63-4158-a51d-f5d75673751a/gallery/404b7288-1158-4a6d-90e6-13ee0568efdf)
+![At n = 8 the representative functions 1, log base two of n, n, n log base two of n, n squared, 2 to the n, and n factorial are 1, 3, 8, 24, 64, 256, and 40,320.](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/ba5422b9-c8ef-4672-b067-9c87b70f4f60/gallery/49db0149-1c1a-4972-9e02-5157b3f2d3bb)
 
-The table below summarizes the most common time complexity classes:
+For the algorithm examples below, assume fixed-size items and constant-cost operations on each item, such as one indexed read.
 
 | Growth | Meaning | Example pattern |
 | --- | --- | --- |
@@ -24,12 +22,12 @@ The table below summarizes the most common time complexity classes:
 | Linear O(n) | Runtime grows with the number of **input items**. | One loop |
 | Linearithmic O(n log n) | Runtime grows in proportion to **n × log n**. | Merge sort |
 | Quadratic O(n²) | Runtime grows with the square of the **input size**. | Nested loops |
-| Exponential O(2ⁿ) | Runtime doubles with each **additional input item**. | Recursive branching |
-| Factorial O(n!) | Runtime grows factorially with each **additional item**. | Generating all permutations |
+| Exponential O(2ⁿ) | Two choices per item double the number of possible outcomes. | Include or skip each item |
+| Factorial O(n!) | Runtime grows factorially with each **additional item**. | Visiting every possible ordering |
 
 ### Constant growth: `O(1)`
 
-An operation with constant growth takes the same amount of work regardless of input size.
+An operation with constant growth has a fixed upper bound on its work regardless of input size. For a nonempty array, reading its first item uses one indexed access.
 
 <Tabs items={["JavaScript", "Python"]}>
   <Tab value="JavaScript">
@@ -94,9 +92,7 @@ Logarithmic algorithms cut the problem size down (usually in half) with every st
   </Tab>
 </Tabs>
 
-Each step cuts the remaining search space in half. Doubling the size of the input only adds a single extra step.
-
-Try [First Bad Version](/practice/algorithm/first-bad-version) to find the first value that meets a condition. In [Search in Rotated Sorted Array](/practice/algorithm/search-in-rotated-sorted-array), decide which half is sorted before choosing which half to discard.
+Each unsuccessful comparison discards the midpoint and about half the candidates. Doubling the list adds at most one midpoint inspection to the worst case.
 
 ### Linear growth: `O(n)`
 
@@ -127,60 +123,7 @@ If the input contains `n` items, the loop performs work `n` times.
 
 Linearithmic algorithms split the problem into smaller subproblems logarithmically (`log n` levels) while performing linear work (`n`) across each level.
 
-<Tabs items={["JavaScript", "Python"]}>
-  <Tab value="JavaScript">
-    ```js
-    function mergeSort(items) {
-      if (items.length <= 1) return items;
-
-      const mid = Math.floor(items.length / 2);
-      const left = mergeSort(items.slice(0, mid));
-      const right = mergeSort(items.slice(mid));
-
-      return merge(left, right); // O(n) merge work across O(log n) division levels
-    }
-
-    function merge(left, right) {
-      const result = [];
-      let i = 0, j = 0;
-      while (i < left.length && j < right.length) {
-        if (left[i] < right[j]) result.push(left[i++]);
-        else result.push(right[j++]);
-      }
-      return [...result, ...left.slice(i), ...right.slice(j)];
-    }
-    ```
-  </Tab>
-  <Tab value="Python">
-    ```python
-    def merge_sort(items):
-        if len(items) <= 1:
-            return items
-
-        mid = len(items) // 2
-        left = merge_sort(items[:mid])
-        right = merge_sort(items[mid:])
-
-        return merge(left, right)  # O(n) merge work across O(log n) division levels
-
-    def merge(left, right):
-        result = []
-        i = j = 0
-        while i < len(left) and j < len(right):
-            if left[i] < right[j]:
-                result.append(left[i])
-                i += 1
-            else:
-                result.append(right[j])
-                j += 1
-        result.extend(left[i:])
-        result.extend(right[j:])
-        return result
-    ```
-  </Tab>
-</Tabs>
-
-Algorithms like Merge Sort and Quick Sort scale efficiently because `n log n` grows only slightly faster than linear `O(n)`.
+For example, merging sorted runs of length 1 into runs of length 2 touches each item once. Merging those runs into runs of length 4 touches them all again. Eight items take three such merge levels: `1 → 2 → 4 → 8`. The [logarithms lesson](/courses/data-structures-and-algorithms/docs/big-o-notation/logarithms) explains how to count the levels.
 
 ### Quadratic growth: `O(n²)`
 
@@ -212,71 +155,16 @@ If the input contains `n` items, the inner operation is performed `n × n` times
 
 ### Exponential growth: `O(2ⁿ)`
 
-Exponential algorithms double their execution time with each additional item added to the input. This pattern often appears when exploring all subsets or branching recursively.
-
-<Tabs items={["JavaScript", "Python"]}>
-  <Tab value="JavaScript">
-    ```js
-    function fibonacci(n) {
-      if (n <= 1) return n;
-      return fibonacci(n - 1) + fibonacci(n - 2); // Recursively branches twice per call
-    }
-    ```
-  </Tab>
-  <Tab value="Python">
-    ```python
-    def fibonacci(n):
-        if n <= 1:
-            return n
-        return fibonacci(n - 1) + fibonacci(n - 2)  # Recursively branches twice per call
-    ```
-  </Tab>
-</Tabs>
-
-Each function call spawns two additional recursive calls. The number of operations grows rapidly and quickly becomes impractical for larger inputs.
+Imagine choosing toppings from a list. Each topping can be included or skipped, independently. One topping gives two choices, two toppings give four subsets, and three give eight. With `n` toppings there are `2ⁿ` distinct subsets. Visiting each subset and doing one fixed-cost check per visit takes exponential time. Writing out every topping in every subset also costs time.
 
 ### Factorial growth: `O(n!)`
 
-Factorial growth is the steepest and slowest complexity class. It typically occurs in brute-force algorithms that generate all possible permutations or combinations.
-
-<Tabs items={["JavaScript", "Python"]}>
-  <Tab value="JavaScript">
-    ```js
-    function printAllPermutations(items, prefix = []) {
-      if (items.length === 0) {
-        console.log(prefix);
-        return;
-      }
-
-      for (let i = 0; i < items.length; i++) {
-        const remaining = items.slice(0, i).concat(items.slice(i + 1));
-        printAllPermutations(remaining, prefix.concat(items[i])); // Runs n! times
-      }
-    }
-    ```
-  </Tab>
-  <Tab value="Python">
-    ```python
-    def print_all_permutations(items, prefix=None):
-        if prefix is None:
-            prefix = []
-        if len(items) == 0:
-            print(prefix)
-            return
-
-        for i in range(len(items)):
-            remaining = items[:i] + items[i + 1:]
-            print_all_permutations(remaining, prefix + [items[i]])  # Runs n! times
-    ```
-  </Tab>
-</Tabs>
-
-An input of size `n` produces `n!` (n factorial) arrangements. For example, `n = 10` requires over 3.6 million operations, making factorial algorithms usable only for tiny datasets.
+Suppose three people, A, B, and C, stand in a line. There are three choices for the first place, two for the second, and one for the last: `3 × 2 × 1 = 6` possible lines. For `n` distinct people there are `n!` permutations. Testing every permutation takes at least that many visits. If you also copy out each full length-`n` ordering, writing the results alone takes `O(n × n!)` time.
 
 <Callout title="Comparing growth rates" type="info">
-From most efficient to least efficient:
+These representative functions grow increasingly quickly for large inputs:
 
-`O(1)` < `O(log n)` < `O(n)` < `O(n log n)` < `O(n²)` < `O(2ⁿ)` < `O(n!)`
+`1 → log n → n → n log n → n² → 2ⁿ → n!`
 </Callout>
 
 ## Simplifying Big O Expressions
@@ -293,19 +181,11 @@ For example:
 O(3n² + 5n + 7) → O(n²)
 ```
 
-The constant `3` is removed, and the lower-order terms `5n` and `7` are ignored. The big is equal to O(n²).
+The constant `3` is removed, and the lower-order terms `5n` and `7` are ignored. The resulting bound is `O(n²)`.
 
 ## Estimating Complexity
 
-Use the operations and loops in an algorithm to form a Big O expression, then simplify it using the same rules:
-
-- Constant factors do not change the final Big O class.
-- Lower-order work does not determine the final growth rate.
-- Focus on the part of the algorithm that grows the fastest as the input grows.
-
-<Callout title="Simplification rule" type="info">
-When several terms appear, retain the dominant term and omit constants and lower-order terms.
-</Callout>
+Decide what each loop counts before combining its costs. A scan of `n` items followed by a scan of `m` other items visits `n + m` items. Comparing every item of the first list with every item of the second visits `n × m` pairs. Keep both variables unless the problem tells you how the two lengths are related.
 
 ---
 

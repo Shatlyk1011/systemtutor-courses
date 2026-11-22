@@ -15,11 +15,11 @@ Submit your implementation when it passes the examples. Equal temperatures are n
 
 ## Solution
 
-![Resolving warmer days](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/03ce588b-f581-46ee-b98b-277331400e55/gallery/966f0f32-a19a-4bac-83f2-15e802eaaca5)
+Keep unresolved day indices on a stack. From bottom to top, their temperatures stay the same or decrease. An equal reading leaves both days waiting because a match must be strictly warmer.
 
-Keep a stack of unresolved indices whose temperatures decrease from bottom to top. A new warmer temperature resolves every cooler index at the top.
+![Day 2 at 71 degrees resolves the two pending days at 70 degrees. Pop day 1 first for a one-day wait, then day 0 for a two-day wait. The waits in day order are 2, 1, 0.](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/ba5422b9-c8ef-4672-b067-9c87b70f4f60/gallery/ab47bf2d-951f-4103-963c-5d2a0e5b1f15)
 
-Pop each resolved index and store the distance to the current day. Indices left in the stack keep the default answer of zero.
+For `[70, 70, 71]`, days 0 and 1 are both waiting when day 2 arrives. Pop day 1 and record `2 - 1 = 1`, then pop day 0 and record `2 - 0 = 2`. Day 2 has no warmer successor, so its answer stays zero. The result is `[2, 1, 0]`.
 
 <Tabs items={["JavaScript", "Python"]}>
   <Tab value="JavaScript">

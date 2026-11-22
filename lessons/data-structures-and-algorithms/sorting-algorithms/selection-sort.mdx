@@ -37,9 +37,6 @@ Now repeat the process beginning at the first unsorted position:
 2. Swap it into that region's first position.
 3. Move the boundary one position right.
 
-![Selection sort grows a sorted prefix by finding the smallest remaining value and swapping it into the next position.](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/8cf4a4c6-e776-4c97-aae1-bff7cf629553/gallery/dc4a2e9b-cb5b-448e-985d-086b391d2e27)
-
-
 <Callout title="Key pattern" type="info">
 Each pass grows the sorted region by one value and shrinks the unsorted region by one position.
 </Callout>
@@ -117,10 +114,7 @@ Use two loops:
 
 ### Swap logic
 
-A swap exchanges the value at the current position with the smallest value found by the inner loop.
-
-![A temporary variable holds 5 while the smallest value, 1, moves to the first position. The saved 5 fills its former position.](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/55e77424-3054-409c-a931-e158d18008d8/gallery/c10f62d2-0e8d-40fe-baf3-a6276ccc2b28)
-
+For the first pass over `[5, 3, 4, 1, 2]`, save `5` in `temporary`. Writing `1` to the front leaves `[1, 3, 4, 1, 2]` for a moment. Writing the saved `5` to the old minimum’s slot completes the swap and produces `[1, 3, 4, 5, 2]`.
 
 If `smallestIndex` is already `i`, the current value is already the smallest remaining value, so no meaningful move is needed (avoiding a redundant self-swap).
 
@@ -175,9 +169,13 @@ The inner loop scans the remaining unsorted values for every outer-loop position
 | Case | Time complexity | Why |
 |---|---|---|
 | **Best Case** | **O(n²)** | Must scan through the entire unsorted region even if already sorted. |
-| **Average Case** | **O(n²)** | Nested loops perform $\approx \frac{n(n - 1)}{2}$ total comparisons. |
-| **Worst Case** | **O(n²)** | Reverse sorted input requires scanning every pair on every pass. |
+| **Average Case** | **O(n²)** | The shrinking scans make exactly $n(n - 1)/2$ comparisons. |
+| **Worst Case** | **O(n²)** | Even in reverse order, each pass compares the current minimum with every remaining candidate once. |
 | **Space Complexity** | **O(1)** | Sorts in-place with constant auxiliary memory. |
+
+### What happens to ties?
+
+Suppose two records A and B have key `2` and C has key `1`. Starting with `[A, B, C]`, the first swap moves C to the front and A to the back, giving `[C, B, A]`. A and B have traded places even though their keys match. This swap-based selection sort is unstable.
 
 ### Comparison with Bubble Sort
 
