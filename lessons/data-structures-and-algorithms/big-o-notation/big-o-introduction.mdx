@@ -1,13 +1,15 @@
 ---
 title: "Big O & Time Complexity"
-description: "Understand how Big O notation describes algorithmic growth rates, compare constant, logarithmic, linear, linearithmic, quadratic, exponential, and factorial complexities, and learn how to simplify Big O expressions."
+description: "Learn how Big O describes time complexity. Compare O(1), O(log n), O(n), and other growth rates with examples in JavaScript and Python."
 ---
+
+**Big O notation** gives an upper bound on how fast an algorithm’s cost can grow as the input gets larger. For example, scanning an array of `n` items takes `O(n)` time because the work grows at most linearly. For the formal definition, see [MIT’s notes on asymptotic complexity](https://ocw.mit.edu/courses/6-006-introduction-to-algorithms-spring-2020/c6d8f06c6f11e3342633dec85498f551_MIT6_006S20_r01.pdf).
 
 ## Counting work as input grows
 
 Let `n` be the number of items in a list. Reading its first item takes one indexed read. Finding its minimum by scanning a nonempty list takes `n − 1` comparisons. If the list doubles in size, the first operation still takes one read and the scan needs about twice as many comparisons.
 
-**Big O** gives an upper bound on how fast a cost grows for large inputs. A linear scan also fits a looser quadratic upper bound, but the most informative bound here is `O(n)`. In this course we give a tight growth rate when we know it and name the case being analyzed. A search may finish on its first comparison in the best case and inspect every item in the worst case.
+A linear scan also fits a looser quadratic upper bound, but `O(n)` describes its growth more precisely. Name the case you are analyzing. A search may finish on its first comparison in the best case and inspect every item in the worst case.
 
 Compare the values of seven **representative functions** at input sizes 2, 4, and 8. For eight items, `n² = 64`, while `2ⁿ = 256`. Equal distances on the plot multiply the value by the same factor. Actual operation counts depend on the algorithm and can include constant factors.
 
