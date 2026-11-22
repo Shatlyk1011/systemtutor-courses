@@ -1,5 +1,5 @@
 title: Distributed patterns
-description: Trace how data moves between machines in a partitioned store, a chat service, file uploads, and a feed.
+description: This optional module covers consistent hashing, distributed key-value stores, real-time chat, file uploads, and feeds.
 pages:
   - partitioning-and-consistent-hashing
   - distributed-key-value-store
