@@ -7,9 +7,13 @@ slug: "practice-medium-daily-temperatures"
 
 ## Try It Yourself
 
-Use the editor below to calculate how many days each temperature waits for a warmer value. Store indices whose answer has not yet been found.
+Use the editor below to calculate how many days each temperature waits for a warmer value.
 
-Submit your implementation when it passes the examples. Equal temperatures are not warmer, and some days may never receive an answer.
+<Callout title="Track days waiting for a warmer temperature" type="info">
+Store the indices of days still waiting. Equal temperatures do not end the wait. Use `0` for days with no warmer future temperature.
+</Callout>
+
+Submit your implementation when it passes the examples.
 
 <PracticeExercise problemId="daily-temperatures" />
 

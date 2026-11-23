@@ -7,9 +7,13 @@ slug: "practice-hard-sliding-window-maximum"
 
 ## Try It Yourself
 
-Return the maximum for each window of `k` consecutive elements. As the window moves one step, one value enters and another expires. A **deque** (double-ended queue) lets you remove candidates from either end.
+Return the maximum for each window of `k` consecutive elements. As the window moves one step, one value enters and another expires.
 
-Submit your implementation when it passes the examples. Remove indices that leave the window and values that can no longer become a maximum.
+<Callout title="Track maximum candidates in a deque" type="info">
+A **deque** (double-ended queue) lets you remove candidates from either end. Remove indices that leave the window and candidates that can no longer become a maximum.
+</Callout>
+
+Submit your implementation when it passes the examples.
 
 <PracticeExercise problemId="sliding-window-maximum" />
 

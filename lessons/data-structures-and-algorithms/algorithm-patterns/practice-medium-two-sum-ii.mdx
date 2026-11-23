@@ -7,9 +7,13 @@ slug: "practice-medium-two-sum-ii"
 
 ## Try It Yourself
 
-Use the editor below to find the target pair without building a lookup map. Use the array's sorted order to decide which pointer should move after each sum.
+Find the target pair in the sorted array. JavaScript and Python start array indices at `0`. The answer counts positions starting at `1`, so add `1` to each index when you return it.
 
-Submit your implementation when it passes the examples. Return one-based indices and handle negative and duplicate values.
+<Callout title="Use constant extra space" type="info">
+Find the pair with two pointers and `O(1)` extra space without building a lookup map. Use the array's sorted order to decide which pointer should move after each sum. Handle negative and duplicate values.
+</Callout>
+
+Run the examples before submitting.
 
 <PracticeExercise problemId="two-sum-ii" />
 
@@ -17,9 +21,9 @@ Submit your implementation when it passes the examples. Return one-based indices
 
 ![For target 13, 1 + 15 is too large, 1 + 11 is too small, and 2 + 11 matches.](https://pub-d143c03df8bc45d5a4589bc793aa52e4.r2.dev/courses/1e3e13b6-0db0-43d8-9eab-205bdcf6fa8f/gallery/844b79e4-d2d6-4e16-969c-f25d6d228cdc)
 
-Place one pointer at each end of the sorted array. If their sum is too small, moving the left pointer right is the only way to increase it. If it is too large, move the right pointer left.
+Start `left` at the first element and `right` at the last. If the sum is too small, even the largest remaining partner falls short for `numbers[left]`, so move `left` one step right. If the sum is too large, even the smallest remaining partner makes the sum too large for `numbers[right]`, so move `right` one step left.
 
-In the figure, the values `2` and `11` lie at zero-based indices `1` and `4`. Add one to each, so the returned answer is `[2, 5]`.
+In the figure, the values `2` and `11` match the target at zero-based indices `1` and `4`. They are the second and fifth elements, so `[left + 1, right + 1]` gives `[2, 5]`.
 
 <Tabs items={["JavaScript", "Python"]}>
   <Tab value="JavaScript">
@@ -65,5 +69,5 @@ In the figure, the values `2` and `11` lie at zero-based indices `1` and `4`. Ad
 
 | Measure | Complexity | Explanation |
 |---|---:|---|
-| Time | `O(n)` | Each pointer moves inward at most n positions. |
+| Time | `O(n)` | Each check either returns the answer or moves one pointer inward. There are at most `n - 1` checks. |
 | Auxiliary space | `O(1)` | Only two pointer indices and the current sum are stored. |

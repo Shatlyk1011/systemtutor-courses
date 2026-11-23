@@ -7,9 +7,13 @@ slug: "practice-merge-sorted-array"
 
 ## Try It Yourself
 
-Use the editor below to merge nums2 into the available space at the end of nums1. Compare the largest remaining values so unread values in nums1 are not overwritten.
+Use the editor below to merge `nums2` into `nums1`, which has room for both arrays.
 
-Submit your implementation when it passes the examples. Either input range may be empty, and values may be negative.
+<Callout title="Merge from the end of nums1" type="info">
+Compare the largest remaining values and fill the available positions from right to left. This protects unread values in `nums1`. Either input range may be empty, and values may be negative.
+</Callout>
+
+Submit your implementation when it passes the examples.
 
 <PracticeExercise problemId="merge-sorted-array" />
 

@@ -7,9 +7,13 @@ slug: "practice-valid-palindrome"
 
 ## Try It Yourself
 
-Use the editor below to solve the problem before reading the solution. Start one pointer at the beginning of the string and another at the end. Decide how each pointer should move when it reaches a character that is not a letter or digit, and return `false` as soon as the two meaningful characters do not match.
+Use the editor below to decide whether the string is a palindrome.
 
-Submit your implementation when it passes the examples. A complete submission also needs to handle **capitalization, punctuation, numbers**, and a single-character string.
+<Callout title="Compare letters and digits from both ends" type="info">
+Start one pointer at each end. Skip characters other than letters and digits, ignore capitalization when comparing letters, and return `false` on the first mismatch. Check single-character strings too.
+</Callout>
+
+Submit your implementation when it passes the examples.
 
 <PracticeExercise problemId="valid-palindrome" />
 

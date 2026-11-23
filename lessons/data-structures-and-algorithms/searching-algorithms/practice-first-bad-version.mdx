@@ -7,9 +7,13 @@ slug: "practice-first-bad-version"
 
 ## Try It Yourself
 
-Use the editor below to find the boundary where good versions become bad. This runner supplies the hidden threshold as a number, `firstBad`. To practice the original search, use it only in the simulated version check, `version >= firstBad`. Base every search decision on that yes-or-no result.
+Use the editor below to find the boundary where good versions become bad.
 
-Submit your implementation when it passes the examples. The first bad version may be the first or last version in a very large range.
+<Callout title="Use the simulated version check" type="info">
+The runner supplies `firstBad` as a number. Use it only in the check `version >= firstBad`, and base each search decision on the yes-or-no result. The first bad version may be at either end of a very large range.
+</Callout>
+
+Submit your implementation when it passes the examples.
 
 <PracticeExercise problemId="first-bad-version" />
 
